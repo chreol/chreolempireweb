@@ -53,12 +53,11 @@ export default function CartPage() {
           payment_status: "pending",
           client_name: name || "Client web",
           client_email: email,
-          source: "web",
         })
         .select("id")
         .single();
 
-      if (error || !order) throw new Error("Erreur lors de la création de la commande");
+      if (error || !order) throw new Error(error?.message ?? "Erreur lors de la création de la commande");
 
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/initiate-payment`,
