@@ -3,10 +3,12 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CONTACT, CRYPTO_RATES, CRYPTO_NETWORKS, MOMO_OPERATORS } from "@/lib/services";
+import { useCart } from "@/contexts/CartContext";
 import { useHistory } from "@/contexts/HistoryContext";
 import { useToast } from "@/components/Toast";
 
 export default function CryptoPage() {
+  const { addItem } = useCart();
   const { addEntry } = useHistory();
   const { showToast } = useToast();
 
@@ -24,6 +26,10 @@ export default function CryptoPage() {
 
   const crypto   = CRYPTO_RATES.find(c => c.id === cryptoId)!;
   const networks = CRYPTO_NETWORKS[cryptoId] ?? [];
+  const numAmount = parseFloat(amount) || 0;
+
+  const fcfaReceived   = direction === "sell" ? Math.round(numAmount * crypto.buyRate)  : 0;
+  const cryptoReceived = direction === "buy"  ? numAmount / crypto.sellRate             : 0;
 
   function selectCrypto(id: string) {
     setCryptoId(id);
@@ -32,21 +38,13 @@ export default function CryptoPage() {
     setErrors({});
   }
 
-  const numAmount = parseFloat(amount) || 0;
-  const fcfaReceived = direction === "sell" ? Math.round(numAmount * crypto.buyRate) : 0;
-  const cryptoReceived = direction === "buy" && numAmount > 0 ? numAmount / crypto.sellRate : 0;
-
-  function copyWallet(addr: string) {
-    navigator.clipboard.writeText(addr).then(() => showToast("Adresse copiée !", "success"));
-  }
-
   function validate() {
     const e: Record<string, string> = {};
     if (!amount || numAmount <= 0) e.amount = "Montant requis";
     if (direction === "sell") {
       if (!txid || txid.length < 20) e.txid = "Hash requis (min 20 caractères)";
       if (!beneficiary.trim()) e.beneficiary = "Nom requis";
-      if (!momoPhone || momoPhone.length !== 9) e.momoPhone = "Numéro invalide (9 chiffres sans indicatif)";
+      if (!momoPhone || momoPhone.length !== 9) e.momoPhone = "Numéro invalide (9 chiffres)";
     } else {
       if (!walletAddr.trim()) e.walletAddr = "Adresse wallet requise";
     }
@@ -54,39 +52,39 @@ export default function CryptoPage() {
     return Object.keys(e).length === 0;
   }
 
+  function buildDetails() {
+    const op = MOMO_OPERATORS.find(o => o.id === momoOp)?.name ?? momoOp;
+    if (direction === "sell") {
+      return `Crypto : ${crypto.name} | Réseau : ${network} | Montant : ${amount} ${crypto.unit}\nTxID : ${txid}\nBénéficiaire : ${beneficiary} | ${op} +237 ${momoPhone}`;
+    }
+    return `Crypto : ${crypto.name} | Réseau : ${network} | Je paie : ${numAmount.toLocaleString("fr-FR")} FCFA\nWallet : ${walletAddr}`;
+  }
+
   function buildWAMsg() {
     const op = MOMO_OPERATORS.find(o => o.id === momoOp)?.name ?? momoOp;
     if (direction === "sell") {
       return encodeURIComponent(
-        `Bonjour Chreol Empire,\n\n` +
-        `📤 VENTE CRYPTO\n` +
-        `Crypto : ${crypto.name} (${crypto.fullName})\n` +
-        `Réseau : ${network}\n` +
-        `Montant envoyé : ${amount} ${crypto.unit}\n` +
-        `À recevoir : ${fcfaReceived.toLocaleString("fr-FR")} FCFA\n\n` +
-        `TxID / Hash : ${txid}\n\n` +
-        `💰 Réception MoMo\n` +
-        `Opérateur : ${op}\n` +
-        `Numéro : +237 ${momoPhone}\n` +
-        `Nom bénéficiaire : ${beneficiary}`,
+        `Bonjour Chreol Empire,\n\n📤 VENTE CRYPTO\nCrypto : ${crypto.name} (${crypto.fullName})\nRéseau : ${network}\nMontant : ${amount} ${crypto.unit}\nÀ recevoir : ${fcfaReceived.toLocaleString("fr-FR")} FCFA\n\nTxID : ${txid}\n\n💰 Réception MoMo\nOpérateur : ${op}\nNuméro : +237 ${momoPhone}\nNom : ${beneficiary}`,
       );
     }
     return encodeURIComponent(
-      `Bonjour Chreol Empire,\n\n` +
-      `📥 ACHAT CRYPTO\n` +
-      `Crypto : ${crypto.name} (${crypto.fullName})\n` +
-      `Réseau : ${network}\n` +
-      `Je paie : ${numAmount.toLocaleString("fr-FR")} FCFA\n` +
-      `À recevoir : ${cryptoReceived.toFixed(6)} ${crypto.unit}\n\n` +
-      `Adresse wallet : ${walletAddr}`,
+      `Bonjour Chreol Empire,\n\n📥 ACHAT CRYPTO\nCrypto : ${crypto.name} (${crypto.fullName})\nRéseau : ${network}\nJe paie : ${numAmount.toLocaleString("fr-FR")} FCFA\nÀ recevoir : ${cryptoReceived.toFixed(6)} ${crypto.unit}\n\nWallet : ${walletAddr}`,
     );
   }
 
-  function handleOrder() {
-    if (!validate()) {
-      showToast("Corrigez les erreurs avant de continuer", "error");
-      return;
-    }
+  function handleAddToCart() {
+    if (!validate()) { showToast("Corrigez les erreurs avant d'ajouter au panier", "error"); return; }
+    const op = MOMO_OPERATORS.find(o => o.id === momoOp)?.name ?? momoOp;
+    addItem({
+      id: `crypto-${cryptoId}-${Date.now()}`,
+      cardName: direction === "sell" ? `Vente ${crypto.name} (${network})` : `Achat ${crypto.name} (${network})`,
+      amount: direction === "sell"
+        ? `${amount} ${crypto.unit} → ${fcfaReceived.toLocaleString("fr-FR")} FCFA via ${op}`
+        : `${numAmount.toLocaleString("fr-FR")} FCFA → ${cryptoReceived.toFixed(6)} ${crypto.unit}`,
+      price: direction === "sell" ? fcfaReceived : numAmount,
+      type: direction === "sell" ? "sell" : "buy",
+      details: buildDetails(),
+    });
     addEntry({
       service: `Crypto — ${direction === "sell" ? "Vente" : "Achat"} ${crypto.name}`,
       details: direction === "sell"
@@ -95,12 +93,16 @@ export default function CryptoPage() {
       amount: direction === "sell" ? fcfaReceived : numAmount,
       currency: "FCFA",
       status: "pending",
-      waText: buildWAMsg(),
     });
+    showToast(`${direction === "sell" ? "Vente" : "Achat"} ${crypto.name} ajouté au panier !`, "success");
+  }
+
+  function handleWhatsApp() {
+    if (!validate()) { showToast("Corrigez les erreurs avant de continuer", "error"); return; }
     window.open(`https://wa.me/${CONTACT.whatsapp}?text=${buildWAMsg()}`, "_blank");
   }
 
-  const inputCls = "w-full px-4 py-3 rounded-2xl text-white text-sm outline-none transition-colors";
+  const inputCls  = "w-full px-4 py-3 rounded-2xl text-white text-sm outline-none transition-colors";
   const inputBase = { background: "var(--bg-elevated)", border: "1px solid var(--border)" };
   const inputErr  = { ...inputBase, borderColor: "#EF4444" };
 
@@ -110,6 +112,17 @@ export default function CryptoPage() {
         <label className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>{label}</label>
         {children}
         {error && <span className="text-xs font-semibold" style={{ color: "#EF4444" }}>{error}</span>}
+      </div>
+    );
+  }
+
+  function CalcRow({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
+    return (
+      <div className="flex justify-between items-center py-2" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+        <span className="text-xs" style={{ color: "var(--text-muted)" }}>{label}</span>
+        <span className={`text-sm font-bold ${highlight ? "" : "text-white"}`} style={highlight ? { color: "var(--gold)" } : {}}>
+          {value}
+        </span>
       </div>
     );
   }
@@ -144,7 +157,7 @@ export default function CryptoPage() {
         ))}
       </div>
 
-      {/* Crypto selector — 3 cols mobile, 5 desktop */}
+      {/* Crypto selector */}
       <div className="mb-6">
         <p className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: "var(--text-muted)" }}>Choisir la crypto</p>
         <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
@@ -190,8 +203,7 @@ export default function CryptoPage() {
             error={errors.amount}
           >
             <input
-              type="number"
-              min="0"
+              type="number" min="0"
               placeholder={direction === "sell" ? "ex: 10" : "ex: 50 000"}
               value={amount}
               onChange={e => { setAmount(e.target.value); setErrors(p => ({ ...p, amount: "" })); }}
@@ -200,25 +212,34 @@ export default function CryptoPage() {
             />
           </Field>
 
-          {/* Result */}
+          {/* Tableau de calcul */}
           {numAmount > 0 && (
             <motion.div
               initial={{ opacity: 0, scale: 0.97 }}
               animate={{ opacity: 1, scale: 1 }}
               className="rounded-2xl p-4"
-              style={{ background: crypto.color + "15", border: `1px solid ${crypto.color}44` }}
+              style={{ background: crypto.color + "12", border: `1px solid ${crypto.color}44` }}
             >
-              <p className="text-xs font-bold mb-1" style={{ color: crypto.color }}>
-                {direction === "sell" ? "Vous recevez" : "Vous obtenez"}
+              <p className="text-xs font-black uppercase tracking-wider mb-3" style={{ color: crypto.color }}>
+                Tableau de calcul
               </p>
-              <p className="text-2xl font-black text-white">
-                {direction === "sell"
-                  ? `${fcfaReceived.toLocaleString("fr-FR")} FCFA`
-                  : `${cryptoReceived.toFixed(6)} ${crypto.unit}`}
-              </p>
-              <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>
-                Taux : 1 {crypto.unit} = {(direction === "sell" ? crypto.buyRate : crypto.sellRate).toLocaleString("fr-FR")} FCFA
-              </p>
+              {direction === "sell" ? (
+                <>
+                  <CalcRow label="Crypto envoyée" value={`${amount} ${crypto.unit}`} />
+                  <CalcRow label="Réseau" value={network} />
+                  <CalcRow label={`Taux d'achat`} value={`1 ${crypto.unit} = ${crypto.buyRate.toLocaleString("fr-FR")} FCFA`} />
+                  <CalcRow label="Commission" value="0 FCFA (0%)" />
+                  <CalcRow label="Vous recevez" value={`${fcfaReceived.toLocaleString("fr-FR")} FCFA`} highlight />
+                </>
+              ) : (
+                <>
+                  <CalcRow label="FCFA à payer" value={`${numAmount.toLocaleString("fr-FR")} FCFA`} />
+                  <CalcRow label="Réseau" value={network} />
+                  <CalcRow label="Taux de vente" value={`1 ${crypto.unit} = ${crypto.sellRate.toLocaleString("fr-FR")} FCFA`} />
+                  <CalcRow label="Commission" value="0 FCFA (0%)" />
+                  <CalcRow label="Vous recevez" value={`${cryptoReceived.toFixed(6)} ${crypto.unit}`} highlight />
+                </>
+              )}
             </motion.div>
           )}
 
@@ -227,44 +248,28 @@ export default function CryptoPage() {
             <>
               <Field label="TxID / Hash de la transaction" error={errors.txid}>
                 <input
-                  type="text"
-                  placeholder="Collez votre hash de transaction ici…"
+                  type="text" placeholder="Collez votre hash de transaction ici…"
                   value={txid}
                   onChange={e => { setTxid(e.target.value); setErrors(p => ({ ...p, txid: "" })); }}
-                  className={inputCls}
-                  style={errors.txid ? inputErr : inputBase}
+                  className={inputCls} style={errors.txid ? inputErr : inputBase}
                 />
               </Field>
-
               <Field label="Nom du bénéficiaire" error={errors.beneficiary}>
                 <input
-                  type="text"
-                  placeholder="Votre nom complet"
+                  type="text" placeholder="Votre nom complet"
                   value={beneficiary}
                   onChange={e => { setBeneficiary(e.target.value); setErrors(p => ({ ...p, beneficiary: "" })); }}
-                  className={inputCls}
-                  style={errors.beneficiary ? inputErr : inputBase}
+                  className={inputCls} style={errors.beneficiary ? inputErr : inputBase}
                 />
               </Field>
-
               <Field label="Réception Mobile Money" error={errors.momoPhone}>
                 <div className="flex gap-2">
-                  <select
-                    value={momoOp}
-                    onChange={e => setMomoOp(e.target.value)}
-                    className="px-3 py-3 rounded-2xl text-white text-sm outline-none shrink-0"
-                    style={inputBase}
-                  >
-                    {MOMO_OPERATORS.slice(0, 2).map(o => (
-                      <option key={o.id} value={o.id}>{o.name}</option>
-                    ))}
+                  <select value={momoOp} onChange={e => setMomoOp(e.target.value)} className="px-3 py-3 rounded-2xl text-white text-sm outline-none shrink-0" style={inputBase}>
+                    {MOMO_OPERATORS.slice(0, 2).map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
                   </select>
                   <div className="flex flex-1 items-center rounded-2xl overflow-hidden" style={errors.momoPhone ? inputErr : inputBase}>
                     <span className="px-3 text-sm font-bold shrink-0" style={{ color: "var(--text-muted)" }}>+237</span>
-                    <input
-                      type="tel"
-                      placeholder="6XXXXXXXX"
-                      value={momoPhone}
+                    <input type="tel" placeholder="6XXXXXXXX" value={momoPhone}
                       onChange={e => { setMomoPhone(e.target.value.replace(/\D/g, "").slice(0, 9)); setErrors(p => ({ ...p, momoPhone: "" })); }}
                       className="flex-1 py-3 pr-4 bg-transparent text-white text-sm outline-none"
                     />
@@ -279,16 +284,14 @@ export default function CryptoPage() {
             <Field label="Adresse wallet de réception" error={errors.walletAddr}>
               <div className="relative">
                 <input
-                  type="text"
-                  placeholder={`Adresse ${crypto.name} réseau ${network}…`}
+                  type="text" placeholder={`Adresse ${crypto.name} réseau ${network}…`}
                   value={walletAddr}
                   onChange={e => { setWalletAddr(e.target.value); setErrors(p => ({ ...p, walletAddr: "" })); }}
-                  className={inputCls + " pr-12"}
-                  style={errors.walletAddr ? inputErr : inputBase}
+                  className={inputCls + " pr-12"} style={errors.walletAddr ? inputErr : inputBase}
                 />
                 {walletAddr && (
                   <button
-                    onClick={() => copyWallet(walletAddr)}
+                    onClick={() => navigator.clipboard.writeText(walletAddr).then(() => showToast("Adresse copiée !", "success"))}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-xs px-2 py-1 rounded-lg font-bold hover:bg-white/10 transition-colors"
                     style={{ color: "var(--gold)" }}
                   >
@@ -301,14 +304,23 @@ export default function CryptoPage() {
         </motion.div>
       </AnimatePresence>
 
-      {/* CTA */}
-      <button
-        onClick={handleOrder}
-        className="w-full mt-8 py-4 rounded-full font-black text-white text-sm transition-opacity hover:opacity-85"
-        style={{ background: "#25D366" }}
-      >
-        💬 {direction === "sell" ? "Envoyer ma demande de vente" : "Commander via WhatsApp"}
-      </button>
+      {/* Actions */}
+      <div className="flex flex-col gap-3 mt-8">
+        <button
+          onClick={handleAddToCart}
+          className="w-full py-4 rounded-full font-black text-black text-sm transition-opacity hover:opacity-85"
+          style={{ background: "var(--gold)" }}
+        >
+          🛒 Ajouter au panier
+        </button>
+        <button
+          onClick={handleWhatsApp}
+          className="w-full py-3 rounded-full font-black text-white text-sm transition-opacity hover:opacity-85"
+          style={{ background: "#25D366" }}
+        >
+          💬 {direction === "sell" ? "Commander directement via WhatsApp" : "Commander via WhatsApp"}
+        </button>
+      </div>
 
       {/* Trust */}
       <div className="flex flex-wrap gap-3 mt-6 justify-center">
@@ -320,7 +332,7 @@ export default function CryptoPage() {
         ))}
       </div>
 
-      {/* How it works collapsible */}
+      {/* How it works */}
       <div className="mt-8 rounded-2xl overflow-hidden" style={{ border: "1px solid var(--border)" }}>
         <button
           onClick={() => setHowOpen(p => !p)}
@@ -333,8 +345,8 @@ export default function CryptoPage() {
         {howOpen && (
           <div className="px-5 py-4 flex flex-col gap-3" style={{ background: "var(--bg-elevated)" }}>
             {(direction === "sell"
-              ? ["Sélectionnez votre crypto et entrez le montant", "Envoyez la crypto à notre adresse et copiez le TxID", "Remplissez vos informations MoMo et envoyez via WhatsApp", "Recevez vos FCFA sur votre Mobile Money en 15–30 min"]
-              : ["Choisissez la crypto, le réseau et le montant FCFA", "Entrez votre adresse wallet de réception", "Confirmez la commande via WhatsApp", "Payez via MoMo et recevez votre crypto en 15–30 min"]
+              ? ["Sélectionnez votre crypto et entrez le montant", "Envoyez la crypto à notre adresse et copiez le TxID", "Remplissez vos informations MoMo et ajoutez au panier", "Confirmez la commande — recevez vos FCFA en 15–30 min"]
+              : ["Choisissez la crypto, le réseau et le montant FCFA", "Entrez votre adresse wallet de réception", "Ajoutez au panier et confirmez via WhatsApp", "Payez via MoMo — recevez votre crypto en 15–30 min"]
             ).map((s, i) => (
               <div key={i} className="flex items-start gap-3 text-sm" style={{ color: "var(--text-secondary)" }}>
                 <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black shrink-0 mt-0.5" style={{ background: "var(--gold)", color: "#0A0A0A" }}>

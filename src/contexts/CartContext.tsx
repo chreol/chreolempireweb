@@ -9,6 +9,7 @@ export interface CartItem {
   price: number;
   qty: number;
   type?: "buy" | "sell";
+  details?: string;
 }
 
 interface CartCtx {

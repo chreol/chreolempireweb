@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { UBA_CARDS, UBA_RECHARGE_FEES, CONTACT } from "@/lib/services";
+import { useCart } from "@/contexts/CartContext";
 import { useHistory } from "@/contexts/HistoryContext";
 import { useToast } from "@/components/Toast";
 
@@ -13,6 +14,7 @@ function calcFee(amount: number) {
 }
 
 export default function UBAPage() {
+  const { addItem } = useCart();
   const { addEntry } = useHistory();
   const { showToast } = useToast();
 
@@ -64,16 +66,28 @@ export default function UBAPage() {
     );
   }
 
-  function handleRecharge() {
+  function handleAddToCart() {
     if (!validate()) { showToast("Corrigez les erreurs", "error"); return; }
+    addItem({
+      id: `uba-recharge-${Date.now()}`,
+      cardName: "UBA Cameroun — Recharge",
+      amount: `${numAmount.toLocaleString("fr-FR")} FCFA + ${fee.toLocaleString("fr-FR")} FCFA frais`,
+      price: total,
+      type: "buy",
+      details: `Carte : ${card6}••••••${card4} | Client ID : ${clientId}\nNom : ${fullName} | +237 ${phone}\nMontant : ${numAmount.toLocaleString("fr-FR")} FCFA | Frais : ${fee.toLocaleString("fr-FR")} FCFA`,
+    });
     addEntry({
       service: "UBA Cameroun — Recharge",
-      details: `${numAmount.toLocaleString("fr-FR")} FCFA + ${fee.toLocaleString("fr-FR")} FCFA frais`,
+      details: `${numAmount.toLocaleString("fr-FR")} FCFA + ${fee.toLocaleString("fr-FR")} FCFA frais = ${total.toLocaleString("fr-FR")} FCFA`,
       amount: total,
       currency: "FCFA",
       status: "pending",
-      waText: buildRechargeMsg(),
     });
+    showToast("Recharge UBA ajoutée au panier !", "success");
+  }
+
+  function handleRecharge() {
+    if (!validate()) { showToast("Corrigez les erreurs", "error"); return; }
     window.open(`https://wa.me/${CONTACT.whatsapp}?text=${buildRechargeMsg()}`, "_blank");
   }
 
@@ -285,11 +299,18 @@ export default function UBAPage() {
             </details>
 
             <button
+              onClick={handleAddToCart}
+              className="w-full py-4 rounded-full font-black text-black text-sm transition-opacity hover:opacity-85"
+              style={{ background: "var(--gold)" }}
+            >
+              🛒 Ajouter au panier
+            </button>
+            <button
               onClick={handleRecharge}
-              className="w-full py-4 rounded-full font-black text-white text-sm transition-opacity hover:opacity-85"
+              className="w-full py-3 rounded-full font-black text-white text-sm transition-opacity hover:opacity-85"
               style={{ background: "#25D366" }}
             >
-              💬 Envoyer la demande de recharge
+              💬 Commander directement via WhatsApp
             </button>
           </motion.div>
         )}

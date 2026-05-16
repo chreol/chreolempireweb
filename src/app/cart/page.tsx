@@ -29,9 +29,12 @@ export default function CartPage() {
   const summary   = items.map(i => `${i.cardName} ×${i.qty} (${i.amount})`).join(", ");
 
   function buildWAMsg() {
-    const lines = items.map(i =>
-      `• ${i.cardName} — ${i.amount} × ${i.qty} = ${(i.price * i.qty).toLocaleString("fr-FR")} FCFA`,
-    ).join("\n");
+    const lines = items.map(i => {
+      if (i.details) {
+        return `• ${i.cardName}\n  ${i.details}\n  Montant : ${(i.price * i.qty).toLocaleString("fr-FR")} FCFA`;
+      }
+      return `• ${i.cardName} — ${i.amount} × ${i.qty} = ${(i.price * i.qty).toLocaleString("fr-FR")} FCFA`;
+    }).join("\n\n");
     const payLabel = isSell
       ? "Vente / Échange"
       : payMethod === "mtn" ? "MTN MoMo" : payMethod === "orange" ? "Orange Money" : "WhatsApp";
