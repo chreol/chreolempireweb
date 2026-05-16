@@ -8,6 +8,7 @@ export interface CartItem {
   amount: string;
   price: number;
   qty: number;
+  type?: "buy" | "sell";
 }
 
 interface CartCtx {
@@ -16,6 +17,7 @@ interface CartCtx {
   total: number;
   addItem: (item: Omit<CartItem, "qty">) => void;
   removeItem: (id: string) => void;
+  adjustQty: (id: string, delta: number) => void;
   clearCart: () => void;
 }
 
@@ -49,6 +51,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems(prev => prev.filter(i => i.id !== id));
   }, []);
 
+  const adjustQty = useCallback((id: string, delta: number) => {
+    setItems(prev =>
+      prev
+        .map(i => i.id === id ? { ...i, qty: i.qty + delta } : i)
+        .filter(i => i.qty > 0),
+    );
+  }, []);
+
   const clearCart = useCallback(() => {
     setItems([]);
   }, []);
@@ -57,7 +67,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const total = items.reduce((s, i) => s + i.price * i.qty, 0);
 
   return (
-    <Ctx.Provider value={{ items, count, total, addItem, removeItem, clearCart }}>
+    <Ctx.Provider value={{ items, count, total, addItem, removeItem, adjustQty, clearCart }}>
       {children}
     </Ctx.Provider>
   );

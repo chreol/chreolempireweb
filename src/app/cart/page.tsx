@@ -15,7 +15,7 @@ const PAY_METHODS = [
 type PayId = (typeof PAY_METHODS)[number]["id"];
 
 export default function CartPage() {
-  const { items, total, removeItem, clearCart } = useCart();
+  const { items, total, removeItem, adjustQty, clearCart } = useCart();
   const [name, setName]               = useState("");
   const [email, setEmail]             = useState("");
   const [phone, setPhone]             = useState("");
@@ -24,16 +24,19 @@ export default function CartPage() {
   const [loading, setLoading]         = useState(false);
   const [done, setDone]               = useState<string | null>(null);
 
-  const canCampay = payMethod === "mtn" || payMethod === "orange";
+  const isSell    = items.length > 0 && items.every(i => i.type === "sell");
+  const canCampay = !isSell && (payMethod === "mtn" || payMethod === "orange");
   const summary   = items.map(i => `${i.cardName} ×${i.qty} (${i.amount})`).join(", ");
 
   function buildWAMsg() {
-    const lines = items
-      .map(i => `• ${i.cardName} — ${i.amount} × ${i.qty} = ${(i.price * i.qty).toLocaleString("fr-FR")} FCFA`)
-      .join("\n");
-    const payLabel = payMethod === "mtn" ? "MTN MoMo" : payMethod === "orange" ? "Orange Money" : "WhatsApp";
+    const lines = items.map(i =>
+      `• ${i.cardName} — ${i.amount} × ${i.qty} = ${(i.price * i.qty).toLocaleString("fr-FR")} FCFA`,
+    ).join("\n");
+    const payLabel = isSell
+      ? "Vente / Échange"
+      : payMethod === "mtn" ? "MTN MoMo" : payMethod === "orange" ? "Orange Money" : "WhatsApp";
     return encodeURIComponent(
-      `Bonjour Chreol Empire,\n\nJe souhaite commander :\n${lines}\n\nTotal : ${total.toLocaleString("fr-FR")} FCFA\nPaiement : ${payLabel}\n\nNom : ${name}\nTél : ${phone}`,
+      `Bonjour Chreol Empire,\n\nJe souhaite :\n${lines}\n\nTotal : ${total.toLocaleString("fr-FR")} FCFA\nType : ${payLabel}\n\nNom : ${name}\nTél : ${phone}`,
     );
   }
 
@@ -102,9 +105,13 @@ export default function CartPage() {
     return (
       <div className="max-w-xl mx-auto px-4 py-20 text-center">
         <p className="text-6xl mb-4">⚡</p>
-        <h1 className="text-2xl font-black text-white mb-2">Demande de paiement envoyée !</h1>
+        <h1 className="text-2xl font-black text-white mb-2">
+          {isSell ? "Demande envoyée en traitement !" : "Demande de paiement envoyée !"}
+        </h1>
         <p className="mb-2" style={{ color: "var(--text-secondary)" }}>
-          Approuvez la demande Mobile Money sur votre téléphone.
+          {isSell
+            ? "Votre demande est en cours de traitement. Vous serez contacté sous 15-30 min."
+            : "Approuvez la demande Mobile Money sur votre téléphone."}
         </p>
         <p className="text-xs mb-8" style={{ color: "var(--text-muted)" }}>
           Réf : {done.slice(-8).toUpperCase()}
@@ -119,7 +126,17 @@ export default function CartPage() {
   /* ── Cart ── */
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-black text-white mb-8">Mon Panier</h1>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-8">
+        <h1 className="text-3xl font-black text-white">Mon Panier</h1>
+        <button
+          onClick={clearCart}
+          className="text-xs font-semibold px-4 py-2 rounded-full transition-colors hover:text-white"
+          style={{ color: "var(--text-muted)", border: "1px solid var(--border)" }}
+        >
+          Vider le panier
+        </button>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
@@ -133,10 +150,33 @@ export default function CartPage() {
             >
               <div className="flex-1 min-w-0">
                 <p className="font-black text-white text-sm truncate">{item.cardName}</p>
-                <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>
-                  {item.amount} × {item.qty}
-                </p>
+                <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>{item.amount}</p>
+                {item.type === "sell" && (
+                  <span className="inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: "#26A17B22", color: "#26A17B" }}>
+                    Vente
+                  </span>
+                )}
               </div>
+
+              {/* Qty controls */}
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={() => adjustQty(item.id, -1)}
+                  className="w-7 h-7 rounded-full flex items-center justify-center text-sm font-black transition-colors hover:text-white"
+                  style={{ background: "var(--bg-elevated)", color: "var(--text-secondary)" }}
+                >
+                  −
+                </button>
+                <span className="font-black text-white text-sm w-4 text-center">{item.qty}</span>
+                <button
+                  onClick={() => adjustQty(item.id, +1)}
+                  className="w-7 h-7 rounded-full flex items-center justify-center text-sm font-black transition-colors hover:text-white"
+                  style={{ background: "var(--bg-elevated)", color: "var(--text-secondary)" }}
+                >
+                  +
+                </button>
+              </div>
+
               <div className="text-right shrink-0">
                 <p className="font-black" style={{ color: "var(--gold)" }}>
                   {(item.price * item.qty).toLocaleString("fr-FR")} F
@@ -146,7 +186,7 @@ export default function CartPage() {
                   className="text-xs mt-1 transition-colors hover:text-red-400"
                   style={{ color: "var(--text-muted)" }}
                 >
-                  Supprimer
+                  Retirer
                 </button>
               </div>
             </div>
@@ -172,45 +212,62 @@ export default function CartPage() {
               Vos informations
             </p>
             <div className="flex flex-col gap-3">
-              <input type="text"  placeholder="Votre nom"              value={name}  onChange={e => setName(e.target.value)}  className="w-full px-4 py-3 rounded-2xl text-white text-sm outline-none" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }} />
-              <input type="email" placeholder="Email (confirmation)"   value={email} onChange={e => setEmail(e.target.value)} className="w-full px-4 py-3 rounded-2xl text-white text-sm outline-none" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }} />
-              <input type="tel"   placeholder="Téléphone"              value={phone} onChange={e => setPhone(e.target.value)} className="w-full px-4 py-3 rounded-2xl text-white text-sm outline-none" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }} />
+              <input type="text"  placeholder="Votre nom"            value={name}  onChange={e => setName(e.target.value)}  className="w-full px-4 py-3 rounded-2xl text-white text-sm outline-none" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }} />
+              <input type="email" placeholder="Email (confirmation)" value={email} onChange={e => setEmail(e.target.value)} className="w-full px-4 py-3 rounded-2xl text-white text-sm outline-none" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }} />
+              <input type="tel"   placeholder="Téléphone"            value={phone} onChange={e => setPhone(e.target.value)} className="w-full px-4 py-3 rounded-2xl text-white text-sm outline-none" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }} />
             </div>
           </div>
 
-          {/* Mode de paiement */}
-          <div>
-            <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "var(--text-muted)" }}>
-              Mode de paiement
-            </p>
-            <div className="grid grid-cols-3 gap-2">
-              {PAY_METHODS.map(m => (
-                <button
-                  key={m.id}
-                  onClick={() => setPayMethod(m.id)}
-                  className="p-3 rounded-2xl text-center transition-all flex flex-col items-center gap-2"
-                  style={{
-                    background: payMethod === m.id ? "var(--bg-elevated)" : "var(--bg-card)",
-                    border: `2px solid ${payMethod === m.id ? "var(--gold)" : "var(--border)"}`,
-                  }}
-                >
-                  {m.image ? (
-                    <div className="relative w-10 h-10 rounded-xl overflow-hidden">
-                      <Image src={m.image} alt={m.label} fill style={{ objectFit: "cover" }} unoptimized />
-                    </div>
-                  ) : (
-                    <span className="text-2xl">💬</span>
-                  )}
-                  <span
-                    className="text-[10px] font-bold leading-tight text-center"
-                    style={{ color: payMethod === m.id ? "var(--gold)" : "var(--text-secondary)" }}
+          {/* Mode de paiement — achat seulement */}
+          {!isSell && (
+            <div>
+              <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "var(--text-muted)" }}>
+                Mode de paiement
+              </p>
+              <div className="grid grid-cols-3 gap-2">
+                {PAY_METHODS.map(m => (
+                  <button
+                    key={m.id}
+                    onClick={() => setPayMethod(m.id)}
+                    className="p-3 rounded-2xl text-center transition-all flex flex-col items-center gap-2"
+                    style={{
+                      background: payMethod === m.id ? "var(--bg-elevated)" : "var(--bg-card)",
+                      border: `2px solid ${payMethod === m.id ? "var(--gold)" : "var(--border)"}`,
+                    }}
                   >
-                    {m.label}
-                  </span>
-                </button>
-              ))}
+                    {m.image ? (
+                      <div className="relative w-10 h-10 rounded-xl overflow-hidden">
+                        <Image src={m.image} alt={m.label} fill style={{ objectFit: "cover" }} unoptimized />
+                      </div>
+                    ) : (
+                      <span className="text-2xl">💬</span>
+                    )}
+                    <span
+                      className="text-[10px] font-bold leading-tight text-center"
+                      style={{ color: payMethod === m.id ? "var(--gold)" : "var(--text-secondary)" }}
+                    >
+                      {m.label}
+                    </span>
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* Info vente */}
+          {isSell && (
+            <div
+              className="rounded-2xl p-4"
+              style={{ background: "#26A17B12", border: "1px solid #26A17B33" }}
+            >
+              <p className="text-sm font-bold mb-1" style={{ color: "#26A17B" }}>
+                📤 Demande de vente / échange
+              </p>
+              <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
+                Votre demande sera envoyée en traitement. Chreol Empire vous contactera via WhatsApp pour finaliser la transaction.
+              </p>
+            </div>
+          )}
 
           {/* Section Campay automatique */}
           {canCampay && (
@@ -222,8 +279,7 @@ export default function CartPage() {
                 ⚡ Paiement automatique Campay
               </p>
               <p className="text-xs mb-3" style={{ color: "#6B7280" }}>
-                Entrez votre numéro {payMethod === "mtn" ? "MTN" : "Orange"} (9 chiffres). Vous recevrez
-                une demande directement sur votre téléphone.
+                Entrez votre numéro {payMethod === "mtn" ? "MTN" : "Orange"} (9 chiffres). Vous recevrez une demande directement sur votre téléphone.
               </p>
               <div className="flex items-center gap-2">
                 <span className="px-3 py-3 rounded-xl text-sm font-bold shrink-0" style={{ background: "#1A2040", color: "#93C5FD" }}>
@@ -261,14 +317,14 @@ export default function CartPage() {
               className="block w-full py-4 rounded-full font-black text-white text-center text-sm transition-opacity hover:opacity-85"
               style={{ background: "#25D366" }}
             >
-              💬 Commander via WhatsApp
+              {isSell ? "📤 Envoyer la demande via WhatsApp" : "💬 Commander via WhatsApp"}
             </a>
           </div>
 
           {/* Info sécurité */}
           <div className="flex items-center gap-2 text-xs" style={{ color: "var(--text-muted)" }}>
             <span>🔒</span>
-            <span>Paiement sécurisé · Livraison 15–30 min · Support WhatsApp 7j/7</span>
+            <span>Livraison 15–30 min · Support WhatsApp 7j/7</span>
           </div>
         </div>
       </div>
