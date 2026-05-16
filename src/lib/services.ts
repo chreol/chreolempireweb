@@ -1,5 +1,3 @@
-export const BASE_URL = "https://chreolempirev1.vercel.app/img";
-
 export const CONTACT = {
   whatsapp: "+237697657734",
   whatsappDisplay: "+237 697 657 734",
@@ -10,15 +8,27 @@ export const CONTACT = {
 };
 
 export const IMAGES = {
-  logo: `${BASE_URL}/logo.jpg`,
-  psn: `${BASE_URL}/Psn gift card.jpg`,
-  itunes: `${BASE_URL}/Carte Cadeau Itunes.png`,
-  roblox: `${BASE_URL}/Carte Cadeau Roblox.png`,
-  robux: `${BASE_URL}/Carte cadeau Roblox Robux.png`,
-  uba: `${BASE_URL}/uba_hero.png`,
-  paypal: `${BASE_URL}/paypal_hero.png`,
-  crypto: `${BASE_URL}/crypto_hero.png`,
-  coupons: `${BASE_URL}/coupons_hero.png`,
+  logo:    "/assets/chreolempire logo avec contact m.webp",
+  psn:     "/assets/PlayStation_Store_Card.webp",
+  itunes:  "/assets/itunes-gifts-for-business-hero_2x.webp",
+  roblox:  "/assets/App-icon-roblox.webp",
+  robux:   "/assets/App-icon-roblox.webp",
+  steam:   "/assets/Steam_Gift_Cards.webp",
+  razer:   "/assets/Gift_cards-Razer_Gold.webp",
+  nintendo:"/assets/Gift card Nintendo.webp",
+  google:  "/assets/Gift card GooglePlay.webp",
+  uba:     "/assets/UBA Cameroun logo.png",
+  ubaCard: "/assets/Carte UBA Cameroun pour RECHARGE.webp",
+  paypal:  "/assets/Paypal.webp",
+  paypal2: "/assets/Achat_VentePaypal.webp",
+  crypto:  "/assets/Cryptomonnaies-visuel.webp",
+  cryptoMomo: "/assets/Monnaie Crypto Chreol Empire en cfa mobile money.webp",
+  coupons: "/assets/contenu-pack-transcash.webp",
+  pcs:     "/assets/PCS-Mastercard.webp",
+  transcash:"/assets/echange-transcash.webp",
+  factures:"/assets/paiement-+-facture-services.webp",
+  mtn:     "/assets/MTN Mobile Money (MoMo) Payment .webp",
+  orange:  "/assets/orange-money.webp",
 };
 
 const STANDARD_AMOUNTS = [
@@ -46,13 +56,13 @@ const ITUNES_GP_AMOUNTS = [
 ];
 
 export const GIFT_CARDS = [
-  { id: "psn",        name: "PSN PlayStation",   image: IMAGES.psn,    color: "#003791", tier: "standard" as const, amounts: STANDARD_AMOUNTS },
-  { id: "steam",      name: "Steam",             image: IMAGES.psn,    color: "#1B2838", tier: "standard" as const, amounts: STANDARD_AMOUNTS },
-  { id: "razer",      name: "Razer Gold",        image: IMAGES.psn,    color: "#44D62C", tier: "standard" as const, amounts: STANDARD_AMOUNTS },
-  { id: "roblox-eur", name: "Roblox (€)",        image: IMAGES.roblox, color: "#E8232A", tier: "standard" as const, amounts: STANDARD_AMOUNTS },
-  { id: "nintendo",   name: "Nintendo eShop",    image: IMAGES.psn,    color: "#E70012", tier: "standard" as const, amounts: STANDARD_AMOUNTS },
-  { id: "itunes",     name: "iTunes / App Store",image: IMAGES.itunes, color: "#0A84FF", tier: "itunes" as const,   amounts: ITUNES_GP_AMOUNTS },
-  { id: "googleplay", name: "Google Play",       image: IMAGES.itunes, color: "#34A853", tier: "itunes" as const,   amounts: ITUNES_GP_AMOUNTS },
+  { id: "psn",        name: "PSN PlayStation",   image: IMAGES.psn,      color: "#003791", tier: "standard" as const, amounts: STANDARD_AMOUNTS },
+  { id: "steam",      name: "Steam",             image: IMAGES.steam,    color: "#1B2838", tier: "standard" as const, amounts: STANDARD_AMOUNTS },
+  { id: "razer",      name: "Razer Gold",        image: IMAGES.razer,    color: "#44D62C", tier: "standard" as const, amounts: STANDARD_AMOUNTS },
+  { id: "roblox-eur", name: "Roblox (€)",        image: IMAGES.roblox,   color: "#E8232A", tier: "standard" as const, amounts: STANDARD_AMOUNTS },
+  { id: "nintendo",   name: "Nintendo eShop",    image: IMAGES.nintendo, color: "#E70012", tier: "standard" as const, amounts: STANDARD_AMOUNTS },
+  { id: "itunes",     name: "iTunes / App Store",image: IMAGES.itunes,   color: "#0A84FF", tier: "itunes" as const,   amounts: ITUNES_GP_AMOUNTS },
+  { id: "googleplay", name: "Google Play",       image: IMAGES.google,   color: "#34A853", tier: "itunes" as const,   amounts: ITUNES_GP_AMOUNTS },
   {
     id: "robux", name: "Robux", image: IMAGES.robux, color: "#E8232A", tier: "robux" as const,
     amounts: [

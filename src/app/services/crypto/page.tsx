@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { CRYPTO_RATES, CONTACT } from "@/lib/services";
+import Image from "next/image";
+import { CRYPTO_RATES, CONTACT, IMAGES } from "@/lib/services";
 import Link from "next/link";
 
 type Dir = "buy" | "sell";
@@ -38,10 +39,15 @@ export default function CryptoPage() {
         <span className="text-white">Crypto & MoMo</span>
       </div>
 
-      <h1 className="text-3xl font-black text-white mb-1">Crypto & Échange Mobile Money</h1>
-      <p className="mb-8" style={{ color: "var(--text-secondary)" }}>
-        Achetez ou vendez vos cryptos contre FCFA. Taux du marché, 0% commission.
-      </p>
+      {/* Hero image */}
+      <div className="relative h-48 rounded-3xl overflow-hidden mb-6">
+        <Image src={IMAGES.cryptoMomo} alt="Crypto" fill style={{ objectFit: "cover" }} unoptimized />
+        <div className="absolute inset-0" style={{ background: "linear-gradient(to right, rgba(0,0,0,0.8), rgba(0,0,0,0.2))" }} />
+        <div className="absolute inset-0 flex flex-col justify-center px-6">
+          <h1 className="text-3xl font-black text-white mb-1">Crypto & Échange Mobile Money</h1>
+          <p style={{ color: "rgba(255,255,255,0.75)" }}>Taux du marché, 0% commission</p>
+        </div>
+      </div>
 
       {/* Direction */}
       <div className="flex gap-2 mb-6">

@@ -1,17 +1,16 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useCart } from "@/contexts/CartContext";
 import { CONTACT, IMAGES } from "@/lib/services";
 
 const LINKS = [
-  { href: "/",                    label: "Accueil" },
-  { href: "/services",            label: "Services" },
-  { href: "/services/cartes-cadeaux", label: "Cartes Cadeaux" },
-  { href: "/services/crypto",     label: "Crypto" },
-  { href: "/services/coupons",    label: "Coupons" },
-  { href: "/services/uba",        label: "UBA" },
+  { href: "/",          label: "Accueil" },
+  { href: "/services",  label: "Services" },
+  { href: "/paiement",  label: "Paiement" },
+  { href: "/a-propos",  label: "À propos" },
 ];
 
 export default function Navbar() {
@@ -26,11 +25,8 @@ export default function Navbar() {
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 shrink-0">
-          <div
-            style={{ background: "var(--gold)", borderRadius: 8 }}
-            className="w-8 h-8 flex items-center justify-center text-black font-black text-sm"
-          >
-            CE
+          <div className="relative w-9 h-9 rounded-xl overflow-hidden">
+            <Image src={IMAGES.logo} alt="Chreol Empire" fill style={{ objectFit: "cover" }} unoptimized />
           </div>
           <span className="font-black text-white text-lg leading-tight hidden sm:block">
             Chreol<span style={{ color: "var(--gold)" }}>Empire</span>

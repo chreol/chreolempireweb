@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { UBA_CARDS, UBA_RECHARGE_FEES, CONTACT } from "@/lib/services";
+import Image from "next/image";
+import { UBA_CARDS, UBA_RECHARGE_FEES, CONTACT, IMAGES } from "@/lib/services";
 import Link from "next/link";
 
 type Mode = "card" | "recharge";
@@ -36,10 +37,15 @@ export default function UBAPage() {
         <span className="text-white">UBA Cameroun</span>
       </div>
 
-      <h1 className="text-3xl font-black text-white mb-1">UBA Cameroun</h1>
-      <p className="mb-8" style={{ color: "var(--text-secondary)" }}>
-        Achat de carte UBA ou recharge de solde — traitement express.
-      </p>
+      {/* Hero */}
+      <div className="relative h-40 rounded-3xl overflow-hidden mb-6">
+        <Image src={IMAGES.ubaCard} alt="UBA" fill style={{ objectFit: "cover" }} unoptimized />
+        <div className="absolute inset-0" style={{ background: "linear-gradient(to right, rgba(0,0,0,0.85), rgba(0,0,0,0.2))" }} />
+        <div className="absolute inset-0 flex flex-col justify-center px-6">
+          <h1 className="text-3xl font-black text-white mb-1">UBA Cameroun</h1>
+          <p style={{ color: "rgba(255,255,255,0.75)" }}>Achat carte & recharge — traitement express</p>
+        </div>
+      </div>
 
       {/* Mode */}
       <div className="flex gap-3 mb-8">

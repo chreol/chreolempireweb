@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useCart } from "@/contexts/CartContext";
 import { GIFT_CARDS, CONTACT } from "@/lib/services";
 import Link from "next/link";
@@ -106,14 +107,19 @@ export default function CartesCadeauxPage() {
               <button
                 key={c.id}
                 onClick={() => { setCardId(c.id); setAmountLabel(null); setCustomVal(""); }}
-                className="p-3 rounded-2xl text-left transition-all"
+                className="rounded-2xl overflow-hidden text-left transition-all"
                 style={{
-                  background: cardId === c.id ? c.color + "22" : "var(--bg-card)",
                   border: `2px solid ${cardId === c.id ? c.color : "var(--border)"}`,
+                  background: "var(--bg-card)",
                 }}
               >
-                <span className="text-3xl block mb-1">🎮</span>
-                <p className="text-xs font-bold text-white leading-tight">{c.name}</p>
+                <div className="relative h-20 w-full">
+                  <Image src={c.image} alt={c.name} fill style={{ objectFit: "cover" }} unoptimized />
+                  <div className="absolute inset-0" style={{ background: cardId === c.id ? `${c.color}33` : "rgba(0,0,0,0.3)" }} />
+                </div>
+                <div className="p-2">
+                  <p className="text-xs font-bold text-white leading-tight">{c.name}</p>
+                </div>
               </button>
             ))}
           </div>

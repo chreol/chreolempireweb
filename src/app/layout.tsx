@@ -60,6 +60,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     <a href="/services/coupons" className="hover:text-white transition-colors">Coupons PCS / Transcash</a>
                     <a href="/services/uba" className="hover:text-white transition-colors">UBA Cameroun</a>
                     <a href="/services/paypal" className="hover:text-white transition-colors">PayPal Europe</a>
+                    <a href="/services/factures" className="hover:text-white transition-colors">Paiement Factures</a>
+                  </div>
+                </div>
+
+                {/* Info links */}
+                <div>
+                  <p className="font-bold text-sm mb-3" style={{ color: "var(--gold)" }}>INFORMATIONS</p>
+                  <div className="flex flex-col gap-2 text-sm" style={{ color: "var(--text-secondary)" }}>
+                    <a href="/paiement" className="hover:text-white transition-colors">Modes de paiement</a>
+                    <a href="/a-propos" className="hover:text-white transition-colors">À propos</a>
+                    <a href="/sitemap" className="hover:text-white transition-colors">Plan du site</a>
                   </div>
                 </div>
 

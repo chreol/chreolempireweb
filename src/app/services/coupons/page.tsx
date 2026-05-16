@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { COUPON_RATES, CONTACT } from "@/lib/services";
+import Image from "next/image";
+import { COUPON_RATES, CONTACT, IMAGES } from "@/lib/services";
 import Link from "next/link";
 
 type CouponType = "pcs" | "transcash";
@@ -30,10 +31,15 @@ export default function CouponsPage() {
         <span className="text-white">Échange Coupons</span>
       </div>
 
-      <h1 className="text-3xl font-black text-white mb-1">Échange Coupons</h1>
-      <p className="mb-8" style={{ color: "var(--text-secondary)" }}>
-        Convertissez vos coupons Transcash ou PCS Mastercard contre FCFA.
-      </p>
+      {/* Hero */}
+      <div className="relative h-40 rounded-3xl overflow-hidden mb-6">
+        <Image src={IMAGES.coupons} alt="Coupons" fill style={{ objectFit: "cover" }} unoptimized />
+        <div className="absolute inset-0" style={{ background: "linear-gradient(to right, rgba(0,0,0,0.8), rgba(0,0,0,0.2))" }} />
+        <div className="absolute inset-0 flex flex-col justify-center px-6">
+          <h1 className="text-3xl font-black text-white mb-1">Échange Coupons</h1>
+          <p style={{ color: "rgba(255,255,255,0.75)" }}>Transcash · PCS Mastercard — 440 FCFA/€</p>
+        </div>
+      </div>
 
       {/* Type selector */}
       <div className="flex gap-3 mb-8">
