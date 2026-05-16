@@ -1,176 +1,299 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
-import { UBA_CARDS, UBA_RECHARGE_FEES, CONTACT, IMAGES } from "@/lib/services";
-import Link from "next/link";
-
-type Mode = "card" | "recharge";
+import { motion, AnimatePresence } from "framer-motion";
+import { UBA_CARDS, UBA_RECHARGE_FEES, CONTACT } from "@/lib/services";
+import { useHistory } from "@/contexts/HistoryContext";
+import { useToast } from "@/components/Toast";
 
 function calcFee(amount: number) {
-  const row = UBA_RECHARGE_FEES.find(r => amount >= r.min && amount <= r.max);
-  if (!row) return null;
-  return row.type === "fixed" ? row.fee : Math.round(amount * row.fee / 100);
+  const tier = UBA_RECHARGE_FEES.find(t => amount >= t.min && amount <= t.max);
+  if (!tier) return 0;
+  return tier.type === "fixed" ? tier.fee : Math.round(amount * tier.fee / 100);
 }
 
 export default function UBAPage() {
-  const [mode, setMode] = useState<Mode>("card");
-  const [rechargeAmt, setRechargeAmt] = useState("");
+  const { addEntry } = useHistory();
+  const { showToast } = useToast();
 
-  const num = parseFloat(rechargeAmt.replace(/\s/g, "").replace(",", "."));
-  const fee = !isNaN(num) && num > 0 ? calcFee(num) : null;
-  const total = fee != null ? num + fee : null;
+  const [mode, setMode]           = useState<"buy" | "recharge">("buy");
+  const [card6, setCard6]         = useState("");
+  const [card4, setCard4]         = useState("");
+  const [clientId, setClientId]   = useState("");
+  const [fullName, setFullName]   = useState("");
+  const [phone, setPhone]         = useState("");
+  const [amount, setAmount]       = useState("");
+  const [errors, setErrors]       = useState<Record<string, string>>({});
 
-  function buildWACard(segment: string, price: number) {
-    return `https://wa.me/${CONTACT.whatsapp}?text=${encodeURIComponent(`Bonjour, je souhaite commander une carte UBA Segment ${segment} — ${price.toLocaleString("fr-FR")} FCFA`)}`;
+  const numAmount = parseInt(amount.replace(/\D/g, ""), 10) || 0;
+  const fee       = calcFee(numAmount);
+  const total     = numAmount + fee;
+
+  function validate() {
+    const e: Record<string, string> = {};
+    if (card6.length !== 6) e.card6 = "6 chiffres requis";
+    if (card4.length !== 4) e.card4 = "4 chiffres requis";
+    if (!clientId || clientId.length > 10) e.clientId = "Client ID requis (max 10 chiffres)";
+    if (!fullName.trim()) e.fullName = "Nom requis";
+    if (!phone || phone.length !== 9) e.phone = "Numéro invalide (9 chiffres)";
+    if (!amount || numAmount < 1500 || numAmount > 500000) e.amount = "Montant entre 1 500 et 500 000 FCFA";
+    setErrors(e);
+    return Object.keys(e).length === 0;
   }
 
-  function buildWARecharge() {
-    return `https://wa.me/${CONTACT.whatsapp}?text=${encodeURIComponent(`Bonjour, je veux recharger ma carte UBA de ${num?.toLocaleString("fr-FR")} FCFA (frais: ${fee?.toLocaleString("fr-FR")} FCFA)`)}`;
+  function buildRechargeMsg() {
+    return encodeURIComponent(
+      `Bonjour Chreol Empire,\n\n` +
+      `💳 RECHARGE UBA\n` +
+      `Carte : ${card6}••••••${card4}\n` +
+      `Client ID : ${clientId}\n` +
+      `Nom : ${fullName}\n` +
+      `Téléphone : +237 ${phone}\n` +
+      `Montant : ${numAmount.toLocaleString("fr-FR")} FCFA\n` +
+      `Frais : ${fee.toLocaleString("fr-FR")} FCFA\n` +
+      `Total à payer : ${total.toLocaleString("fr-FR")} FCFA`,
+    );
+  }
+
+  function buildBuyMsg(segment: string, price: number) {
+    return encodeURIComponent(
+      `Bonjour Chreol Empire,\n\n` +
+      `🏦 ACHAT CARTE UBA\n` +
+      `Segment : ${segment}\n` +
+      `Prix : ${price.toLocaleString("fr-FR")} FCFA`,
+    );
+  }
+
+  function handleRecharge() {
+    if (!validate()) { showToast("Corrigez les erreurs", "error"); return; }
+    addEntry({
+      service: "UBA Cameroun — Recharge",
+      details: `${numAmount.toLocaleString("fr-FR")} FCFA + ${fee.toLocaleString("fr-FR")} FCFA frais`,
+      amount: total,
+      currency: "FCFA",
+      status: "pending",
+      waText: buildRechargeMsg(),
+    });
+    window.open(`https://wa.me/${CONTACT.whatsapp}?text=${buildRechargeMsg()}`, "_blank");
+  }
+
+  const inputCls  = "w-full px-4 py-3 rounded-2xl text-white text-sm outline-none";
+  const inputBase = { background: "var(--bg-elevated)", border: "1px solid var(--border)" };
+  const inputErr  = { ...inputBase, borderColor: "#EF4444" };
+
+  function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
+    return (
+      <div className="flex flex-col gap-1">
+        <label className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>{label}</label>
+        {children}
+        {error && <span className="text-xs font-semibold" style={{ color: "#EF4444" }}>{error}</span>}
+      </div>
+    );
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8">
-      <div className="flex items-center gap-2 text-sm mb-6" style={{ color: "var(--text-secondary)" }}>
-        <Link href="/services" className="hover:text-white">Services</Link>
+    <div className="max-w-2xl mx-auto px-4 py-10">
+      <div className="flex items-center gap-2 text-xs mb-6" style={{ color: "var(--text-muted)" }}>
+        <a href="/services" className="hover:text-white transition-colors">Services</a>
         <span>›</span>
-        <span className="text-white">UBA Cameroun</span>
+        <span style={{ color: "var(--gold)" }}>UBA Cameroun</span>
       </div>
 
-      {/* Hero */}
-      <div className="relative h-40 rounded-3xl overflow-hidden mb-6">
-        <Image src={IMAGES.ubaCard} alt="UBA" fill style={{ objectFit: "cover" }} unoptimized />
-        <div className="absolute inset-0" style={{ background: "linear-gradient(to right, rgba(0,0,0,0.85), rgba(0,0,0,0.2))" }} />
-        <div className="absolute inset-0 flex flex-col justify-center px-6">
-          <h1 className="text-3xl font-black text-white mb-1">UBA Cameroun</h1>
-          <p style={{ color: "rgba(255,255,255,0.75)" }}>Achat carte & recharge — traitement express</p>
-        </div>
-      </div>
+      <h1 className="text-3xl font-black text-white mb-1">UBA Cameroun</h1>
+      <p className="text-sm mb-8" style={{ color: "var(--text-secondary)" }}>
+        Achetez votre carte UBA prépayée ou rechargez votre solde existant.
+      </p>
 
-      {/* Mode */}
-      <div className="flex gap-3 mb-8">
-        {([
-          { key: "card",    label: "🏦 Acheter une carte", sub: "Segments I, II, III" },
-          { key: "recharge",label: "💳 Recharger",         sub: "Calculez vos frais" },
-        ] as const).map(m => (
+      {/* Tab toggle */}
+      <div className="flex rounded-2xl p-1 mb-8" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+        {(["buy", "recharge"] as const).map(m => (
           <button
-            key={m.key}
-            onClick={() => setMode(m.key)}
-            className="flex-1 p-4 rounded-2xl text-left transition-all"
+            key={m}
+            onClick={() => { setMode(m); setErrors({}); }}
+            className="flex-1 py-3 rounded-xl font-black text-sm transition-all"
             style={{
-              background: mode === m.key ? "#8B000022" : "var(--bg-card)",
-              border: `2px solid ${mode === m.key ? "#8B0000" : "var(--border)"}`,
+              background: mode === m ? "var(--gold)" : "transparent",
+              color: mode === m ? "#0A0A0A" : "var(--text-secondary)",
             }}
           >
-            <p className="font-black text-white text-sm">{m.label}</p>
-            <p className="text-[11px] mt-1" style={{ color: "var(--text-secondary)" }}>{m.sub}</p>
+            {m === "buy" ? "🏦 Acheter une carte" : "⚡ Recharger ma carte"}
           </button>
         ))}
       </div>
 
-      {mode === "card" && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {UBA_CARDS.map(card => (
-            <div
-              key={card.segment}
-              className="relative rounded-3xl p-5 flex flex-col gap-3"
-              style={{
-                background: "var(--bg-card)",
-                border: card.popular ? "2px solid var(--gold)" : "1px solid var(--border)",
-              }}
-            >
-              {card.popular && (
-                <span
-                  className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-[10px] font-black text-black"
-                  style={{ background: "var(--gold)" }}
+      <AnimatePresence mode="wait">
+        {mode === "buy" ? (
+          <motion.div key="buy" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }}>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {UBA_CARDS.map(card => (
+                <div
+                  key={card.segment}
+                  className="flex flex-col rounded-2xl overflow-hidden"
+                  style={{
+                    background: "var(--bg-card)",
+                    border: `1px solid ${card.popular ? "#C9A84C" : "var(--border)"}`,
+                  }}
                 >
-                  ⭐ Populaire
-                </span>
-              )}
-              <div>
-                <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: "var(--text-muted)" }}>Segment {card.segment}</p>
-                <p className="text-2xl font-black" style={{ color: "var(--gold)" }}>{card.price.toLocaleString("fr-FR")} F</p>
-                <p className="text-xs mt-1" style={{ color: "var(--text-secondary)" }}>Limite : {card.limit}</p>
+                  {card.popular && (
+                    <div className="text-center py-1 text-[10px] font-black" style={{ background: "var(--gold)", color: "#0A0A0A" }}>
+                      ⭐ POPULAIRE
+                    </div>
+                  )}
+                  <div className="p-5 flex flex-col gap-3 flex-1">
+                    <div>
+                      <p className="font-black text-white text-lg">Segment {card.segment}</p>
+                      <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>Limite : {card.limit}</p>
+                    </div>
+                    <p className="text-xl font-black" style={{ color: "var(--gold)" }}>
+                      {card.price.toLocaleString("fr-FR")} FCFA
+                    </p>
+                    <div className="flex flex-col gap-1.5">
+                      {card.features.map(f => (
+                        <p key={f} className="text-xs flex items-center gap-2" style={{ color: "var(--text-secondary)" }}>
+                          <span style={{ color: "var(--gold)" }}>✓</span> {f}
+                        </p>
+                      ))}
+                    </div>
+                    <a
+                      href={`https://wa.me/${CONTACT.whatsapp}?text=${buildBuyMsg(card.segment, card.price)}`}
+                      target="_blank" rel="noopener noreferrer"
+                      className="mt-auto block text-center py-3 rounded-xl font-black text-sm transition-opacity hover:opacity-85"
+                      style={{ background: card.popular ? "var(--gold)" : "var(--bg-elevated)", color: card.popular ? "#0A0A0A" : "var(--text-secondary)", border: "1px solid var(--border)" }}
+                      onClick={() => addEntry({ service: `UBA — Achat Segment ${card.segment}`, details: `${card.price.toLocaleString("fr-FR")} FCFA`, amount: card.price, currency: "FCFA", status: "pending" })}
+                    >
+                      Commander →
+                    </a>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div key="recharge" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }} className="flex flex-col gap-5">
+
+            {/* Card digits */}
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="6 premiers chiffres" error={errors.card6}>
+                <input
+                  type="tel"
+                  placeholder="123456"
+                  value={card6}
+                  maxLength={6}
+                  onChange={e => { setCard6(e.target.value.replace(/\D/g, "").slice(0, 6)); setErrors(p => ({ ...p, card6: "" })); }}
+                  className={inputCls}
+                  style={errors.card6 ? inputErr : inputBase}
+                />
+              </Field>
+              <Field label="4 derniers chiffres" error={errors.card4}>
+                <input
+                  type="tel"
+                  placeholder="7890"
+                  value={card4}
+                  maxLength={4}
+                  onChange={e => { setCard4(e.target.value.replace(/\D/g, "").slice(0, 4)); setErrors(p => ({ ...p, card4: "" })); }}
+                  className={inputCls}
+                  style={errors.card4 ? inputErr : inputBase}
+                />
+              </Field>
+            </div>
+
+            <Field label="Client ID (au dos de la carte, max 10 chiffres)" error={errors.clientId}>
+              <input
+                type="tel"
+                placeholder="Votre Client ID"
+                value={clientId}
+                maxLength={10}
+                onChange={e => { setClientId(e.target.value.replace(/\D/g, "").slice(0, 10)); setErrors(p => ({ ...p, clientId: "" })); }}
+                className={inputCls}
+                style={errors.clientId ? inputErr : inputBase}
+              />
+            </Field>
+
+            <Field label="Nom complet" error={errors.fullName}>
+              <input
+                type="text"
+                placeholder="Votre nom complet"
+                value={fullName}
+                onChange={e => { setFullName(e.target.value); setErrors(p => ({ ...p, fullName: "" })); }}
+                className={inputCls}
+                style={errors.fullName ? inputErr : inputBase}
+              />
+            </Field>
+
+            <Field label="Téléphone (+237)" error={errors.phone}>
+              <div className="flex items-center rounded-2xl overflow-hidden" style={errors.phone ? inputErr : inputBase}>
+                <span className="px-3 text-sm font-bold shrink-0" style={{ color: "var(--text-muted)" }}>+237</span>
+                <input
+                  type="tel"
+                  placeholder="6XXXXXXXX"
+                  value={phone}
+                  onChange={e => { setPhone(e.target.value.replace(/\D/g, "").slice(0, 9)); setErrors(p => ({ ...p, phone: "" })); }}
+                  className="flex-1 py-3 pr-4 bg-transparent text-white text-sm outline-none"
+                />
               </div>
-              <ul className="space-y-1.5">
-                {card.features.map(f => (
-                  <li key={f} className="flex items-center gap-2 text-xs" style={{ color: "var(--text-secondary)" }}>
-                    <span style={{ color: "var(--gold)" }}>✓</span> {f}
-                  </li>
+            </Field>
+
+            <Field label="Montant à recharger (1 500 – 500 000 FCFA)" error={errors.amount}>
+              <input
+                type="number"
+                min="1500"
+                max="500000"
+                placeholder="ex: 25 000"
+                value={amount}
+                onChange={e => { setAmount(e.target.value); setErrors(p => ({ ...p, amount: "" })); }}
+                className={inputCls}
+                style={errors.amount ? inputErr : inputBase}
+              />
+            </Field>
+
+            {/* Fee summary */}
+            {numAmount >= 1500 && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.97 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="rounded-2xl p-4"
+                style={{ background: "#8B0000" + "18", border: "1px solid #8B000055" }}
+              >
+                <div className="flex justify-between text-sm mb-2">
+                  <span style={{ color: "var(--text-secondary)" }}>Recharge</span>
+                  <span className="text-white font-bold">{numAmount.toLocaleString("fr-FR")} FCFA</span>
+                </div>
+                <div className="flex justify-between text-sm mb-2">
+                  <span style={{ color: "var(--text-secondary)" }}>Frais de service</span>
+                  <span className="text-white font-bold">{fee.toLocaleString("fr-FR")} FCFA</span>
+                </div>
+                <div className="flex justify-between text-base pt-2" style={{ borderTop: "1px solid #8B000033" }}>
+                  <span className="font-black text-white">Total à payer</span>
+                  <span className="font-black" style={{ color: "var(--gold)" }}>{total.toLocaleString("fr-FR")} FCFA</span>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Fee table */}
+            <details className="rounded-2xl overflow-hidden" style={{ border: "1px solid var(--border)" }}>
+              <summary className="px-4 py-3 text-xs font-bold cursor-pointer" style={{ background: "var(--bg-card)", color: "var(--text-secondary)", listStyle: "none" }}>
+                📋 Grille des frais de recharge
+              </summary>
+              <div className="p-4" style={{ background: "var(--bg-elevated)" }}>
+                {UBA_RECHARGE_FEES.map((t, i) => (
+                  <div key={i} className="flex justify-between text-xs py-1.5" style={{ borderBottom: i < UBA_RECHARGE_FEES.length - 1 ? "1px solid var(--border)" : "none", color: "var(--text-secondary)" }}>
+                    <span>{t.min.toLocaleString("fr-FR")} – {t.max.toLocaleString("fr-FR")} FCFA</span>
+                    <span className="font-bold text-white">{t.type === "fixed" ? `${t.fee.toLocaleString("fr-FR")} FCFA` : `${t.fee}%`}</span>
+                  </div>
                 ))}
-              </ul>
-              <a
-                href={buildWACard(card.segment, card.price)}
-                target="_blank" rel="noopener noreferrer"
-                className="block w-full py-3 rounded-full font-black text-sm text-center transition-opacity hover:opacity-85"
-                style={{ background: "var(--gold)", color: "#0A0A0A" }}
-              >
-                Commander →
-              </a>
-            </div>
-          ))}
-        </div>
-      )}
+              </div>
+            </details>
 
-      {mode === "recharge" && (
-        <div className="space-y-6">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "var(--text-muted)" }}>
-              Montant à recharger (FCFA)
-            </p>
-            <input
-              type="number"
-              value={rechargeAmt}
-              onChange={e => setRechargeAmt(e.target.value)}
-              placeholder="ex: 20000"
-              className="w-full px-4 py-3 rounded-2xl text-white text-sm outline-none"
-              style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
-            />
-          </div>
-
-          {total != null && (
-            <div className="rounded-2xl p-6" style={{ background: "var(--bg-card)", border: "1px solid var(--border-strong)" }}>
-              <div className="flex justify-between text-sm mb-2">
-                <span style={{ color: "var(--text-secondary)" }}>Montant</span>
-                <span className="font-bold text-white">{num.toLocaleString("fr-FR")} FCFA</span>
-              </div>
-              <div className="flex justify-between text-sm mb-3">
-                <span style={{ color: "var(--text-secondary)" }}>Frais de service</span>
-                <span className="font-bold text-white">{fee!.toLocaleString("fr-FR")} FCFA</span>
-              </div>
-              <div className="flex justify-between text-base mb-5 pt-3" style={{ borderTop: "1px solid var(--border)" }}>
-                <span className="font-black text-white">Total à payer</span>
-                <span className="font-black text-2xl" style={{ color: "var(--gold)" }}>{total.toLocaleString("fr-FR")} FCFA</span>
-              </div>
-              <a
-                href={buildWARecharge()}
-                target="_blank" rel="noopener noreferrer"
-                className="block w-full py-4 rounded-full font-black text-white text-center text-sm"
-                style={{ background: "#25D366" }}
-              >
-                💬 Procéder à la recharge via WhatsApp
-              </a>
-            </div>
-          )}
-
-          {/* Fee table */}
-          <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid var(--border)" }}>
-            <div className="px-4 py-3" style={{ background: "var(--bg-elevated)" }}>
-              <p className="text-xs font-black uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>Grille de frais</p>
-            </div>
-            {UBA_RECHARGE_FEES.map((row, i) => (
-              <div key={i} className="flex justify-between px-4 py-3 text-sm" style={{ borderTop: "1px solid var(--border)" }}>
-                <span style={{ color: "var(--text-secondary)" }}>
-                  {row.min.toLocaleString("fr-FR")} – {row.max.toLocaleString("fr-FR")} FCFA
-                </span>
-                <span className="font-bold text-white">
-                  {row.type === "fixed" ? `${row.fee.toLocaleString("fr-FR")} FCFA` : `${row.fee}%`}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+            <button
+              onClick={handleRecharge}
+              className="w-full py-4 rounded-full font-black text-white text-sm transition-opacity hover:opacity-85"
+              style={{ background: "#25D366" }}
+            >
+              💬 Envoyer la demande de recharge
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

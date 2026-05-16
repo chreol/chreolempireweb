@@ -1,144 +1,239 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
-import { PAYPAL_LIMITS, CONTACT, IMAGES } from "@/lib/services";
-import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
+import { PAYPAL_RATES, PAYPAL_LIMITS, CONTACT, MOMO_OPERATORS } from "@/lib/services";
+import { useHistory } from "@/contexts/HistoryContext";
+import { useToast } from "@/components/Toast";
 
-type Dir = "sell" | "buy";
-const SELL_RATE = 700; // FCFA per €
-const BUY_RATE  = 650; // FCFA per €
+export default function PaypalPage() {
+  const { addEntry } = useHistory();
+  const { showToast } = useToast();
 
-export default function PayPalPage() {
-  const [dir, setDir] = useState<Dir>("sell");
-  const [amount, setAmount] = useState("");
+  const [direction, setDirection] = useState<"sell" | "buy">("sell");
+  const [amount, setAmount]       = useState("");
+  const [paypalEmail, setPaypalEmail] = useState("");
+  const [momoOp, setMomoOp]       = useState("orange");
+  const [momoPhone, setMomoPhone] = useState("");
+  const [errors, setErrors]       = useState<Record<string, string>>({});
 
-  const num = parseFloat(amount.replace(",", "."));
-  const rate = dir === "sell" ? SELL_RATE : BUY_RATE;
+  const { sellRate, buyRate } = PAYPAL_RATES;
+  const limits = direction === "sell" ? PAYPAL_LIMITS.sell : PAYPAL_LIMITS.buy;
 
-  const result = !isNaN(num) && num > 0
-    ? dir === "sell"
-      ? { label: "Vous recevez", value: `${Math.round(num * rate).toLocaleString("fr-FR")} FCFA` }
-      : { label: "Vous payez", value: `${Math.round(num * rate).toLocaleString("fr-FR")} FCFA` }
-    : null;
+  const numAmount = parseFloat(amount) || 0;
+  const fcfaResult = direction === "sell" ? Math.round(numAmount * sellRate) : 0;
+  const eurResult  = direction === "buy"  ? +(numAmount / buyRate).toFixed(2) : 0;
 
-  function buildWA() {
-    const msg = dir === "sell"
-      ? `Bonjour, je veux vendre ${amount}€ PayPal → recevoir ${Math.round(num * rate).toLocaleString("fr-FR")} FCFA`
-      : `Bonjour, je veux acheter ${amount}€ de solde PayPal → payer ${Math.round(num * rate).toLocaleString("fr-FR")} FCFA`;
-    return `https://wa.me/${CONTACT.whatsapp}?text=${encodeURIComponent(msg)}`;
+  function validate() {
+    const e: Record<string, string> = {};
+    if (!amount || numAmount <= 0) {
+      e.amount = "Montant requis";
+    } else if (direction === "sell" && numAmount < PAYPAL_LIMITS.sell.min) {
+      e.amount = `Minimum ${PAYPAL_LIMITS.sell.min}€`;
+    } else if (direction === "sell" && numAmount > PAYPAL_LIMITS.sell.max) {
+      e.amount = `Maximum ${PAYPAL_LIMITS.sell.max}€`;
+    } else if (direction === "buy" && numAmount < PAYPAL_LIMITS.buy.min) {
+      e.amount = `Minimum ${PAYPAL_LIMITS.buy.min.toLocaleString("fr-FR")} FCFA`;
+    }
+    if (!paypalEmail.trim()) e.paypalEmail = "Email ou nom PayPal requis";
+    if (!momoPhone || momoPhone.length !== 9) e.momoPhone = "Numéro invalide (9 chiffres)";
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  }
+
+  function buildWAMsg() {
+    const op = MOMO_OPERATORS.find(o => o.id === momoOp)?.name ?? momoOp;
+    if (direction === "sell") {
+      return encodeURIComponent(
+        `Bonjour Chreol Empire,\n\n` +
+        `💸 VENTE PAYPAL\n` +
+        `Compte PayPal : ${paypalEmail}\n` +
+        `Montant : ${amount}€\n` +
+        `À recevoir : ${fcfaResult.toLocaleString("fr-FR")} FCFA\n` +
+        `Taux : 1€ = ${sellRate} FCFA\n\n` +
+        `💰 Réception MoMo\n` +
+        `Opérateur : ${op}\n` +
+        `Numéro : +237 ${momoPhone}`,
+      );
+    }
+    return encodeURIComponent(
+      `Bonjour Chreol Empire,\n\n` +
+      `💳 ACHAT PAYPAL\n` +
+      `Compte PayPal à recharger : ${paypalEmail}\n` +
+      `Je paie : ${numAmount.toLocaleString("fr-FR")} FCFA\n` +
+      `À recevoir : ${eurResult}€\n` +
+      `Taux : 1€ = ${buyRate} FCFA\n\n` +
+      `💰 Paiement MoMo\n` +
+      `Opérateur : ${op}\n` +
+      `Numéro : +237 ${momoPhone}`,
+    );
+  }
+
+  function handleOrder() {
+    if (!validate()) { showToast("Corrigez les erreurs", "error"); return; }
+    addEntry({
+      service: `PayPal — ${direction === "sell" ? "Vente" : "Achat"}`,
+      details: direction === "sell"
+        ? `${amount}€ → ${fcfaResult.toLocaleString("fr-FR")} FCFA`
+        : `${numAmount.toLocaleString("fr-FR")} FCFA → ${eurResult}€`,
+      amount: direction === "sell" ? fcfaResult : numAmount,
+      currency: "FCFA",
+      status: "pending",
+      waText: buildWAMsg(),
+    });
+    window.open(`https://wa.me/${CONTACT.whatsapp}?text=${buildWAMsg()}`, "_blank");
+  }
+
+  const inputCls  = "w-full px-4 py-3 rounded-2xl text-white text-sm outline-none";
+  const inputBase = { background: "var(--bg-elevated)", border: "1px solid var(--border)" };
+  const inputErr  = { ...inputBase, borderColor: "#EF4444" };
+
+  function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
+    return (
+      <div className="flex flex-col gap-1">
+        <label className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>{label}</label>
+        {children}
+        {error && <span className="text-xs font-semibold" style={{ color: "#EF4444" }}>{error}</span>}
+      </div>
+    );
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
-      <div className="flex items-center gap-2 text-sm mb-6" style={{ color: "var(--text-secondary)" }}>
-        <Link href="/services" className="hover:text-white">Services</Link>
+    <div className="max-w-xl mx-auto px-4 py-10">
+      <div className="flex items-center gap-2 text-xs mb-6" style={{ color: "var(--text-muted)" }}>
+        <a href="/services" className="hover:text-white transition-colors">Services</a>
         <span>›</span>
-        <span className="text-white">PayPal Europe</span>
+        <span style={{ color: "var(--gold)" }}>PayPal Europe</span>
       </div>
 
-      {/* Hero */}
-      <div className="relative h-40 rounded-3xl overflow-hidden mb-6">
-        <Image src={IMAGES.paypal2} alt="PayPal" fill style={{ objectFit: "cover" }} unoptimized />
-        <div className="absolute inset-0" style={{ background: "linear-gradient(to right, rgba(0,0,0,0.85), rgba(0,0,0,0.2))" }} />
-        <div className="absolute inset-0 flex flex-col justify-center px-6">
-          <h1 className="text-3xl font-black text-white mb-1">PayPal Europe</h1>
-          <p style={{ color: "rgba(255,255,255,0.75)" }}>Achat & vente de solde PayPal — taux compétitif</p>
-        </div>
-      </div>
+      <h1 className="text-3xl font-black text-white mb-1">PayPal Europe</h1>
+      <p className="text-sm mb-8" style={{ color: "var(--text-secondary)" }}>
+        Vendez votre solde PayPal contre FCFA ou rechargez votre compte PayPal Europe.
+      </p>
 
-      {/* Direction */}
-      <div className="flex gap-3 mb-8">
-        {([
-          { key: "sell", label: "💰 Je vends mon PayPal", sub: `${SELL_RATE} FCFA/€ — PayPal → FCFA` },
-          { key: "buy",  label: "💳 J'achète du solde",   sub: `${BUY_RATE} FCFA/€ — FCFA → PayPal` },
-        ] as const).map(d => (
+      {/* Direction toggle */}
+      <div className="flex rounded-2xl p-1 mb-8" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+        {(["sell", "buy"] as const).map(d => (
           <button
-            key={d.key}
-            onClick={() => setDir(d.key)}
-            className="flex-1 p-4 rounded-2xl text-left transition-all"
+            key={d}
+            onClick={() => { setDirection(d); setErrors({}); setAmount(""); }}
+            className="flex-1 py-3 rounded-xl font-black text-sm transition-all"
             style={{
-              background: dir === d.key ? "#00308722" : "var(--bg-card)",
-              border: `2px solid ${dir === d.key ? "#003087" : "var(--border)"}`,
+              background: direction === d ? "var(--gold)" : "transparent",
+              color: direction === d ? "#0A0A0A" : "var(--text-secondary)",
             }}
           >
-            <p className="font-black text-white text-sm">{d.label}</p>
-            <p className="text-[11px] mt-1" style={{ color: "var(--text-secondary)" }}>{d.sub}</p>
+            {d === "sell" ? "💰 Je vends mon PayPal" : "💳 J'achète du solde"}
           </button>
         ))}
       </div>
 
-      {/* Limits */}
-      <div
-        className="flex gap-4 p-4 rounded-2xl mb-6 text-sm"
-        style={{ background: "#00308712", border: "1px solid #00308733" }}
-      >
-        <div>
-          <p className="text-xs" style={{ color: "var(--text-secondary)" }}>Minimum</p>
-          <p className="font-bold text-white">
-            {dir === "sell" ? `${PAYPAL_LIMITS.sell.min}€` : `${PAYPAL_LIMITS.buy.min.toLocaleString("fr-FR")} FCFA`}
-          </p>
-        </div>
-        <div>
-          <p className="text-xs" style={{ color: "var(--text-secondary)" }}>Maximum</p>
-          <p className="font-bold text-white">
-            {dir === "sell" ? `${PAYPAL_LIMITS.sell.max}€` : `${PAYPAL_LIMITS.buy.max.toLocaleString("fr-FR")} FCFA`}
-          </p>
-        </div>
-        <div>
-          <p className="text-xs" style={{ color: "var(--text-secondary)" }}>Taux</p>
-          <p className="font-bold" style={{ color: "var(--gold)" }}>{rate} FCFA/€</p>
+      {/* Rate + limits info */}
+      <div className="rounded-2xl p-4 mb-6" style={{ background: "#003087" + "22", border: "1px solid #003087" + "55" }}>
+        <div className="flex justify-between text-sm">
+          <div>
+            <p className="text-xs font-bold mb-1" style={{ color: "var(--text-muted)" }}>Taux applicable</p>
+            <p className="font-black text-white">1€ = {direction === "sell" ? sellRate : buyRate} FCFA</p>
+          </div>
+          <div className="text-right">
+            <p className="text-xs font-bold mb-1" style={{ color: "var(--text-muted)" }}>Limite</p>
+            <p className="font-black text-white">{limits.min.toLocaleString("fr-FR")} – {limits.max.toLocaleString("fr-FR")} {limits.currency}</p>
+          </div>
         </div>
       </div>
 
-      {/* Input */}
-      <div className="mb-6">
-        <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "var(--text-muted)" }}>
-          Montant en €
-        </p>
-        <input
-          type="number"
-          value={amount}
-          onChange={e => setAmount(e.target.value)}
-          placeholder="ex: 50"
-          className="w-full px-4 py-3 rounded-2xl text-white text-sm outline-none"
-          style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
-        />
-      </div>
-
-      {/* Result */}
-      <div
-        className="rounded-2xl p-6 mb-6"
-        style={{ background: "var(--bg-card)", border: "1px solid var(--border-strong)" }}
-      >
-        <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: "var(--text-muted)" }}>
-          {result?.label ?? "Résultat"}
-        </p>
-        <p className="text-4xl font-black mb-4" style={{ color: "var(--gold)" }}>
-          {result?.value ?? "—"}
-        </p>
-
-        <a
-          href={buildWA()}
-          target="_blank" rel="noopener noreferrer"
-          className="block w-full py-4 rounded-full font-black text-white text-center text-sm transition-opacity hover:opacity-85"
-          style={{ background: "#25D366" }}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={direction}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.18 }}
+          className="flex flex-col gap-5"
         >
-          💬 Démarrer la transaction sur WhatsApp
-        </a>
-      </div>
+          {/* Amount */}
+          <Field label={direction === "sell" ? "Montant à vendre (€)" : "Montant à payer (FCFA)"} error={errors.amount}>
+            <input
+              type="number"
+              min="0"
+              placeholder={direction === "sell" ? `ex: 50 (min ${PAYPAL_LIMITS.sell.min}€)` : `ex: 50 000 FCFA`}
+              value={amount}
+              onChange={e => { setAmount(e.target.value); setErrors(p => ({ ...p, amount: "" })); }}
+              className={inputCls}
+              style={errors.amount ? inputErr : inputBase}
+            />
+          </Field>
 
-      <div
-        className="rounded-2xl p-5"
-        style={{ background: "#00308710", border: "1px solid #00308733" }}
+          {/* Result */}
+          {numAmount > 0 && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.97 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="rounded-2xl p-4"
+              style={{ background: "#003087" + "18", border: "1px solid #003087" + "55" }}
+            >
+              <p className="text-xs font-bold mb-1" style={{ color: "#5B8FE8" }}>
+                {direction === "sell" ? "Vous recevez" : "Vous obtenez"}
+              </p>
+              <p className="text-2xl font-black text-white">
+                {direction === "sell" ? `${fcfaResult.toLocaleString("fr-FR")} FCFA` : `${eurResult}€`}
+              </p>
+            </motion.div>
+          )}
+
+          {/* PayPal email */}
+          <Field label={direction === "sell" ? "Email / nom du compte PayPal" : "Email PayPal à recharger"} error={errors.paypalEmail}>
+            <input
+              type="email"
+              placeholder="exemple@email.com"
+              value={paypalEmail}
+              onChange={e => { setPaypalEmail(e.target.value); setErrors(p => ({ ...p, paypalEmail: "" })); }}
+              className={inputCls}
+              style={errors.paypalEmail ? inputErr : inputBase}
+            />
+          </Field>
+
+          {/* MoMo */}
+          <Field label={direction === "sell" ? "Réception MoMo" : "Paiement MoMo"} error={errors.momoPhone}>
+            <div className="flex gap-2">
+              <select
+                value={momoOp}
+                onChange={e => setMomoOp(e.target.value)}
+                className="px-3 py-3 rounded-2xl text-white text-sm outline-none shrink-0"
+                style={inputBase}
+              >
+                {MOMO_OPERATORS.slice(0, 2).map(o => (
+                  <option key={o.id} value={o.id}>{o.name}</option>
+                ))}
+              </select>
+              <div className="flex flex-1 items-center rounded-2xl overflow-hidden" style={errors.momoPhone ? inputErr : inputBase}>
+                <span className="px-3 text-sm font-bold shrink-0" style={{ color: "var(--text-muted)" }}>+237</span>
+                <input
+                  type="tel"
+                  placeholder="6XXXXXXXX"
+                  value={momoPhone}
+                  onChange={e => { setMomoPhone(e.target.value.replace(/\D/g, "").slice(0, 9)); setErrors(p => ({ ...p, momoPhone: "" })); }}
+                  className="flex-1 py-3 pr-4 bg-transparent text-white text-sm outline-none"
+                />
+              </div>
+            </div>
+          </Field>
+        </motion.div>
+      </AnimatePresence>
+
+      <button
+        onClick={handleOrder}
+        className="w-full mt-8 py-4 rounded-full font-black text-white text-sm transition-opacity hover:opacity-85"
+        style={{ background: "#25D366" }}
       >
-        <p className="font-black text-white mb-3">ℹ️ Informations</p>
-        <ul className="space-y-2 text-sm" style={{ color: "var(--text-secondary)" }}>
-          <li>✅ Compte PayPal Europe uniquement (France, Belgique, Italie…)</li>
-          <li>✅ Pas de compte PayPal Cameroun ni USA</li>
-          <li>✅ Transfert reçu sur Mobile Money (MTN/Orange)</li>
-          <li>✅ Transaction traitée en 15–30 min</li>
-        </ul>
+        💬 {direction === "sell" ? "Envoyer ma demande de vente" : "Commander via WhatsApp"}
+      </button>
+
+      {/* Info box */}
+      <div className="mt-6 rounded-2xl p-4 text-xs flex flex-col gap-1.5" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+        {["PayPal Europe uniquement (France, Belgique, Italie…)", "Comptes Cameroun ou USA non acceptés", "Transfert vers Mobile Money MTN / Orange", "Traitement en 15–30 min"].map(s => (
+          <p key={s} style={{ color: "var(--text-secondary)" }}>✅ {s}</p>
+        ))}
       </div>
     </div>
   );

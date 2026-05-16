@@ -29,6 +29,12 @@ export const IMAGES = {
   factures:"/assets/paiement-+-facture-services.webp",
   mtn:     "/assets/MTN Mobile Money (MoMo) Payment .webp",
   orange:  "/assets/orange-money.webp",
+  expressUnion: "/assets/Express Union logo.webp",
+  yoomee: "/assets/Yoomee Money logo.webp",
+  canal:   "/assets/Canal+ logo.webp",
+  eneo:    "/assets/Eneo logo.webp",
+  camwater:"/assets/Camwater logo.webp",
+  startimes:"/assets/StarTimes logo.webp",
 };
 
 const STANDARD_AMOUNTS = [
@@ -93,18 +99,56 @@ export const UBA_RECHARGE_FEES = [
 ];
 
 export const CRYPTO_RATES = [
-  { id: "usdt", name: "USDT", fullName: "Tether (USDT)",    icon: "💵", color: "#26A17B", buyRate: 580,      sellRate: 700,      unit: "1 USDT", min: 5000,  max: 500000 },
-  { id: "usdc", name: "USDC", fullName: "USD Coin (USDC)",  icon: "🔵", color: "#2775CA", buyRate: 580,      sellRate: 700,      unit: "1 USDC", min: 5000,  max: 500000 },
-  { id: "btc",  name: "BTC",  fullName: "Bitcoin (BTC)",    icon: "₿",  color: "#F7931A", buyRate: 58000000, sellRate: 70000000, unit: "1 BTC",  min: 10000, max: 500000 },
-  { id: "trx",  name: "TRX",  fullName: "Tron (TRX)",       icon: "🔴", color: "#EB0029", buyRate: 151,      sellRate: 182,      unit: "1 TRX",  min: 2000,  max: 500000 },
+  { id: "usdt", name: "USDT", fullName: "Tether",         icon: "₮",  color: "#26A17B", buyRate: 580,       sellRate: 700,       unit: "USD" },
+  { id: "usdc", name: "USDC", fullName: "USD Coin",       icon: "◎",  color: "#2775CA", buyRate: 580,       sellRate: 700,       unit: "USD" },
+  { id: "btc",  name: "BTC",  fullName: "Bitcoin",        icon: "₿",  color: "#F7931A", buyRate: 58000000,  sellRate: 70000000,  unit: "BTC" },
+  { id: "trx",  name: "TRX",  fullName: "Tron",           icon: "◈",  color: "#EB0029", buyRate: 151,       sellRate: 182,       unit: "TRX" },
+  { id: "sol",  name: "SOL",  fullName: "Solana",         icon: "◎",  color: "#9945FF", buyRate: 99000,     sellRate: 120000,    unit: "SOL" },
+  { id: "ltc",  name: "LTC",  fullName: "Litecoin",       icon: "Ł",  color: "#A6A9AA", buyRate: 62000,     sellRate: 75000,     unit: "LTC" },
+  { id: "eth",  name: "ETH",  fullName: "Ethereum",       icon: "Ξ",  color: "#627EEA", buyRate: 2900000,   sellRate: 3500000,   unit: "ETH" },
+  { id: "ada",  name: "ADA",  fullName: "Cardano",        icon: "₳",  color: "#0033AD", buyRate: 330,       sellRate: 400,       unit: "ADA" },
+  { id: "bnb",  name: "BNB",  fullName: "BNB Chain",      icon: "◈",  color: "#F3BA2F", buyRate: 435000,    sellRate: 525000,    unit: "BNB" },
 ];
 
+export const CRYPTO_NETWORKS: Record<string, string[]> = {
+  usdt: ["TRC20", "BEP20", "ERC20"],
+  usdc: ["ERC20", "BEP20", "SPL"],
+  btc:  ["Bitcoin"],
+  trx:  ["TRC20"],
+  sol:  ["SPL"],
+  ltc:  ["Litecoin"],
+  eth:  ["ERC20", "Arbitrum"],
+  ada:  ["Cardano"],
+  bnb:  ["BEP20"],
+};
+
 export const COUPON_RATES = {
-  pcs:       { rate: 440, commission: 7,  formula: "(montant − 7%) × 440" },
-  transcash: { rate: 440, commission: 0,  formula: "montant × 440" },
+  pcs:       { rate: 440, commission: 7,  formula: "(montant − 7%) × 440", codeLength: 8,  codeType: "alphanumérique" as const },
+  transcash: { rate: 440, commission: 0,  formula: "montant × 440",         codeLength: 12, codeType: "numérique" as const },
+};
+
+export const PAYPAL_RATES = {
+  sellRate: 580,
+  buyRate:  700,
 };
 
 export const PAYPAL_LIMITS = {
   sell: { min: 20,    max: 500,    currency: "€",    label: "Vente (retrait)" },
   buy:  { min: 10000, max: 500000, currency: "FCFA", label: "Achat (recharge)" },
 };
+
+export const MOMO_OPERATORS = [
+  { id: "orange", name: "Orange Money", color: "#FF6600" },
+  { id: "mtn",    name: "MTN MoMo",     color: "#FFC107" },
+  { id: "eu",     name: "Express Union", color: "#0066CC" },
+  { id: "yoomee", name: "Yoomee Money",  color: "#9B59B6" },
+];
+
+export const FACTURE_BILLERS = [
+  { id: "canal",     name: "Canal+",    emoji: "📺", color: "#0071BC", desc: "Abonnement Canal+ Cameroun" },
+  { id: "eneo",      name: "Eneo",      emoji: "💡", color: "#FFD700", desc: "Facture d'électricité Eneo" },
+  { id: "camwater",  name: "Camwater",  emoji: "💧", color: "#00AEEF", desc: "Facture d'eau Camwater" },
+  { id: "startimes", name: "StarTimes", emoji: "📡", color: "#E31837", desc: "Abonnement StarTimes" },
+];
+
+export const FACTURE_COMMISSION = 200;

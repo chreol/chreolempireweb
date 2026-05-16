@@ -7,10 +7,11 @@ import { useCart } from "@/contexts/CartContext";
 import { CONTACT, IMAGES } from "@/lib/services";
 
 const LINKS = [
-  { href: "/",          label: "Accueil" },
-  { href: "/services",  label: "Services" },
-  { href: "/paiement",  label: "Paiement" },
-  { href: "/a-propos",  label: "À propos" },
+  { href: "/",           label: "Accueil" },
+  { href: "/services",   label: "Services" },
+  { href: "/paiement",   label: "Paiement" },
+  { href: "/historique", label: "Historique" },
+  { href: "/a-propos",   label: "À propos" },
 ];
 
 export default function Navbar() {

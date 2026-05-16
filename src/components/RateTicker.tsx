@@ -5,14 +5,18 @@ import { useEffect, useState, useRef } from "react";
 interface Rate { name: string; buy?: string; sell?: string; }
 
 const FALLBACK: Rate[] = [
-  { name: "USDT",         buy: "580 FCFA/$",  sell: "700 FCFA/$" },
-  { name: "BTC",          buy: "580 FCFA",    sell: "700 FCFA" },
-  { name: "TRX",          buy: "151 FCFA",    sell: "182 FCFA" },
-  { name: "PayPal",       buy: "580 FCFA/€",  sell: "700 FCFA/€" },
-  { name: "PCS",          buy: "440 FCFA/€" },
-  { name: "Transcash",    buy: "440 FCFA/€" },
-  { name: "USDC",         buy: "580 FCFA/$",  sell: "700 FCFA/$" },
-  { name: "SOL & autres",                     sell: "Tarif sur demande" },
+  { name: "USDT",      buy: "580 FCFA/$",       sell: "700 FCFA/$" },
+  { name: "USDC",      buy: "580 FCFA/$",       sell: "700 FCFA/$" },
+  { name: "BTC",       buy: "58 000 000 FCFA",  sell: "70 000 000 FCFA" },
+  { name: "ETH",       buy: "2 900 000 FCFA",   sell: "3 500 000 FCFA" },
+  { name: "BNB",       buy: "435 000 FCFA",     sell: "525 000 FCFA" },
+  { name: "SOL",       buy: "99 000 FCFA",      sell: "120 000 FCFA" },
+  { name: "TRX",       buy: "151 FCFA",         sell: "182 FCFA" },
+  { name: "LTC",       buy: "62 000 FCFA",      sell: "75 000 FCFA" },
+  { name: "ADA",       buy: "330 FCFA",         sell: "400 FCFA" },
+  { name: "PayPal",    buy: "580 FCFA/€",       sell: "700 FCFA/€" },
+  { name: "PCS",       buy: "440 FCFA/€" },
+  { name: "Transcash", buy: "440 FCFA/€" },
 ];
 
 function buildText(rates: Rate[]) {

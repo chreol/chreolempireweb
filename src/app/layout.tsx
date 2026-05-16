@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/contexts/CartContext";
+import { HistoryProvider } from "@/contexts/HistoryContext";
+import { ToastProvider } from "@/components/Toast";
 import Navbar from "@/components/Navbar";
 import RateTicker from "@/components/RateTicker";
 import { CONTACT } from "@/lib/services";
@@ -24,6 +26,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="fr" className={geist.variable}>
       <body className="min-h-screen flex flex-col">
+        <ToastProvider>
+        <HistoryProvider>
         <CartProvider>
           <RateTicker />
           <Navbar />
@@ -92,6 +96,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </div>
           </footer>
         </CartProvider>
+        </HistoryProvider>
+        </ToastProvider>
       </body>
     </html>
   );
