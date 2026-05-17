@@ -169,6 +169,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <div>
                   <p className="font-bold text-sm mb-3" style={{ color: "var(--gold)" }}>INFORMATIONS</p>
                   <div className="flex flex-col gap-2 text-sm" style={{ color: "var(--text-secondary)" }}>
+                    <a href="/comment-ca-marche" className="hover:text-white transition-colors">📖 Comment ça marche</a>
                     <a href="/paiement" className="hover:text-white transition-colors">💰 Modes de paiement</a>
                     <a href="/a-propos" className="hover:text-white transition-colors">ℹ️ À propos</a>
                     <a href="/sitemap" className="hover:text-white transition-colors">🗺️ Plan du site</a>

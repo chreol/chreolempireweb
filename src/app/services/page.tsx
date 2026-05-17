@@ -3,19 +3,19 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { IMAGES } from "@/lib/services";
+import { IMAGES, SERVICE_STOCK } from "@/lib/services";
 import WAPopover from "@/components/WAPopover";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 type ServiceCat = "all" | "gaming" | "crypto" | "fintech";
 
 const SERVICE_DATA = [
-  { image: IMAGES.psn,        tk: "svc.giftcards", emoji: "🎮", color: "#C9A84C", href: "/services/cartes-cadeaux", cat: "gaming"  as ServiceCat, tags: ["PSN", "iTunes", "Roblox", "Steam", "Razer", "Nintendo"] },
-  { image: IMAGES.cryptoMomo, tk: "svc.crypto",    emoji: "₿",  color: "#26A17B", href: "/services/crypto",          cat: "crypto"  as ServiceCat, tags: ["USDT", "BTC", "TRX", "ETH", "MTN", "Orange"] },
-  { image: IMAGES.transcash,  tk: "svc.coupons",   emoji: "🎫", color: "#25D366", href: "/services/coupons",         cat: "fintech" as ServiceCat, tags: ["Transcash", "PCS", "440 FCFA/€", "Mobile Money"] },
-  { image: IMAGES.ubaCard,    tk: "svc.uba",       emoji: "💳", color: "#8B0000", href: "/services/uba",             cat: "fintech" as ServiceCat, tags: ["Segment I", "Segment II", "Segment III", "Recharge"] },
-  { image: IMAGES.paypal2,    tk: "svc.paypal",    emoji: "💸", color: "#003087", href: "/services/paypal",          cat: "fintech" as ServiceCat, tags: ["PayPal", "700 FCFA/€", "Europe", "France"] },
-  { image: IMAGES.factures,   tk: "svc.factures",  emoji: "🔄", color: "#FF6B00", href: "/services/factures",        cat: "fintech" as ServiceCat, tags: ["Canal+", "Eneo", "Camwater", "StarTimes", "MoMo"] },
+  { image: IMAGES.psn,        tk: "svc.giftcards", emoji: "🎮", color: "#C9A84C", href: "/services/cartes-cadeaux", stockId: "cartes-cadeaux", cat: "gaming"  as ServiceCat, tags: ["PSN", "iTunes", "Roblox", "Steam", "Razer", "Nintendo"] },
+  { image: IMAGES.cryptoMomo, tk: "svc.crypto",    emoji: "₿",  color: "#26A17B", href: "/services/crypto",          stockId: "crypto",         cat: "crypto"  as ServiceCat, tags: ["USDT", "BTC", "TRX", "ETH", "MTN", "Orange"] },
+  { image: IMAGES.transcash,  tk: "svc.coupons",   emoji: "🎫", color: "#25D366", href: "/services/coupons",         stockId: "coupons",        cat: "fintech" as ServiceCat, tags: ["Transcash", "PCS", "440 FCFA/€", "Mobile Money"] },
+  { image: IMAGES.ubaCard,    tk: "svc.uba",       emoji: "💳", color: "#8B0000", href: "/services/uba",             stockId: "uba",            cat: "fintech" as ServiceCat, tags: ["Segment I", "Segment II", "Segment III", "Recharge"] },
+  { image: IMAGES.paypal2,    tk: "svc.paypal",    emoji: "💸", color: "#003087", href: "/services/paypal",          stockId: "paypal",         cat: "fintech" as ServiceCat, tags: ["PayPal", "700 FCFA/€", "Europe", "France"] },
+  { image: IMAGES.factures,   tk: "svc.factures",  emoji: "🔄", color: "#FF6B00", href: "/services/factures",        stockId: "factures",       cat: "fintech" as ServiceCat, tags: ["Canal+", "Eneo", "Camwater", "StarTimes", "MoMo"] },
 ];
 
 const CATEGORIES: { key: ServiceCat; label: string; emoji: string }[] = [
@@ -261,16 +261,28 @@ export default function ServicesPage() {
                   >
                     {t("services.btn.view")}
                   </Link>
-                  <WAPopover
-                    prefill={`Je souhaite utiliser le service "${s.title}" — ${s.sub}`}
-                    align="right"
-                    dropDown={false}
-                    className="flex-1 py-2.5 rounded-xl font-black text-white text-xs flex items-center justify-center gap-1 transition-opacity hover:opacity-85"
-                    style={{ background: "#25D366" }}
-                  >
-                    <Image src={IMAGES.whatsapp} alt="" width={13} height={13} unoptimized className="shrink-0" />
-                    {t("services.btn.short")}
-                  </WAPopover>
+                  {SERVICE_STOCK[s.stockId]?.inStock !== false ? (
+                    <WAPopover
+                      prefill={`Je souhaite utiliser le service "${s.title}" — ${s.sub}`}
+                      align="right"
+                      dropDown={false}
+                      className="flex-1 py-2.5 rounded-xl font-black text-white text-xs flex items-center justify-center gap-1 transition-opacity hover:opacity-85"
+                      style={{ background: "#25D366" }}
+                    >
+                      <Image src={IMAGES.whatsapp} alt="" width={13} height={13} unoptimized className="shrink-0" />
+                      {t("services.btn.short")}
+                    </WAPopover>
+                  ) : (
+                    <WAPopover
+                      prefill={`Bonjour, je souhaite être averti dès que le service "${s.title}" sera à nouveau disponible.`}
+                      align="right"
+                      dropDown={false}
+                      className="flex-1 py-2.5 rounded-xl font-black text-xs flex items-center justify-center gap-1 transition-opacity hover:opacity-85"
+                      style={{ background: "var(--bg-elevated)", color: "#FFC107", border: "1px solid #FFC10755" }}
+                    >
+                      🔔 M&apos;avertir
+                    </WAPopover>
+                  )}
                 </div>
               </div>
             </div>

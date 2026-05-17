@@ -168,3 +168,12 @@ export const FACTURE_BILLERS = [
 ];
 
 export const FACTURE_COMMISSION = 200;
+
+export const SERVICE_STOCK: Record<string, { inStock: boolean; note?: string }> = {
+  "cartes-cadeaux": { inStock: true },
+  "crypto":         { inStock: true },
+  "coupons":        { inStock: true },
+  "uba":            { inStock: true },
+  "paypal":         { inStock: true },
+  "factures":       { inStock: true },
+};

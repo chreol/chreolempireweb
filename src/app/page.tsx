@@ -4,17 +4,17 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { IMAGES, SOCIAL_LINKS } from "@/lib/services";
+import { IMAGES, SOCIAL_LINKS, SERVICE_STOCK } from "@/lib/services";
 import WAPopover from "@/components/WAPopover";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const SERVICE_DATA = [
-  { image: IMAGES.psn,        tk: "svc.giftcards", color: "#C9A84C", href: "/services/cartes-cadeaux", emoji: "🎮", price: "à partir de 7 500 FCFA" },
-  { image: IMAGES.cryptoMomo, tk: "svc.crypto",    color: "#26A17B", href: "/services/crypto",          emoji: "₿",  price: "taux temps réel" },
-  { image: IMAGES.coupons,    tk: "svc.coupons",   color: "#25D366", href: "/services/coupons",         emoji: "🎫", price: "440 FCFA/€" },
-  { image: IMAGES.ubaCard,    tk: "svc.uba",       color: "#8B0000", href: "/services/uba",             emoji: "💳", price: "à partir de 10 500 FCFA" },
-  { image: IMAGES.paypal2,    tk: "svc.paypal",    color: "#003087", href: "/services/paypal",          emoji: "💸", price: "580 FCFA/€" },
-  { image: IMAGES.factures,   tk: "svc.factures",  color: "#FF6B00", href: "/services/factures",        emoji: "🔄", price: "+200 FCFA par facture" },
+  { image: IMAGES.psn,        tk: "svc.giftcards", color: "#C9A84C", href: "/services/cartes-cadeaux", stockId: "cartes-cadeaux", emoji: "🎮", price: "à partir de 7 500 FCFA" },
+  { image: IMAGES.cryptoMomo, tk: "svc.crypto",    color: "#26A17B", href: "/services/crypto",          stockId: "crypto",         emoji: "₿",  price: "taux temps réel" },
+  { image: IMAGES.coupons,    tk: "svc.coupons",   color: "#25D366", href: "/services/coupons",         stockId: "coupons",        emoji: "🎫", price: "440 FCFA/€" },
+  { image: IMAGES.ubaCard,    tk: "svc.uba",       color: "#8B0000", href: "/services/uba",             stockId: "uba",            emoji: "💳", price: "à partir de 10 500 FCFA" },
+  { image: IMAGES.paypal2,    tk: "svc.paypal",    color: "#003087", href: "/services/paypal",          stockId: "paypal",         emoji: "💸", price: "580 FCFA/€" },
+  { image: IMAGES.factures,   tk: "svc.factures",  color: "#FF6B00", href: "/services/factures",        stockId: "factures",       emoji: "🔄", price: "+200 FCFA par facture" },
 ];
 
 const STEPS_DATA = [
@@ -295,14 +295,24 @@ export default function HomePage() {
                   style={{ background: "var(--bg-elevated)", color: "var(--text-secondary)" }}>
                   Voir →
                 </Link>
-                <WAPopover
-                  prefill={`Bonjour, je voudrais commander : ${s.title}. Pouvez-vous m'aider ?`}
-                  className="flex-1 py-2.5 rounded-xl text-xs font-black text-white text-center flex items-center justify-center gap-1.5 transition-opacity hover:opacity-80"
-                  style={{ background: "#25D366" }}
-                >
-                  <Image src={IMAGES.whatsapp} alt="" width={12} height={12} unoptimized className="shrink-0" />
-                  Commander
-                </WAPopover>
+                {SERVICE_STOCK[s.stockId]?.inStock !== false ? (
+                  <WAPopover
+                    prefill={`Bonjour, je voudrais commander : ${s.title}. Pouvez-vous m'aider ?`}
+                    className="flex-1 py-2.5 rounded-xl text-xs font-black text-white text-center flex items-center justify-center gap-1.5 transition-opacity hover:opacity-80"
+                    style={{ background: "#25D366" }}
+                  >
+                    <Image src={IMAGES.whatsapp} alt="" width={12} height={12} unoptimized className="shrink-0" />
+                    Commander
+                  </WAPopover>
+                ) : (
+                  <WAPopover
+                    prefill={`Bonjour, je souhaite être averti dès que le service "${s.title}" sera à nouveau disponible.`}
+                    className="flex-1 py-2.5 rounded-xl text-xs font-black text-center flex items-center justify-center gap-1 transition-opacity hover:opacity-80"
+                    style={{ background: "var(--bg-elevated)", color: "#FFC107", border: "1px solid #FFC10755" }}
+                  >
+                    🔔 M&apos;avertir
+                  </WAPopover>
+                )}
               </div>
             </div>
           ))}
