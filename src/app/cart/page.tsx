@@ -181,7 +181,7 @@ export default function CartPage() {
               </div>
 
               <div className="text-right shrink-0">
-                <p className="font-black" style={{ color: "var(--gold)" }}>
+                <p className="font-black tabular-nums" style={{ color: "var(--gold)" }}>
                   {(item.price * item.qty).toLocaleString("fr-FR")} F
                 </p>
                 <button
@@ -200,7 +200,7 @@ export default function CartPage() {
             style={{ background: "var(--bg-elevated)", border: "1px solid var(--border-strong)" }}
           >
             <span className="font-black text-white">Total</span>
-            <span className="text-2xl font-black" style={{ color: "var(--gold)" }}>
+            <span className="text-2xl font-black tabular-nums" style={{ color: "var(--gold)" }}>
               {total.toLocaleString("fr-FR")} FCFA
             </span>
           </div>
@@ -240,7 +240,7 @@ export default function CartPage() {
                   >
                     {m.image ? (
                       <div className="relative w-10 h-10 rounded-xl overflow-hidden">
-                        <Image src={m.image} alt={m.label} fill style={{ objectFit: "cover" }} unoptimized />
+                        <Image src={m.image} alt={m.label} fill style={{ objectFit: "cover" }} className="outline outline-1 -outline-offset-1 outline-white/10" unoptimized />
                       </div>
                     ) : (
                       <span className="text-2xl">💬</span>
@@ -307,7 +307,7 @@ export default function CartPage() {
               <button
                 onClick={handleCampayOrder}
                 disabled={loading}
-                className="w-full py-4 rounded-full font-black text-black text-sm transition-opacity hover:opacity-85 disabled:opacity-50"
+                className="w-full py-4 rounded-full font-black text-black text-sm transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96] disabled:opacity-50"
                 style={{ background: "var(--gold)" }}
               >
                 {loading ? "Envoi en cours…" : "⚡ Payer maintenant (Mobile Money)"}
@@ -317,7 +317,7 @@ export default function CartPage() {
               href={`https://wa.me/${CONTACT.whatsapp}?text=${buildWAMsg()}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="block w-full py-4 rounded-full font-black text-white text-center text-sm transition-opacity hover:opacity-85"
+              className="block w-full py-4 rounded-full font-black text-white text-center text-sm transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
               style={{ background: "#25D366" }}
             >
               {isSell ? "📤 Envoyer la demande via WhatsApp" : "💬 Commander via WhatsApp"}

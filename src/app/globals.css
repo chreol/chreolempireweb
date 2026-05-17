@@ -15,6 +15,8 @@
   --border-strong: #3D3520;
   --green: #25D366;
   --crypto: #26A17B;
+  --shadow-border: 0 0 0 1px rgba(255, 255, 255, 0.08);
+  --shadow-border-hover: 0 0 0 1px rgba(255, 255, 255, 0.13);
 }
 
 @theme inline {
@@ -36,7 +38,11 @@ body {
   color: var(--text-primary);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
+
+h1, h2, h3, h4 { text-wrap: balance; }
+p, li { text-wrap: pretty; }
 
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; height: 6px; }

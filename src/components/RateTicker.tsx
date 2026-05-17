@@ -68,10 +68,10 @@ export default function RateTicker() {
       {/* Scrolling text */}
       <div className="flex-1 overflow-hidden">
         <div ref={ref} className="flex whitespace-nowrap">
-          <span className="text-[11.5px] font-bold tracking-wide" style={{ color: "var(--gold)" }}>
+          <span className="text-[11.5px] font-bold tracking-wide tabular-nums" style={{ color: "var(--gold)" }}>
             {text}
           </span>
-          <span className="text-[11.5px] font-bold tracking-wide" style={{ color: "var(--gold)" }}>
+          <span className="text-[11.5px] font-bold tracking-wide tabular-nums" style={{ color: "var(--gold)" }}>
             {text}
           </span>
         </div>

@@ -27,7 +27,7 @@ export default function Navbar() {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 shrink-0">
           <div className="relative w-9 h-9 rounded-xl overflow-hidden">
-            <Image src={IMAGES.logo} alt="Chreol Empire" fill style={{ objectFit: "cover" }} unoptimized />
+            <Image src={IMAGES.logo} alt="Chreol Empire" fill style={{ objectFit: "cover" }} className="outline outline-1 -outline-offset-1 outline-white/10" unoptimized />
           </div>
           <span className="font-black text-white text-lg leading-tight hidden sm:block">
             Chreol<span style={{ color: "var(--gold)" }}>Empire</span>
@@ -57,7 +57,7 @@ export default function Navbar() {
             href={`https://wa.me/${CONTACT.whatsapp}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold text-white transition-opacity hover:opacity-80"
+            className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold text-white transition-[opacity,transform] duration-150 ease-out hover:opacity-80 active:scale-[0.96]"
             style={{ background: "#25D366" }}
           >
             <span>💬</span>
@@ -66,7 +66,7 @@ export default function Navbar() {
 
           <Link
             href="/cart"
-            className="relative flex items-center justify-center w-10 h-10 rounded-full transition-colors"
+            className="relative flex items-center justify-center w-10 h-10 rounded-full transition-[opacity,transform] duration-150 ease-out hover:opacity-80 active:scale-[0.96]"
             style={{ background: "#222" }}
           >
             <span className="text-xl">🛒</span>

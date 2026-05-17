@@ -109,7 +109,7 @@ export default function PaypalPage() {
     return (
       <div className="flex justify-between items-center py-2" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
         <span className="text-xs" style={{ color: "var(--text-muted)" }}>{label}</span>
-        <span className="text-sm font-bold" style={highlight ? { color: "var(--gold)" } : { color: "#fff" }}>{value}</span>
+        <span className="text-sm font-bold tabular-nums" style={highlight ? { color: "var(--gold)" } : { color: "#fff" }}>{value}</span>
       </div>
     );
   }
@@ -149,16 +149,16 @@ export default function PaypalPage() {
         <div className="flex justify-between text-sm">
           <div>
             <p className="text-xs font-bold mb-1" style={{ color: "var(--text-muted)" }}>Taux applicable</p>
-            <p className="font-black text-white">1€ = {direction === "sell" ? sellRate : buyRate} FCFA</p>
+            <p className="font-black text-white tabular-nums">1€ = {direction === "sell" ? sellRate : buyRate} FCFA</p>
           </div>
           <div className="text-right">
             <p className="text-xs font-bold mb-1" style={{ color: "var(--text-muted)" }}>Limite</p>
-            <p className="font-black text-white">{limits.min.toLocaleString("fr-FR")} – {limits.max.toLocaleString("fr-FR")} {limits.currency}</p>
+            <p className="font-black text-white tabular-nums">{limits.min.toLocaleString("fr-FR")} – {limits.max.toLocaleString("fr-FR")} {limits.currency}</p>
           </div>
         </div>
       </div>
 
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="wait" initial={false}>
         <motion.div
           key={direction}
           initial={{ opacity: 0, y: 8 }}
@@ -236,14 +236,14 @@ export default function PaypalPage() {
       <div className="flex flex-col gap-3 mt-8">
         <button
           onClick={handleAddToCart}
-          className="w-full py-4 rounded-full font-black text-black text-sm transition-opacity hover:opacity-85"
+          className="w-full py-4 rounded-full font-black text-black text-sm transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
           style={{ background: "var(--gold)" }}
         >
           🛒 Ajouter au panier
         </button>
         <button
           onClick={handleWhatsApp}
-          className="w-full py-3 rounded-full font-black text-white text-sm transition-opacity hover:opacity-85"
+          className="w-full py-3 rounded-full font-black text-white text-sm transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
           style={{ background: "#25D366" }}
         >
           💬 {direction === "sell" ? "Commander directement via WhatsApp" : "Commander via WhatsApp"}

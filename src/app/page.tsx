@@ -65,7 +65,7 @@ export default function HomePage() {
             <div className="flex flex-wrap gap-3">
               <Link
                 href="/services"
-                className="px-6 py-3 rounded-full font-black text-black text-sm transition-opacity hover:opacity-85"
+                className="px-6 py-3 rounded-full font-black text-black text-sm transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
                 style={{ background: "var(--gold)" }}
               >
                 Voir le catalogue →
@@ -73,7 +73,7 @@ export default function HomePage() {
               <a
                 href={`https://wa.me/${CONTACT.whatsapp}`}
                 target="_blank" rel="noopener noreferrer"
-                className="px-6 py-3 rounded-full font-black text-white text-sm transition-opacity hover:opacity-85"
+                className="px-6 py-3 rounded-full font-black text-white text-sm transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
                 style={{ background: "#25D366" }}
               >
                 💬 Commander sur WhatsApp
@@ -87,9 +87,9 @@ export default function HomePage() {
               <div
                 key={i}
                 className="relative w-36 h-28 rounded-2xl overflow-hidden"
-                style={{ border: "1px solid var(--border)" }}
+                style={{ boxShadow: "var(--shadow-border)" }}
               >
-                <Image src={src} alt="" fill style={{ objectFit: "cover" }} unoptimized />
+                <Image src={src} alt="" fill style={{ objectFit: "cover" }} className="outline outline-1 -outline-offset-1 outline-white/10" unoptimized />
                 <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.15)" }} />
               </div>
             ))}
@@ -105,12 +105,12 @@ export default function HomePage() {
             <Link
               key={i}
               href={p.href}
-              className="shrink-0 w-64 rounded-2xl overflow-hidden transition-transform hover:-translate-y-1"
-              style={{ background: "var(--bg-card)", border: `1px solid ${p.color}44` }}
+              className="shrink-0 w-64 rounded-2xl overflow-hidden transition-[transform,box-shadow] duration-150 ease-out hover:-translate-y-1 hover:shadow-lg active:scale-[0.98]"
+              style={{ background: "var(--bg-card)", boxShadow: `0 0 0 1px ${p.color}44` }}
             >
               {/* Image */}
               <div className="relative h-36 w-full">
-                <Image src={p.image} alt={p.title} fill style={{ objectFit: "cover" }} unoptimized />
+                <Image src={p.image} alt={p.title} fill style={{ objectFit: "cover" }} className="outline outline-1 -outline-offset-1 outline-white/10" unoptimized />
                 <div className="absolute inset-0" style={{ background: `linear-gradient(to bottom, transparent 40%, ${p.color}99)` }} />
                 <span
                   className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[10px] font-black"
@@ -137,12 +137,12 @@ export default function HomePage() {
             <Link
               key={i}
               href={s.href}
-              className="group relative rounded-2xl overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-xl"
-              style={{ border: `1px solid ${s.color}33` }}
+              className="group relative rounded-2xl overflow-hidden transition-[transform,box-shadow] duration-150 ease-out hover:-translate-y-0.5 hover:shadow-xl active:scale-[0.98]"
+              style={{ boxShadow: `0 0 0 1px ${s.color}33` }}
             >
               {/* Background image */}
               <div className="relative h-36">
-                <Image src={s.image} alt={s.title} fill style={{ objectFit: "cover" }} unoptimized />
+                <Image src={s.image} alt={s.title} fill style={{ objectFit: "cover" }} className="outline outline-1 -outline-offset-1 outline-white/10" unoptimized />
                 <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.75) 100%)" }} />
               </div>
               {/* Content overlay */}
@@ -189,10 +189,10 @@ export default function HomePage() {
             <div
               key={p.label}
               className="flex items-center gap-3 px-5 py-3 rounded-2xl"
-              style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
+              style={{ background: "var(--bg-card)", boxShadow: "var(--shadow-border)" }}
             >
               <div className="relative w-10 h-10 rounded-xl overflow-hidden">
-                <Image src={p.image} alt={p.label} fill style={{ objectFit: "cover" }} unoptimized />
+                <Image src={p.image} alt={p.label} fill style={{ objectFit: "cover" }} className="outline outline-1 -outline-offset-1 outline-white/10" unoptimized />
               </div>
               <span className="font-bold text-white text-sm">{p.label}</span>
             </div>
@@ -225,7 +225,7 @@ export default function HomePage() {
           <a
             href={`https://wa.me/${CONTACT.whatsapp}?text=${encodeURIComponent("Bonjour Chreol Empire, je souhaite passer une commande.")}`}
             target="_blank" rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-8 py-4 rounded-full font-black text-white text-base transition-opacity hover:opacity-85"
+            className="inline-flex items-center gap-2 px-8 py-4 rounded-full font-black text-white text-base transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
             style={{ background: "#25D366" }}
           >
             💬 Ouvrir WhatsApp

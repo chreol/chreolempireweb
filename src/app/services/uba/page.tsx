@@ -135,7 +135,7 @@ export default function UBAPage() {
         ))}
       </div>
 
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="wait" initial={false}>
         {mode === "buy" ? (
           <motion.div key="buy" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }}>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -270,15 +270,15 @@ export default function UBAPage() {
               >
                 <div className="flex justify-between text-sm mb-2">
                   <span style={{ color: "var(--text-secondary)" }}>Recharge</span>
-                  <span className="text-white font-bold">{numAmount.toLocaleString("fr-FR")} FCFA</span>
+                  <span className="text-white font-bold tabular-nums">{numAmount.toLocaleString("fr-FR")} FCFA</span>
                 </div>
                 <div className="flex justify-between text-sm mb-2">
                   <span style={{ color: "var(--text-secondary)" }}>Frais de service</span>
-                  <span className="text-white font-bold">{fee.toLocaleString("fr-FR")} FCFA</span>
+                  <span className="text-white font-bold tabular-nums">{fee.toLocaleString("fr-FR")} FCFA</span>
                 </div>
                 <div className="flex justify-between text-base pt-2" style={{ borderTop: "1px solid #8B000033" }}>
                   <span className="font-black text-white">Total à payer</span>
-                  <span className="font-black" style={{ color: "var(--gold)" }}>{total.toLocaleString("fr-FR")} FCFA</span>
+                  <span className="font-black tabular-nums" style={{ color: "var(--gold)" }}>{total.toLocaleString("fr-FR")} FCFA</span>
                 </div>
               </motion.div>
             )}
@@ -300,14 +300,14 @@ export default function UBAPage() {
 
             <button
               onClick={handleAddToCart}
-              className="w-full py-4 rounded-full font-black text-black text-sm transition-opacity hover:opacity-85"
+              className="w-full py-4 rounded-full font-black text-black text-sm transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
               style={{ background: "var(--gold)" }}
             >
               🛒 Ajouter au panier
             </button>
             <button
               onClick={handleRecharge}
-              className="w-full py-3 rounded-full font-black text-white text-sm transition-opacity hover:opacity-85"
+              className="w-full py-3 rounded-full font-black text-white text-sm transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
               style={{ background: "#25D366" }}
             >
               💬 Commander directement via WhatsApp

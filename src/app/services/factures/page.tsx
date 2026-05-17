@@ -154,7 +154,7 @@ export default function FacturesPage() {
         ))}
       </div>
 
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="wait" initial={false}>
         {tab === "factures" ? (
           <motion.div key="factures" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }} className="flex flex-col gap-5">
 
@@ -243,22 +243,22 @@ export default function FacturesPage() {
               >
                 <div className="flex justify-between text-sm mb-1">
                   <span style={{ color: "var(--text-secondary)" }}>Facture</span>
-                  <span className="text-white font-bold">{numFacAmt.toLocaleString("fr-FR")} FCFA</span>
+                  <span className="text-white font-bold tabular-nums">{numFacAmt.toLocaleString("fr-FR")} FCFA</span>
                 </div>
                 <div className="flex justify-between text-sm mb-2">
                   <span style={{ color: "var(--text-secondary)" }}>Commission fixe</span>
-                  <span className="text-white font-bold">{FACTURE_COMMISSION} FCFA</span>
+                  <span className="text-white font-bold tabular-nums">{FACTURE_COMMISSION} FCFA</span>
                 </div>
                 <div className="flex justify-between text-base pt-2" style={{ borderTop: "1px solid #FF6B0033" }}>
                   <span className="font-black text-white">Total</span>
-                  <span className="font-black" style={{ color: "var(--gold)" }}>{totalFacture.toLocaleString("fr-FR")} FCFA</span>
+                  <span className="font-black tabular-nums" style={{ color: "var(--gold)" }}>{totalFacture.toLocaleString("fr-FR")} FCFA</span>
                 </div>
               </motion.div>
             )}
 
             <button
               onClick={handleFacture}
-              className="w-full py-4 rounded-full font-black text-white text-sm transition-opacity hover:opacity-85"
+              className="w-full py-4 rounded-full font-black text-white text-sm transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
               style={{ background: "#25D366" }}
             >
               💬 Envoyer la demande de paiement
@@ -366,7 +366,7 @@ export default function FacturesPage() {
               >
                 <div>
                   <p className="text-xs font-bold mb-1" style={{ color: "var(--gold)" }}>Vous recevez (0% commission)</p>
-                  <p className="text-2xl font-black text-white">{numMomoAmt.toLocaleString("fr-FR")} FCFA</p>
+                  <p className="text-2xl font-black text-white tabular-nums">{numMomoAmt.toLocaleString("fr-FR")} FCFA</p>
                 </div>
                 <span className="text-3xl">✓</span>
               </motion.div>
@@ -374,7 +374,7 @@ export default function FacturesPage() {
 
             <button
               onClick={handleMomo}
-              className="w-full py-4 rounded-full font-black text-white text-sm transition-opacity hover:opacity-85"
+              className="w-full py-4 rounded-full font-black text-white text-sm transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
               style={{ background: "#25D366" }}
             >
               💬 Initier l'échange via WhatsApp
