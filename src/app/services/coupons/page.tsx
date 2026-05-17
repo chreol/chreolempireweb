@@ -10,6 +10,7 @@ import { useHistory } from "@/contexts/HistoryContext";
 import { useToast } from "@/components/Toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import FAQ from "@/components/FAQ";
+import { Field } from "@/components/FormField";
 
 const PAGE_FAQ = [
   { q: "Comment échanger un coupon Transcash en FCFA au Cameroun ?", a: "Envoyez votre code Transcash sur WhatsApp avec le montant en €. Nous vérifions le code et vous virons le FCFA équivalent au taux de 440 FCFA/€ sur MTN MoMo ou Orange Money en 15 minutes. Minimum 20€ par échange." },
@@ -96,16 +97,6 @@ export default function CouponsPage() {
   const inputCls  = "w-full px-4 py-3 rounded-2xl text-white text-sm outline-none";
   const inputBase = { background: "var(--bg-elevated)", border: "1px solid var(--border)" };
   const inputErr  = { ...inputBase, borderColor: "#EF4444" };
-
-  function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
-    return (
-      <div className="flex flex-col gap-1">
-        <label className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>{label}</label>
-        {children}
-        {error && <span className="text-xs font-semibold" style={{ color: "#EF4444" }}>{error}</span>}
-      </div>
-    );
-  }
 
   return (
     <div className="max-w-xl lg:max-w-2xl mx-auto px-4 sm:px-6 py-10">

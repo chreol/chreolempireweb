@@ -10,6 +10,7 @@ import { useToast } from "@/components/Toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useCart } from "@/contexts/CartContext";
 import FAQ from "@/components/FAQ";
+import { Field } from "@/components/FormField";
 
 const PAGE_FAQ = [
   { q: "Comment payer sa facture Eneo sans se déplacer à Douala ?", a: "Envoyez le montant + 200 FCFA de commission via MTN MoMo ou Orange Money, puis transmettez votre numéro de compteur sur WhatsApp. Nous réglons votre facture Eneo sous 15 minutes et vous envoyons la confirmation de paiement." },
@@ -121,16 +122,6 @@ export default function FacturesPage() {
   const inputCls  = "w-full px-4 py-3 rounded-2xl text-white text-sm outline-none";
   const inputBase = { background: "var(--bg-elevated)", border: "1px solid var(--border)" };
   const inputErr  = { ...inputBase, borderColor: "#EF4444" };
-
-  function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
-    return (
-      <div className="flex flex-col gap-1">
-        <label className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>{label}</label>
-        {children}
-        {error && <span className="text-xs font-semibold" style={{ color: "#EF4444" }}>{error}</span>}
-      </div>
-    );
-  }
 
   return (
     <div className="max-w-2xl lg:max-w-3xl mx-auto px-4 sm:px-6 py-10">

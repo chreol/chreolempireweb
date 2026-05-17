@@ -10,6 +10,7 @@ import { useHistory } from "@/contexts/HistoryContext";
 import { useToast } from "@/components/Toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import FAQ from "@/components/FAQ";
+import { Field } from "@/components/FormField";
 
 const PAGE_FAQ = [
   { q: "Comment obtenir une carte UBA Cameroun pour payer sur Amazon ?", a: "Commandez votre carte UBA Cameroun via WhatsApp en fournissant : CNI, plan de localisation, demi-photo et NUI. Livraison en 2 à 5 jours ouvrables. La carte Visa UBA est acceptée sur Amazon, Alibaba, Airbnb et tous les sites internationaux." },
@@ -151,19 +152,6 @@ export default function UBAPage() {
   const inputCls  = "w-full px-4 py-3 rounded-2xl text-sm outline-none";
   const inputBase = { background: "var(--bg-elevated)", border: "1px solid var(--border)", color: "var(--text-primary)" };
   const inputErr  = { ...inputBase, borderColor: "#EF4444" };
-
-  function Field({ label, error, optional, children }: { label: string; error?: string; optional?: boolean; children: React.ReactNode }) {
-    return (
-      <div className="flex flex-col gap-1">
-        <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
-          {label}
-          {optional && <span className="text-[10px] font-semibold normal-case tracking-normal px-1.5 py-0.5 rounded-full" style={{ background: "var(--bg-elevated)", color: "var(--text-muted)" }}>optionnel</span>}
-        </label>
-        {children}
-        {error && <span className="text-xs font-semibold" style={{ color: "#EF4444" }}>{error}</span>}
-      </div>
-    );
-  }
 
   return (
     <div className="max-w-2xl lg:max-w-3xl mx-auto px-4 sm:px-6 py-10">

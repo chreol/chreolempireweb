@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -9,6 +10,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { Lang } from "@/lib/i18n/translations";
 import { IMAGES } from "@/lib/services";
 import WAPopover from "./WAPopover";
+import GlobalSearch from "./GlobalSearch";
 
 const NAV_KEYS = [
   { href: "/",           key: "nav.home" },
@@ -23,8 +25,22 @@ export default function Navbar() {
   const { count } = useCart();
   const { theme, toggleTheme } = useTheme();
   const { lang, setLang, t } = useLanguage();
+  const [searchOpen, setSearchOpen] = useState(false);
+
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) {
+      if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+        e.preventDefault();
+        setSearchOpen(v => !v);
+      }
+    }
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, []);
 
   return (
+    <>
+    {searchOpen && <GlobalSearch onClose={() => setSearchOpen(false)} />}
     <header
       style={{ background: "var(--bg-secondary)", borderBottom: "1px solid var(--border)" }}
       className="sticky top-0 z-50"
@@ -87,6 +103,17 @@ export default function Navbar() {
             {theme === "dark" ? "☀️" : "🌙"}
           </button>
 
+          {/* Search */}
+          <button
+            onClick={() => setSearchOpen(true)}
+            title="Rechercher (Ctrl+K)"
+            className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-full text-sm font-semibold transition-[opacity,transform] duration-150 ease-out hover:opacity-80 active:scale-[0.96]"
+            style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)", color: "var(--text-muted)" }}
+          >
+            <span className="text-base leading-none">🔍</span>
+            <span className="hidden md:inline text-xs" style={{ color: "var(--text-muted)" }}>Ctrl+K</span>
+          </button>
+
           {/* WhatsApp */}
           <WAPopover
             dropDown
@@ -135,8 +162,15 @@ export default function Navbar() {
             {t(l.key)}
           </Link>
         ))}
-        {/* Mobile theme only — lang is in main header row */}
+        {/* Mobile search + theme */}
         <div className="shrink-0 flex items-center gap-1 ml-auto">
+          <button
+            onClick={() => setSearchOpen(true)}
+            className="w-7 h-7 flex items-center justify-center rounded-full text-xs"
+            style={{ background: "var(--bg-elevated)" }}
+          >
+            🔍
+          </button>
           <button
             onClick={toggleTheme}
             className="w-7 h-7 flex items-center justify-center rounded-full text-xs"
@@ -147,5 +181,6 @@ export default function Navbar() {
         </div>
       </div>
     </header>
+    </>
   );
 }

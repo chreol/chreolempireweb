@@ -10,6 +10,7 @@ import { useHistory } from "@/contexts/HistoryContext";
 import { useToast } from "@/components/Toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import FAQ from "@/components/FAQ";
+import { Field, CalcRow } from "@/components/FormField";
 
 const PAGE_FAQ = [
   { q: "Comment vendre son solde PayPal en FCFA au Cameroun ?", a: "3 étapes simples : (1) envoyez le montant en € à notre compte PayPal communiqué sur WhatsApp, (2) partagez la capture de confirmation d'envoi, (3) recevez votre FCFA sur MTN MoMo ou Orange Money en moins de 30 minutes. Taux garanti au moment de la transaction." },
@@ -122,25 +123,6 @@ export default function PaypalPage() {
   const inputCls  = "w-full px-4 py-3 rounded-2xl text-white text-sm outline-none";
   const inputBase = { background: "var(--bg-elevated)", border: "1px solid var(--border)" };
   const inputErr  = { ...inputBase, borderColor: "#EF4444" };
-
-  function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
-    return (
-      <div className="flex flex-col gap-1">
-        <label className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>{label}</label>
-        {children}
-        {error && <span className="text-xs font-semibold" style={{ color: "#EF4444" }}>{error}</span>}
-      </div>
-    );
-  }
-
-  function CalcRow({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
-    return (
-      <div className="flex justify-between items-center py-2" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-        <span className="text-xs" style={{ color: "var(--text-muted)" }}>{label}</span>
-        <span className="text-sm font-bold tabular-nums" style={highlight ? { color: "var(--gold)" } : { color: "#fff" }}>{value}</span>
-      </div>
-    );
-  }
 
   return (
     <div className="max-w-xl lg:max-w-2xl mx-auto px-4 sm:px-6 py-10">

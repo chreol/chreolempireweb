@@ -1,18 +1,28 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { IMAGES } from "@/lib/services";
 import WAPopover from "@/components/WAPopover";
 import { useLanguage } from "@/contexts/LanguageContext";
 
+type ServiceCat = "all" | "gaming" | "crypto" | "fintech";
+
 const SERVICE_DATA = [
-  { image: IMAGES.psn,        tk: "svc.giftcards", emoji: "🎮", color: "#C9A84C", href: "/services/cartes-cadeaux", tags: ["PSN", "iTunes", "Roblox", "Steam", "Razer", "Nintendo"] },
-  { image: IMAGES.cryptoMomo, tk: "svc.crypto",    emoji: "₿",  color: "#26A17B", href: "/services/crypto",          tags: ["USDT", "BTC", "TRX", "ETH", "MTN", "Orange"] },
-  { image: IMAGES.transcash,  tk: "svc.coupons",   emoji: "🎫", color: "#25D366", href: "/services/coupons",         tags: ["Transcash", "PCS", "440 FCFA/€", "Mobile Money"] },
-  { image: IMAGES.ubaCard,    tk: "svc.uba",       emoji: "💳", color: "#8B0000", href: "/services/uba",             tags: ["Segment I", "Segment II", "Segment III", "Recharge"] },
-  { image: IMAGES.paypal2,    tk: "svc.paypal",    emoji: "💸", color: "#003087", href: "/services/paypal",          tags: ["PayPal", "700 FCFA/€", "Europe", "France"] },
-  { image: IMAGES.factures,   tk: "svc.factures",  emoji: "🔄", color: "#FF6B00", href: "/services/factures",        tags: ["Canal+", "Eneo", "Camwater", "StarTimes", "MoMo"] },
+  { image: IMAGES.psn,        tk: "svc.giftcards", emoji: "🎮", color: "#C9A84C", href: "/services/cartes-cadeaux", cat: "gaming"  as ServiceCat, tags: ["PSN", "iTunes", "Roblox", "Steam", "Razer", "Nintendo"] },
+  { image: IMAGES.cryptoMomo, tk: "svc.crypto",    emoji: "₿",  color: "#26A17B", href: "/services/crypto",          cat: "crypto"  as ServiceCat, tags: ["USDT", "BTC", "TRX", "ETH", "MTN", "Orange"] },
+  { image: IMAGES.transcash,  tk: "svc.coupons",   emoji: "🎫", color: "#25D366", href: "/services/coupons",         cat: "fintech" as ServiceCat, tags: ["Transcash", "PCS", "440 FCFA/€", "Mobile Money"] },
+  { image: IMAGES.ubaCard,    tk: "svc.uba",       emoji: "💳", color: "#8B0000", href: "/services/uba",             cat: "fintech" as ServiceCat, tags: ["Segment I", "Segment II", "Segment III", "Recharge"] },
+  { image: IMAGES.paypal2,    tk: "svc.paypal",    emoji: "💸", color: "#003087", href: "/services/paypal",          cat: "fintech" as ServiceCat, tags: ["PayPal", "700 FCFA/€", "Europe", "France"] },
+  { image: IMAGES.factures,   tk: "svc.factures",  emoji: "🔄", color: "#FF6B00", href: "/services/factures",        cat: "fintech" as ServiceCat, tags: ["Canal+", "Eneo", "Camwater", "StarTimes", "MoMo"] },
+];
+
+const CATEGORIES: { key: ServiceCat; label: string; emoji: string }[] = [
+  { key: "all",     label: "Tout",          emoji: "✦" },
+  { key: "gaming",  label: "Cartes & Jeux", emoji: "🎮" },
+  { key: "crypto",  label: "Crypto & MoMo", emoji: "₿" },
+  { key: "fintech", label: "Fintech",       emoji: "💳" },
 ];
 
 const POPULAR = [
@@ -28,6 +38,9 @@ const POPULAR = [
 
 export default function ServicesPage() {
   const { t } = useLanguage();
+  const [activeCat, setActiveCat] = useState<ServiceCat>("all");
+  const [query, setQuery]         = useState("");
+
   const SERVICES = SERVICE_DATA.map(s => ({
     ...s,
     title: t(`${s.tk}.title`),
@@ -35,13 +48,29 @@ export default function ServicesPage() {
     desc:  t(`${s.tk}.desc`),
   }));
 
+  const filteredServices = SERVICES.filter(s => {
+    const matchesCat = activeCat === "all" || s.cat === activeCat;
+    if (!query.trim()) return matchesCat;
+    const q = query.toLowerCase();
+    return matchesCat && (
+      s.title.toLowerCase().includes(q) ||
+      s.sub.toLowerCase().includes(q) ||
+      s.desc.toLowerCase().includes(q) ||
+      s.tags.some(tag => tag.toLowerCase().includes(q))
+    );
+  });
+
+  const filteredPopular = query.trim()
+    ? POPULAR.filter(p => p.name.toLowerCase().includes(query.toLowerCase()) || p.price.includes(query))
+    : POPULAR;
+
   return (
     <div className="overflow-x-hidden">
 
       {/* Header */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 pt-12 pb-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 pt-12 pb-6">
         <p className="text-xs font-black uppercase tracking-widest mb-3" style={{ color: "var(--gold)" }}>{t("services.catalogue")}</p>
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
           <div>
             <h1 className="text-4xl sm:text-5xl font-black text-white mb-3">{t("services.h1")}</h1>
             <p className="text-base max-w-lg" style={{ color: "var(--text-secondary)" }}>
@@ -58,6 +87,61 @@ export default function ServicesPage() {
             <Image src={IMAGES.whatsapp} alt="" width={18} height={18} unoptimized className="shrink-0" />
             {t("services.btn.now")}
           </WAPopover>
+        </div>
+
+        {/* Search + Category filter */}
+        <div className="flex flex-col gap-3">
+          {/* Search bar */}
+          <div
+            className="flex items-center gap-3 px-4 py-3 rounded-2xl"
+            style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
+          >
+            <span className="text-base opacity-50 shrink-0">🔍</span>
+            <input
+              type="text"
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              placeholder="Rechercher : PSN, USDT, PayPal, Canal+, UBA…"
+              className="flex-1 bg-transparent text-white text-sm outline-none placeholder:text-gray-500"
+            />
+            {query && (
+              <button
+                onClick={() => setQuery("")}
+                className="text-xs px-2 py-1 rounded-lg shrink-0"
+                style={{ background: "var(--bg-elevated)", color: "var(--text-muted)" }}
+              >
+                ✕
+              </button>
+            )}
+          </div>
+
+          {/* Category chips */}
+          <div className="flex gap-2 flex-wrap">
+            {CATEGORIES.map(cat => (
+              <button
+                key={cat.key}
+                onClick={() => setActiveCat(cat.key)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-black transition-all"
+                style={{
+                  background: activeCat === cat.key ? "var(--gold)" : "var(--bg-card)",
+                  color: activeCat === cat.key ? "#0A0A0A" : "var(--text-secondary)",
+                  border: `1px solid ${activeCat === cat.key ? "var(--gold)" : "var(--border)"}`,
+                }}
+              >
+                <span>{cat.emoji}</span>
+                {cat.label}
+              </button>
+            ))}
+            {(query || activeCat !== "all") && (
+              <button
+                onClick={() => { setQuery(""); setActiveCat("all"); }}
+                className="px-3 py-1.5 rounded-full text-xs font-bold transition-opacity hover:opacity-70"
+                style={{ color: "var(--text-muted)" }}
+              >
+                Réinitialiser
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -76,7 +160,7 @@ export default function ServicesPage() {
 
         {/* Horizontal scroll strip */}
         <div className="flex gap-3 overflow-x-auto pb-3 no-scrollbar -mx-4 sm:mx-0 px-4 sm:px-0">
-          {POPULAR.map((p, i) => (
+          {filteredPopular.map((p, i) => (
             <div
               key={i}
               className="shrink-0 flex flex-col rounded-2xl overflow-hidden"
@@ -125,11 +209,20 @@ export default function ServicesPage() {
 
       {/* ── Services Grid ── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 pb-12">
-        <p className="text-xs font-black uppercase tracking-widest mb-5" style={{ color: "var(--text-muted)" }}>
-          {t("services.all")}
-        </p>
+        <div className="flex items-center justify-between mb-5">
+          <p className="text-xs font-black uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
+            {filteredServices.length === SERVICE_DATA.length ? t("services.all") : `${filteredServices.length} service${filteredServices.length > 1 ? "s" : ""} trouvé${filteredServices.length > 1 ? "s" : ""}`}
+          </p>
+        </div>
+        {filteredServices.length === 0 && (
+          <div className="text-center py-16 rounded-3xl" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+            <p className="text-4xl mb-3">🔍</p>
+            <p className="font-black text-white text-lg mb-1">Aucun service trouvé</p>
+            <p className="text-sm" style={{ color: "var(--text-muted)" }}>Essayez un autre mot-clé ou réinitialisez les filtres</p>
+          </div>
+        )}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-          {SERVICES.map(s => (
+          {filteredServices.map(s => (
             <div
               key={s.href}
               className="group flex flex-col rounded-3xl overflow-hidden"
