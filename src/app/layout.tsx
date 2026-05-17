@@ -172,6 +172,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     <a href="/paiement" className="hover:text-white transition-colors">💰 Modes de paiement</a>
                     <a href="/a-propos" className="hover:text-white transition-colors">ℹ️ À propos</a>
                     <a href="/sitemap" className="hover:text-white transition-colors">🗺️ Plan du site</a>
+                    <a href="/cgu" className="hover:text-white transition-colors">📄 CGU</a>
+                    <a href="/confidentialite" className="hover:text-white transition-colors">🔒 Confidentialité</a>
+                    <a href="/mentions-legales" className="hover:text-white transition-colors">⚖️ Mentions légales</a>
                   </div>
                 </div>
 
@@ -225,9 +228,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     className="w-9 h-9 rounded-xl flex items-center justify-center font-black text-white text-xs transition-opacity hover:opacity-75 shrink-0"
                     style={{ background: "#2563EB" }}>BL</a>
                 </div>
-                <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                  © 2012 – {new Date().getFullYear()} Chreol Empire. Tous droits réservés.
-                </p>
+                <div className="flex flex-col items-center sm:items-end gap-1">
+                  <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                    © 2012 – {new Date().getFullYear()} Chreol Empire. Tous droits réservés.
+                  </p>
+                  <div className="flex items-center gap-3 text-xs" style={{ color: "var(--text-muted)" }}>
+                    <a href="/cgu" className="hover:text-white transition-colors">CGU</a>
+                    <span>·</span>
+                    <a href="/confidentialite" className="hover:text-white transition-colors">Confidentialité</a>
+                    <span>·</span>
+                    <a href="/mentions-legales" className="hover:text-white transition-colors">Mentions légales</a>
+                  </div>
+                </div>
               </div>
             </div>
           </footer>
