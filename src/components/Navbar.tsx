@@ -23,7 +23,7 @@ export default function Navbar() {
       style={{ background: "#141414", borderBottom: "1px solid #2A2A2A" }}
       className="sticky top-0 z-50"
     >
-      <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 h-16 flex items-center justify-between gap-4">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 shrink-0">
           <div className="relative w-9 h-9 rounded-xl overflow-hidden">

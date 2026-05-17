@@ -35,8 +35,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
           {/* Footer */}
           <footer style={{ background: "#0D0D0D", borderTop: "1px solid #1A1A1A" }} className="mt-16">
-            <div className="max-w-6xl mx-auto px-4 py-10">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-12">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-8">
                 {/* Brand */}
                 <div>
                   <p className="font-black text-xl mb-2">

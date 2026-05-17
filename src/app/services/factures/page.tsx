@@ -125,7 +125,7 @@ export default function FacturesPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-10">
+    <div className="max-w-2xl lg:max-w-3xl mx-auto px-4 sm:px-6 py-10">
       <div className="flex items-center gap-2 text-xs mb-6" style={{ color: "var(--text-muted)" }}>
         <a href="/services" className="hover:text-white transition-colors">Services</a>
         <span>›</span>

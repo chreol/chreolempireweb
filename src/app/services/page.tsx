@@ -4,117 +4,128 @@ import { CONTACT, IMAGES } from "@/lib/services";
 
 const SERVICES = [
   {
-    image: IMAGES.psn, title: "Cartes Cadeaux",
-    sub: "PSN · iTunes · Roblox · Steam · Razer Gold · Nintendo eShop",
-    desc: "Tous les codes authentiques, toutes les régions (Europe, USA, UK…). Livraison code par WhatsApp en 15-30 min.",
+    image: IMAGES.psn, title: "Cartes Cadeaux", emoji: "🎮",
+    sub: "PSN · iTunes · Roblox · Steam · Razer Gold · Nintendo",
+    desc: "Codes authentiques, toutes régions (Europe, USA, UK…). Livraison WhatsApp en 15–30 min.",
     color: "#C9A84C", href: "/services/cartes-cadeaux",
     tags: ["PSN", "iTunes", "Roblox", "Steam", "Razer", "Nintendo"],
   },
   {
-    image: IMAGES.cryptoMomo, title: "Crypto & Échange MoMo",
-    sub: "USDT · BTC · TRX · USDC · ETH · SOL · BNB",
-    desc: "Achetez ou vendez vos cryptomonnaies contre FCFA via Mobile Money. Taux du marché, 0% commission.",
+    image: IMAGES.cryptoMomo, title: "Crypto & MoMo", emoji: "₿",
+    sub: "USDT · BTC · TRX · ETH · SOL · BNB — 0% commission",
+    desc: "Achetez ou vendez vos cryptos contre FCFA via Mobile Money. Taux du marché en temps réel.",
     color: "#26A17B", href: "/services/crypto",
-    tags: ["USDT", "BTC", "TRX", "MTN MoMo", "Orange Money"],
+    tags: ["USDT", "BTC", "TRX", "ETH", "MTN", "Orange"],
   },
   {
-    image: IMAGES.transcash, title: "Échange Coupons",
+    image: IMAGES.transcash, title: "Échange Coupons", emoji: "🎫",
     sub: "Transcash · PCS Mastercard",
-    desc: "Échangez vos coupons Transcash ou PCS Mastercard contre du FCFA Mobile Money. Taux 440 FCFA/€.",
-    color: "#1B5E20", href: "/services/coupons",
-    tags: ["Transcash", "PCS", "440 FCFA/€"],
+    desc: "Échangez vos coupons Transcash ou PCS Mastercard contre du FCFA. Taux 440 FCFA/€.",
+    color: "#25D366", href: "/services/coupons",
+    tags: ["Transcash", "PCS", "440 FCFA/€", "Mobile Money"],
   },
   {
-    image: IMAGES.ubaCard, title: "UBA Cameroun",
-    sub: "Achat carte & recharge segment I, II, III",
-    desc: "Obtenez votre carte UBA Cameroun ou rechargez votre solde en quelques minutes.",
+    image: IMAGES.ubaCard, title: "UBA Cameroun", emoji: "💳",
+    sub: "Achat carte & recharge — Segments I, II, III",
+    desc: "Obtenez votre carte UBA Cameroun ou rechargez votre solde existant rapidement.",
     color: "#8B0000", href: "/services/uba",
     tags: ["Segment I", "Segment II", "Segment III", "Recharge"],
   },
   {
-    image: IMAGES.paypal2, title: "PayPal Europe",
-    sub: "Achat & vente de solde PayPal",
-    desc: "Vendez votre solde PayPal européen ou achetez du solde. Taux compétitif, transfert rapide.",
+    image: IMAGES.paypal2, title: "PayPal Europe", emoji: "💸",
+    sub: "Achat & vente de solde PayPal Europe",
+    desc: "Vendez votre solde PayPal ou achetez du solde. 580 FCFA/€ achat · 700 FCFA/€ vente.",
     color: "#003087", href: "/services/paypal",
-    tags: ["PayPal", "700 FCFA/€", "Europe"],
+    tags: ["PayPal", "700 FCFA/€", "Europe", "France"],
   },
   {
-    image: IMAGES.factures, title: "Paiement Factures",
-    sub: "Canal+ · Eneo · Camwater · StarTimes",
-    desc: "Payez vos factures Camerounaises via notre service — rapide et sans déplacement.",
+    image: IMAGES.factures, title: "Factures & Échange MoMo", emoji: "🔄",
+    sub: "Canal+ · Eneo · Camwater · Échange entre opérateurs",
+    desc: "Payez vos factures ou échangez de l'argent entre opérateurs MoMo sans frais.",
     color: "#FF6B00", href: "/services/factures",
-    tags: ["Canal+", "Eneo", "Camwater", "StarTimes"],
+    tags: ["Canal+", "Eneo", "Camwater", "StarTimes", "MoMo"],
   },
 ];
 
 export default function ServicesPage() {
   return (
-    <div className="max-w-6xl mx-auto px-4 py-10">
+    <div className="overflow-x-hidden">
+
       {/* Header */}
-      <div className="mb-10">
-        <h1 className="text-3xl font-black text-white mb-2">Nos Services</h1>
-        <p style={{ color: "var(--text-secondary)" }}>
-          Tous nos produits et services disponibles — livraison express, paiement sécurisé.
-        </p>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 pt-12 pb-10">
+        <p className="text-xs font-black uppercase tracking-widest mb-3" style={{ color: "var(--gold)" }}>Catalogue</p>
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+          <div>
+            <h1 className="text-4xl sm:text-5xl font-black text-white mb-3">Nos Services</h1>
+            <p className="text-base max-w-lg" style={{ color: "var(--text-secondary)" }}>
+              Livraison express · Paiement Mobile Money · Support 7j/7
+            </p>
+          </div>
+          <a href={`https://wa.me/${CONTACT.whatsapp}`} target="_blank" rel="noopener noreferrer"
+            className="shrink-0 inline-flex items-center gap-2 px-5 py-3 rounded-2xl font-black text-white text-sm transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
+            style={{ background: "#25D366" }}>
+            💬 Commander maintenant
+          </a>
+        </div>
       </div>
 
       {/* Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {SERVICES.map(s => (
-          <Link
-            key={s.href}
-            href={s.href}
-            className="group flex flex-col rounded-3xl overflow-hidden transition-all hover:-translate-y-1 hover:shadow-xl"
-            style={{ background: "var(--bg-card)", border: `1px solid ${s.color}33` }}
-          >
-            {/* Image banner */}
-            <div className="relative h-40 w-full">
-              <Image src={s.image} alt={s.title} fill style={{ objectFit: "cover" }} unoptimized />
-              <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, rgba(0,0,0,0.15), rgba(0,0,0,0.7))" }} />
-              <div className="absolute bottom-3 left-4 right-4 flex items-end justify-between">
-                <div>
-                  <p className="font-black text-lg text-white">{s.title}</p>
-                  <p className="text-xs font-semibold" style={{ color: "rgba(255,255,255,0.8)" }}>{s.sub}</p>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 pb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+          {SERVICES.map(s => (
+            <Link key={s.href} href={s.href}
+              className="group flex flex-col rounded-3xl overflow-hidden transition-[transform,box-shadow] duration-200 ease-out hover:-translate-y-1 hover:shadow-2xl active:scale-[0.98]"
+              style={{ background: "var(--bg-card)", boxShadow: `0 0 0 1px ${s.color}33` }}>
+              {/* Image banner */}
+              <div className="relative h-44 w-full overflow-hidden">
+                <Image src={s.image} alt={s.title} fill style={{ objectFit: "cover" }}
+                  className="outline outline-1 -outline-offset-1 outline-white/10 transition-transform duration-500 group-hover:scale-105" unoptimized />
+                <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.75))" }} />
+                <div className="absolute bottom-3 left-4 right-4 flex items-end justify-between">
+                  <div>
+                    <p className="font-black text-xl text-white leading-tight">{s.title}</p>
+                    <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.75)" }}>{s.sub}</p>
+                  </div>
+                  <span className="text-2xl shrink-0 transition-transform duration-200 group-hover:translate-x-1"
+                    style={{ color: s.color }}>→</span>
                 </div>
-                <span className="text-2xl transition-transform group-hover:translate-x-1" style={{ color: "var(--gold)" }}>→</span>
               </div>
-            </div>
 
-            <div className="p-4 flex flex-col gap-3">
-              <p className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>{s.desc}</p>
-              <div className="flex flex-wrap gap-2">
-                {s.tags.map(t => (
-                  <span
-                    key={t}
-                    className="px-2 py-0.5 rounded-full text-[11px] font-semibold"
-                    style={{ background: s.color + "18", color: s.color }}
-                  >
-                    {t}
-                  </span>
-                ))}
+              <div className="p-5 flex flex-col gap-4 flex-1">
+                <p className="text-sm leading-relaxed flex-1" style={{ color: "var(--text-secondary)" }}>{s.desc}</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {s.tags.map(t => (
+                    <span key={t} className="px-2.5 py-1 rounded-full text-[11px] font-bold"
+                      style={{ background: s.color + "18", color: s.color }}>
+                      {t}
+                    </span>
+                  ))}
+                </div>
               </div>
-            </div>
-          </Link>
-        ))}
+            </Link>
+          ))}
+        </div>
       </div>
 
-      {/* WhatsApp CTA */}
-      <div
-        className="mt-12 rounded-3xl p-8 text-center"
-        style={{ background: "#0D1A0F", border: "1px solid #25D36633" }}
-      >
-        <p className="text-xl font-black text-white mb-2">Vous ne trouvez pas ce que vous cherchez ?</p>
-        <p className="text-sm mb-5" style={{ color: "var(--text-secondary)" }}>
-          Contactez-nous directement sur WhatsApp — nous pouvons traiter la plupart des demandes spéciales.
-        </p>
-        <a
-          href={`https://wa.me/${CONTACT.whatsapp}`}
-          target="_blank" rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 px-6 py-3 rounded-full font-black text-white text-sm"
-          style={{ background: "#25D366" }}
-        >
-          💬 Contactez-nous
-        </a>
+      {/* CTA */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 pb-20">
+        <div className="rounded-3xl p-8 sm:p-12 text-center relative overflow-hidden"
+          style={{ background: "var(--bg-card)", boxShadow: "var(--shadow-border)" }}>
+          <div className="absolute inset-0 pointer-events-none"
+            style={{ background: "radial-gradient(ellipse at 50% -10%, #25D36612 0%, transparent 60%)" }} />
+          <div className="relative">
+            <p className="text-3xl mb-3">💬</p>
+            <h2 className="text-2xl sm:text-3xl font-black text-white mb-2">Besoin d'aide pour commander ?</h2>
+            <p className="text-sm mb-6" style={{ color: "var(--text-secondary)" }}>
+              Contactez-nous directement — nous traitons la plupart des demandes spéciales.
+            </p>
+            <a href={`https://wa.me/${CONTACT.whatsapp}`} target="_blank" rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl font-black text-white transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
+              style={{ background: "#25D366" }}>
+              💬 Ouvrir WhatsApp
+            </a>
+          </div>
+        </div>
       </div>
     </div>
   );

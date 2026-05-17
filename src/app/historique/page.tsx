@@ -22,7 +22,7 @@ export default function HistoriquePage() {
 
   if (entries.length === 0) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-20 text-center">
+      <div className="max-w-2xl lg:max-w-3xl mx-auto px-4 sm:px-6 py-20 text-center">
         <p className="text-6xl mb-4">📋</p>
         <h1 className="text-2xl font-black text-white mb-2">Aucun historique</h1>
         <p className="mb-6 text-sm" style={{ color: "var(--text-secondary)" }}>
@@ -40,7 +40,7 @@ export default function HistoriquePage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-10">
+    <div className="max-w-2xl lg:max-w-3xl mx-auto px-4 sm:px-6 py-10">
       <div className="flex items-center gap-2 text-xs mb-6" style={{ color: "var(--text-muted)" }}>
         <a href="/" className="hover:text-white transition-colors">Accueil</a>
         <span>›</span>
