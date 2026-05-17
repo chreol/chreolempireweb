@@ -264,11 +264,20 @@ export default function CryptoPage() {
                 />
               </Field>
               <Field label="Réception Mobile Money" error={errors.momoPhone}>
-                <div className="flex gap-2">
-                  <select value={momoOp} onChange={e => setMomoOp(e.target.value)} className="px-3 py-3 rounded-2xl text-white text-sm outline-none shrink-0" style={inputBase}>
-                    {MOMO_OPERATORS.slice(0, 2).map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
-                  </select>
-                  <div className="flex flex-1 items-center rounded-2xl overflow-hidden" style={errors.momoPhone ? inputErr : inputBase}>
+                <div className="flex flex-col gap-2">
+                  <div className="flex gap-2">
+                    {MOMO_OPERATORS.slice(0, 2).map(o => (
+                      <button type="button" key={o.id} onClick={() => setMomoOp(o.id)}
+                        className="flex-1 flex items-center gap-2 p-2.5 rounded-xl transition-all"
+                        style={{ background: momoOp === o.id ? o.color + "20" : "var(--bg-card)", border: `2px solid ${momoOp === o.id ? o.color : "var(--border)"}` }}>
+                        <div className="relative w-8 h-8 rounded-lg overflow-hidden shrink-0">
+                          <Image src={o.image} alt={o.name} fill style={{ objectFit: "cover" }} unoptimized />
+                        </div>
+                        <span className="text-xs font-bold leading-tight" style={{ color: momoOp === o.id ? o.color : "var(--text-secondary)" }}>{o.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex items-center rounded-2xl overflow-hidden" style={errors.momoPhone ? inputErr : inputBase}>
                     <span className="px-3 text-sm font-bold shrink-0" style={{ color: "var(--text-muted)" }}>+237</span>
                     <input type="tel" placeholder="6XXXXXXXX" value={momoPhone}
                       onChange={e => { setMomoPhone(e.target.value.replace(/\D/g, "").slice(0, 9)); setErrors(p => ({ ...p, momoPhone: "" })); }}

@@ -21,7 +21,7 @@ const METHODS = [
     auto: true,
   },
   {
-    image: null,
+    image: IMAGES.whatsapp,
     name: "WhatsApp (Manuel)",
     desc: "Passez votre commande via WhatsApp. Notre équipe vous guidera pour le paiement et confirmera la livraison.",
     color: "#25D366",

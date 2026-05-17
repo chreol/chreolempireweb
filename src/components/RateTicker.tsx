@@ -35,7 +35,9 @@ export default function RateTicker() {
   const animRef = useRef<Animation | null>(null);
 
   useEffect(() => {
-    fetch("https://chreolempirev1.vercel.app/rates.json", { signal: AbortSignal.timeout(4000) })
+    const url = process.env.NEXT_PUBLIC_RATES_URL;
+    if (!url) return;
+    fetch(url, { signal: AbortSignal.timeout(4000) })
       .then(r => r.json())
       .then((d: Rate[]) => { if (Array.isArray(d) && d.length) setText(buildText(d)); })
       .catch(() => {});

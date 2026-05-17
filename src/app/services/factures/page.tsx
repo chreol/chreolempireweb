@@ -282,14 +282,17 @@ export default function FacturesPage() {
                   <button
                     key={o.id}
                     onClick={() => setSrcOp(o.id)}
-                    className="py-2.5 px-3 rounded-xl text-xs font-bold transition-all"
+                    className="flex flex-col items-center gap-1.5 py-2 px-2 rounded-xl text-[10px] font-bold transition-all"
                     style={{
                       background: srcOp === o.id ? o.color + "22" : "var(--bg-card)",
                       border: `2px solid ${srcOp === o.id ? o.color : "var(--border)"}`,
                       color: srcOp === o.id ? o.color : "var(--text-secondary)",
                     }}
                   >
-                    {o.name}
+                    <div className="relative w-8 h-8 rounded-lg overflow-hidden">
+                      <Image src={o.image} alt={o.name} fill style={{ objectFit: "cover" }} unoptimized />
+                    </div>
+                    <span className="leading-tight text-center">{o.name}</span>
                   </button>
                 ))}
               </div>
@@ -319,14 +322,17 @@ export default function FacturesPage() {
                   <button
                     key={o.id}
                     onClick={() => { setDstOp(o.id); setMomoErrors(p => ({ ...p, dstOp: "" })); }}
-                    className="py-2.5 px-3 rounded-xl text-xs font-bold transition-all"
+                    className="flex flex-col items-center gap-1.5 py-2 px-2 rounded-xl text-[10px] font-bold transition-all"
                     style={{
                       background: dstOp === o.id ? o.color + "22" : "var(--bg-card)",
                       border: `2px solid ${dstOp === o.id ? o.color : "var(--border)"}`,
                       color: dstOp === o.id ? o.color : "var(--text-secondary)",
                     }}
                   >
-                    {o.name}
+                    <div className="relative w-8 h-8 rounded-lg overflow-hidden">
+                      <Image src={o.image} alt={o.name} fill style={{ objectFit: "cover" }} unoptimized />
+                    </div>
+                    <span className="leading-tight text-center">{o.name}</span>
                   </button>
                 ))}
               </div>

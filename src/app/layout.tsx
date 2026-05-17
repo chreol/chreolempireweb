@@ -11,21 +11,94 @@ import { CONTACT, IMAGES } from "@/lib/services";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist-sans" });
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://chreolempire.com";
+
 export const metadata: Metadata = {
-  title: "Chreol Empire — Cartes Cadeaux & Crypto au Cameroun",
-  description: "Achetez vos cartes cadeaux PSN, iTunes, Roblox, Steam et échangez vos crypto (USDT, BTC) au meilleur taux. Livraison express 15-30 min via WhatsApp. Douala, Cameroun.",
-  keywords: ["cartes cadeaux cameroun", "PSN cameroun", "USDT FCFA", "crypto douala", "PCS transcash"],
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "Chreol Empire — Cartes Cadeaux & Crypto au Cameroun",
+    template: "%s | Chreol Empire",
+  },
+  description:
+    "Achetez vos cartes cadeaux PSN, iTunes, Roblox, Steam, Nintendo au meilleur prix. Échangez vos crypto (USDT, BTC, TRX) contre FCFA à 0% commission. Paiement MTN MoMo, Orange Money. Livraison WhatsApp 15-30 min. Douala, Cameroun.",
+  keywords: [
+    "cartes cadeaux cameroun", "cartes cadeaux douala", "PSN cameroun", "iTunes cameroun",
+    "Roblox cameroun", "Steam cameroun", "USDT FCFA", "BTC FCFA", "crypto douala",
+    "échange crypto cameroun", "PCS transcash cameroun", "UBA cameroun carte prépayée",
+    "PayPal europe cameroun", "MTN MoMo", "Orange Money", "paiement mobile money",
+    "chreol empire", "boutique digitale douala",
+  ],
+  authors: [{ name: "Chreol Empire", url: SITE_URL }],
+  creator: "Chreol Empire",
+  publisher: "Chreol Empire",
+  alternates: { canonical: SITE_URL },
   openGraph: {
-    title: "Chreol Empire",
-    description: "Cartes cadeaux & crypto au Cameroun — livraison express",
+    title: "Chreol Empire — Cartes Cadeaux & Crypto au Cameroun",
+    description: "Cartes cadeaux PSN/iTunes/Roblox + échange crypto USDT/BTC à 0% commission. Paiement MTN MoMo / Orange Money. Livraison express 15-30 min via WhatsApp.",
+    url: SITE_URL,
+    siteName: "Chreol Empire",
     locale: "fr_FR",
     type: "website",
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "Chreol Empire — Cartes Cadeaux & Crypto au Cameroun",
+    description: "Cartes cadeaux & crypto à Douala. 0% commission. MTN MoMo / Orange Money. Livraison 15-30 min.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-snippet": -1, "max-image-preview": "large" },
+  },
+};
+
+const LOCAL_BUSINESS_JSON = {
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  "name": "Chreol Empire",
+  "description": "Boutique en ligne spécialisée en cartes cadeaux numériques (PSN, iTunes, Roblox, Steam) et échange de cryptomonnaies (USDT, BTC, TRX) à Douala, Cameroun.",
+  "url": "https://chreolempire.com",
+  "telephone": "+237694360978",
+  "email": "chreolempire00@gmail.com",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "Vallée 3, Boutiques Deido",
+    "addressLocality": "Douala",
+    "addressCountry": "CM"
+  },
+  "geo": { "@type": "GeoCoordinates", "latitude": 4.0511, "longitude": 9.7679 },
+  "openingHoursSpecification": {
+    "@type": "OpeningHoursSpecification",
+    "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],
+    "opens": "07:00",
+    "closes": "23:00"
+  },
+  "priceRange": "$$",
+  "currenciesAccepted": "XAF",
+  "paymentAccepted": "MTN MoMo, Orange Money, WhatsApp",
+  "hasOfferCatalog": {
+    "@type": "OfferCatalog",
+    "name": "Services Chreol Empire",
+    "itemListElement": [
+      { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Cartes Cadeaux PSN, iTunes, Roblox, Steam, Nintendo" } },
+      { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Échange Crypto USDT, BTC, TRX contre FCFA" } },
+      { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Coupons Transcash & PCS Mastercard" } },
+      { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Carte UBA Cameroun & recharge" } },
+      { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "PayPal Europe achat & vente" } },
+      { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Paiement factures Canal+, Eneo, Camwater" } }
+    ]
+  }
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fr" className={`${geist.variable} antialiased`}>
+    <html lang="fr" data-scroll-behavior="smooth" className={`${geist.variable} antialiased`}>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(LOCAL_BUSINESS_JSON) }}
+        />
+      </head>
       <body className="min-h-screen flex flex-col">
         <ToastProvider>
         <HistoryProvider>

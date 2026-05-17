@@ -139,10 +139,10 @@ export const PAYPAL_LIMITS = {
 };
 
 export const MOMO_OPERATORS = [
-  { id: "orange", name: "Orange Money", color: "#FF6600" },
-  { id: "mtn",    name: "MTN MoMo",     color: "#FFC107" },
-  { id: "eu",     name: "Express Union", color: "#0066CC" },
-  { id: "yoomee", name: "Yoomee Money",  color: "#9B59B6" },
+  { id: "orange", name: "Orange Money",  color: "#FF6600", image: IMAGES.orange },
+  { id: "mtn",    name: "MTN MoMo",      color: "#FFC107", image: IMAGES.mtn },
+  { id: "eu",     name: "Express Union", color: "#0066CC", image: IMAGES.expressUnion },
+  { id: "yoomee", name: "Yoomee Money",  color: "#9B59B6", image: IMAGES.yoomee },
 ];
 
 export const FACTURE_BILLERS = [
