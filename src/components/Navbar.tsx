@@ -107,7 +107,7 @@ export default function Navbar() {
           <button
             onClick={() => setSearchOpen(true)}
             title="Rechercher (Ctrl+K)"
-            className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-full text-sm font-semibold transition-[opacity,transform] duration-150 ease-out hover:opacity-80 active:scale-[0.96]"
+            className="flex items-center gap-2 w-9 h-9 sm:w-auto sm:px-3 sm:py-2 justify-center rounded-full text-sm font-semibold transition-[opacity,transform] duration-150 ease-out hover:opacity-80 active:scale-[0.96]"
             style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)", color: "var(--text-muted)" }}
           >
             <span className="text-base leading-none">🔍</span>
