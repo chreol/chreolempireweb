@@ -1,8 +1,10 @@
 "use client";
 
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { IMAGES } from "@/lib/services";
+import { motion, AnimatePresence } from "framer-motion";
+import { IMAGES, SOCIAL_LINKS } from "@/lib/services";
 import WAPopover from "@/components/WAPopover";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -62,8 +64,32 @@ const AVIS = [
   },
 ];
 
+const TOTAL_AVIS = AVIS.length;
+
 export default function HomePage() {
   const { t } = useLanguage();
+
+  /* ── Rotating reviews ── */
+  const [visibleIdx, setVisibleIdx] = useState<number[]>([0, 1, 2]);
+  const [replacingSlot, setReplacingSlot] = useState<number | null>(null);
+
+  const rotateOne = useCallback(() => {
+    setVisibleIdx(prev => {
+      const used = new Set(prev);
+      const pool = Array.from({ length: TOTAL_AVIS }, (_, i) => i).filter(i => !used.has(i));
+      if (pool.length === 0) return prev;
+      const newCard = pool[Math.floor(Math.random() * pool.length)];
+      const slot    = Math.floor(Math.random() * prev.length);
+      setReplacingSlot(slot);
+      setTimeout(() => setReplacingSlot(null), 400);
+      return prev.map((v, i) => i === slot ? newCard : v);
+    });
+  }, []);
+
+  useEffect(() => {
+    const id = setInterval(rotateOne, 3500);
+    return () => clearInterval(id);
+  }, [rotateOne]);
 
   const SERVICES = SERVICE_DATA.map(s => ({
     ...s,
@@ -244,32 +270,59 @@ export default function HomePage() {
       <section className="px-4 sm:px-6 lg:px-12 pb-24 max-w-7xl mx-auto">
         <div className="text-center mb-10">
           <p className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: "var(--gold)" }}>Témoignages</p>
-          <h2 className="text-3xl sm:text-4xl font-black text-white">{t("section.reviews")}</h2>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {AVIS.map((a, i) => (
-            <div key={i} className="p-5 rounded-2xl flex flex-col gap-3"
-              style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
-              <div className="flex items-center gap-0.5">
-                {[...Array(a.rating)].map((_, j) => (
-                  <span key={j} className="text-base" style={{ color: "var(--gold)" }}>★</span>
-                ))}
-              </div>
-              <p className="text-sm leading-relaxed flex-1" style={{ color: "var(--text-secondary)" }}>
-                &ldquo;{a.text}&rdquo;
-              </p>
-              <div className="pt-3 flex items-center justify-between" style={{ borderTop: "1px solid var(--border)" }}>
-                <div>
-                  <p className="text-sm font-black text-white">{a.name}</p>
-                  <p className="text-xs" style={{ color: "var(--text-muted)" }}>{a.city} · {a.date}</p>
-                </div>
-                <span className="text-xs px-2 py-1 rounded-full font-bold"
-                  style={{ background: "var(--bg-elevated)", color: "var(--gold)" }}>
-                  {a.service}
-                </span>
-              </div>
+          <h2 className="text-3xl sm:text-4xl font-black text-white mb-4">{t("section.reviews")}</h2>
+          {/* Google rating badge */}
+          <a href={SOCIAL_LINKS.googleBusiness} target="_blank" rel="noopener noreferrer"
+            className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full transition-opacity hover:opacity-80"
+            style={{ background: "var(--bg-card)", boxShadow: "var(--shadow-border)", border: "1px solid var(--border)" }}>
+            <span className="font-black text-sm" style={{ color: "#EA4335" }}>G</span>
+            <div className="flex items-center gap-0.5">
+              {[1,2,3,4,5].map(s => (
+                <svg key={s} width="13" height="13" viewBox="0 0 24 24" fill="#FFC107"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+              ))}
             </div>
-          ))}
+            <span className="font-black text-sm" style={{ color: "var(--text-primary)" }}>4.9</span>
+            <span className="text-xs" style={{ color: "var(--text-muted)" }}>· Voir sur Google</span>
+          </a>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <AnimatePresence mode="popLayout">
+            {visibleIdx.map((avisI, slot) => {
+              const a = AVIS[avisI];
+              return (
+                <motion.div
+                  key={`${slot}-${avisI}`}
+                  layout
+                  initial={{ opacity: 0, y: 12, scale: 0.97 }}
+                  animate={{ opacity: replacingSlot === slot ? 0.4 : 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.35 }}
+                  className="p-5 rounded-2xl flex flex-col gap-3"
+                  style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
+                >
+                  <div className="flex items-center gap-0.5">
+                    {[...Array(a.rating)].map((_, j) => (
+                      <svg key={j} width="14" height="14" viewBox="0 0 24 24" fill="#FFC107"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                    ))}
+                  </div>
+                  <p className="text-sm leading-relaxed flex-1" style={{ color: "var(--text-secondary)" }}>
+                    &ldquo;{a.text}&rdquo;
+                  </p>
+                  <div className="pt-3 flex items-center justify-between" style={{ borderTop: "1px solid var(--border)" }}>
+                    <div>
+                      <p className="text-sm font-black" style={{ color: "var(--text-primary)" }}>{a.name}</p>
+                      <p className="text-xs" style={{ color: "var(--text-muted)" }}>{a.city} · {a.date}</p>
+                    </div>
+                    <span className="text-xs px-2 py-1 rounded-full font-bold"
+                      style={{ background: "var(--bg-elevated)", color: "var(--gold)" }}>
+                      {a.service}
+                    </span>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
         </div>
       </section>
 
@@ -300,16 +353,20 @@ export default function HomePage() {
       {/* ── CTA WHATSAPP ── */}
       <section className="px-4 sm:px-6 lg:px-12 pb-24 max-w-7xl mx-auto">
         <div className="relative rounded-3xl overflow-hidden p-8 sm:p-14 text-center"
-          style={{ background: "var(--bg-card)", boxShadow: "var(--shadow-border)" }}>
-          <div className="absolute inset-0 pointer-events-none"
-            style={{ background: "radial-gradient(ellipse at 50% -20%, #C9A84C12 0%, transparent 60%)" }} />
+          style={{ boxShadow: "var(--shadow-border)" }}>
+          {/* Banner background */}
+          <div className="absolute inset-0">
+            <Image src={IMAGES.banner} alt="" fill style={{ objectFit: "cover", objectPosition: "center" }} unoptimized />
+            <div className="absolute inset-0" style={{ background: "rgba(10,10,10,0.72)" }} />
+            <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at 50% 100%, rgba(201,168,76,0.18) 0%, transparent 60%)" }} />
+          </div>
           <div className="relative">
             <p className="text-4xl mb-4">💬</p>
             <h2 className="text-3xl sm:text-4xl font-black text-white mb-3">
-              Prêt à commander ?
+              {t("section.cta.title")}
             </h2>
-            <p className="text-base mb-8 max-w-md mx-auto" style={{ color: "var(--text-secondary)" }}>
-              Notre équipe répond en moins de 5 min. WhatsApp disponible 7j/7, de 7h à 23h.
+            <p className="text-base mb-8 max-w-md mx-auto" style={{ color: "rgba(255,255,255,0.75)" }}>
+              {t("section.cta.sub")}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <WAPopover

@@ -20,6 +20,7 @@ export default function FacturesPage() {
   const { addItem } = useCart();
 
   const [tab, setTab]       = useState<Tab>("factures");
+  const [cartDialog, setCartDialog] = useState(false);
 
   /* --- Factures form --- */
   const [biller, setBiller]   = useState<string | null>(null);
@@ -249,26 +250,62 @@ export default function FacturesPage() {
               </motion.div>
             )}
 
-            <div className="flex gap-2">
-              <button
-                onClick={() => {
-                  if (!validateFacture()) { showToast("Corrigez les erreurs", "error"); return; }
-                  const billerName = FACTURE_BILLERS.find(b => b.id === biller)?.name ?? biller ?? "";
-                  addItem({
-                    id: `facture-${biller}-${identifier}`,
-                    cardName: `Facture ${billerName}`,
-                    amount: `${numFacAmt.toLocaleString("fr-FR")} FCFA`,
-                    price: totalFacture,
-                    details: `Identifiant: ${identifier}`,
-                    type: "buy",
-                  });
-                  showToast("Ajouté au panier !", "success");
-                }}
-                className="flex-1 py-4 rounded-full font-black text-sm transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
-                style={{ background: "var(--bg-elevated)", color: "var(--text-secondary)", border: "1px solid var(--border)" }}
-              >
-                🛒 Ajouter au panier
-              </button>
+            <div className="flex gap-2 items-stretch">
+              {/* Cart button → mini dialog */}
+              <div className="relative flex-1">
+                <button
+                  onClick={() => {
+                    if (!validateFacture()) { showToast("Corrigez les erreurs", "error"); return; }
+                    setCartDialog(true);
+                  }}
+                  className="w-full h-full py-4 rounded-full font-black text-sm transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
+                  style={{ background: "var(--bg-elevated)", color: "var(--text-secondary)", border: "1px solid var(--border)" }}
+                >
+                  🛒 Panier
+                </button>
+
+                {/* Mini confirmation dialog */}
+                {cartDialog && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setCartDialog(false)} />
+                    <div className="absolute bottom-full mb-3 left-0 right-0 z-50 rounded-2xl p-4 flex flex-col gap-3"
+                      style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)", boxShadow: "0 8px 32px rgba(0,0,0,0.6)", minWidth: 220 }}>
+                      <p className="text-xs font-black uppercase tracking-wider" style={{ color: "var(--gold)" }}>Ajouter au panier</p>
+                      <div className="text-xs flex flex-col gap-1" style={{ color: "var(--text-secondary)" }}>
+                        <p><span style={{ color: "var(--text-primary)" }} className="font-bold">{FACTURE_BILLERS.find(b => b.id === biller)?.name}</span></p>
+                        <p>Identifiant : {identifier}</p>
+                        <p className="font-black" style={{ color: "var(--gold)" }}>{totalFacture.toLocaleString("fr-FR")} FCFA</p>
+                      </div>
+                      <div className="flex gap-2">
+                        <button onClick={() => setCartDialog(false)}
+                          className="flex-1 py-2 rounded-xl text-xs font-bold"
+                          style={{ background: "var(--bg-card)", color: "var(--text-muted)" }}>
+                          Annuler
+                        </button>
+                        <button
+                          onClick={() => {
+                            const billerName = FACTURE_BILLERS.find(b => b.id === biller)?.name ?? "";
+                            addItem({
+                              id: `facture-${biller}-${identifier}`,
+                              cardName: `Facture ${billerName}`,
+                              amount: `${numFacAmt.toLocaleString("fr-FR")} FCFA`,
+                              price: totalFacture,
+                              details: `Identifiant: ${identifier}`,
+                              type: "buy",
+                            });
+                            setCartDialog(false);
+                            showToast("Ajouté au panier !", "success");
+                          }}
+                          className="flex-1 py-2 rounded-xl text-xs font-black text-white"
+                          style={{ background: "var(--gold)", color: "#0A0A0A" }}>
+                          ✓ Confirmer
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+
               <WAPopover
                 onBeforeOpen={handleFactureBeforeOpen}
                 getMsg={buildFactureMsgPlain}

@@ -16,30 +16,49 @@ export default function PaypalPage() {
   const { showToast } = useToast();
   const { t } = useLanguage();
 
-  const [direction, setDirection] = useState<"sell" | "buy">("sell");
-  const [amount, setAmount]       = useState("");
+  const [direction, setDirection]     = useState<"sell" | "buy">("sell");
+  const [inputCurrency, setInputCurrency] = useState<"EUR" | "FCFA">("EUR");
+  const [amount, setAmount]           = useState("");
   const [paypalEmail, setPaypalEmail] = useState("");
-  const [momoOp, setMomoOp]       = useState("orange");
-  const [momoPhone, setMomoPhone] = useState("");
-  const [errors, setErrors]       = useState<Record<string, string>>({});
+  const [momoOp, setMomoOp]           = useState("orange");
+  const [momoPhone, setMomoPhone]     = useState("");
+  const [errors, setErrors]           = useState<Record<string, string>>({});
 
   const { sellRate, buyRate } = PAYPAL_RATES;
-  const limits = direction === "sell" ? PAYPAL_LIMITS.sell : PAYPAL_LIMITS.buy;
 
-  const numAmount  = parseFloat(amount) || 0;
-  const fcfaResult = direction === "sell" ? Math.round(numAmount * sellRate) : 0;
-  const eurResult  = direction === "buy"  ? +(numAmount / buyRate).toFixed(2)  : 0;
+  function switchDirection(d: "sell" | "buy") {
+    setDirection(d); setAmount(""); setErrors({});
+    setInputCurrency(d === "sell" ? "EUR" : "FCFA");
+  }
+
+  const numAmount = parseFloat(amount) || 0;
+
+  // Sell: user sells PayPal → receives FCFA
+  const sellEur   = direction === "sell"
+    ? (inputCurrency === "EUR"  ? numAmount : numAmount / sellRate) : 0;
+  const fcfaResult = direction === "sell"
+    ? (inputCurrency === "EUR"  ? Math.round(numAmount * sellRate) : Math.round(numAmount)) : 0;
+
+  // Buy: user buys PayPal → pays FCFA
+  const buyFcfa   = direction === "buy"
+    ? (inputCurrency === "FCFA" ? numAmount : Math.round(numAmount * buyRate)) : 0;
+  const eurResult  = direction === "buy"
+    ? (inputCurrency === "FCFA" ? +(numAmount / buyRate).toFixed(2) : +numAmount.toFixed(2)) : 0;
+
+  const displayEur  = direction === "sell" ? sellEur  : eurResult;
+  const displayFcfa = direction === "sell" ? fcfaResult : buyFcfa;
 
   function validate() {
     const e: Record<string, string> = {};
     if (!amount || numAmount <= 0) {
       e.amount = "Montant requis";
-    } else if (direction === "sell" && numAmount < PAYPAL_LIMITS.sell.min) {
-      e.amount = `Minimum ${PAYPAL_LIMITS.sell.min}€`;
-    } else if (direction === "sell" && numAmount > PAYPAL_LIMITS.sell.max) {
-      e.amount = `Maximum ${PAYPAL_LIMITS.sell.max}€`;
-    } else if (direction === "buy" && numAmount < PAYPAL_LIMITS.buy.min) {
-      e.amount = `Minimum ${PAYPAL_LIMITS.buy.min.toLocaleString("fr-FR")} FCFA`;
+    } else if (direction === "sell") {
+      const inEur = inputCurrency === "EUR" ? numAmount : numAmount / sellRate;
+      if (inEur < PAYPAL_LIMITS.sell.min) e.amount = `Minimum ${PAYPAL_LIMITS.sell.min}€ (≈ ${Math.ceil(PAYPAL_LIMITS.sell.min * sellRate).toLocaleString("fr-FR")} FCFA)`;
+      else if (inEur > PAYPAL_LIMITS.sell.max) e.amount = `Maximum ${PAYPAL_LIMITS.sell.max}€`;
+    } else {
+      const inFcfa = inputCurrency === "FCFA" ? numAmount : numAmount * buyRate;
+      if (inFcfa < PAYPAL_LIMITS.buy.min) e.amount = `Minimum ${PAYPAL_LIMITS.buy.min.toLocaleString("fr-FR")} FCFA (≈ ${+(PAYPAL_LIMITS.buy.min / buyRate).toFixed(0)}€)`;
     }
     if (!paypalEmail.trim()) e.paypalEmail = "Email ou nom PayPal requis";
     if (!momoPhone || momoPhone.length !== 9) e.momoPhone = "Numéro invalide (9 chiffres)";
@@ -49,18 +68,16 @@ export default function PaypalPage() {
 
   function buildDetails() {
     const op = MOMO_OPERATORS.find(o => o.id === momoOp)?.name ?? momoOp;
-    if (direction === "sell") {
-      return `PayPal : ${paypalEmail} | ${amount}€ → ${fcfaResult.toLocaleString("fr-FR")} FCFA\n${op} +237 ${momoPhone}`;
-    }
-    return `PayPal à recharger : ${paypalEmail} | ${numAmount.toLocaleString("fr-FR")} FCFA → ${eurResult}€\n${op} +237 ${momoPhone}`;
+    if (direction === "sell")
+      return `PayPal : ${paypalEmail} | ${displayEur.toFixed(2)}€ → ${fcfaResult.toLocaleString("fr-FR")} FCFA\n${op} +237 ${momoPhone}`;
+    return `PayPal : ${paypalEmail} | ${buyFcfa.toLocaleString("fr-FR")} FCFA → ${eurResult}€\n${op} +237 ${momoPhone}`;
   }
 
   function buildMsgPlain() {
     const op = MOMO_OPERATORS.find(o => o.id === momoOp)?.name ?? momoOp;
-    if (direction === "sell") {
-      return `💸 VENTE PAYPAL\nCompte PayPal : ${paypalEmail}\nMontant : ${amount}€\nÀ recevoir : ${fcfaResult.toLocaleString("fr-FR")} FCFA\nTaux : 1€ = ${sellRate} FCFA\n\n💰 Réception MoMo\nOpérateur : ${op}\nNuméro : +237 ${momoPhone}`;
-    }
-    return `💳 ACHAT PAYPAL\nCompte PayPal à recharger : ${paypalEmail}\nJe paie : ${numAmount.toLocaleString("fr-FR")} FCFA\nÀ recevoir : ${eurResult}€\nTaux : 1€ = ${buyRate} FCFA\n\n💰 Paiement MoMo\nOpérateur : ${op}\nNuméro : +237 ${momoPhone}`;
+    if (direction === "sell")
+      return `💸 VENTE PAYPAL\nCompte PayPal : ${paypalEmail}\nMontant : ${displayEur.toFixed(2)}€\nÀ recevoir : ${fcfaResult.toLocaleString("fr-FR")} FCFA\nTaux : 1€ = ${sellRate} FCFA\n\n💰 Réception MoMo\nOpérateur : ${op}\nNuméro : +237 ${momoPhone}`;
+    return `💳 ACHAT PAYPAL\nCompte PayPal : ${paypalEmail}\nJe paie : ${buyFcfa.toLocaleString("fr-FR")} FCFA\nÀ recevoir : ${eurResult}€\nTaux : 1€ = ${buyRate} FCFA\n\n💰 Paiement MoMo\nOpérateur : ${op}\nNuméro : +237 ${momoPhone}`;
   }
 
   function handleAddToCart() {
@@ -70,16 +87,16 @@ export default function PaypalPage() {
       id: `paypal-${direction}-${Date.now()}`,
       cardName: direction === "sell" ? "Vente PayPal Europe" : "Achat PayPal Europe",
       amount: direction === "sell"
-        ? `${amount}€ → ${fcfaResult.toLocaleString("fr-FR")} FCFA via ${op}`
-        : `${numAmount.toLocaleString("fr-FR")} FCFA → ${eurResult}€`,
-      price: direction === "sell" ? fcfaResult : numAmount,
+        ? `${displayEur.toFixed(2)}€ → ${fcfaResult.toLocaleString("fr-FR")} FCFA via ${op}`
+        : `${buyFcfa.toLocaleString("fr-FR")} FCFA → ${eurResult}€`,
+      price: direction === "sell" ? fcfaResult : buyFcfa,
       type: direction === "sell" ? "sell" : "buy",
       details: buildDetails(),
     });
     addEntry({
       service: `PayPal — ${direction === "sell" ? "Vente" : "Achat"}`,
-      details: direction === "sell" ? `${amount}€ → ${fcfaResult.toLocaleString("fr-FR")} FCFA` : `${numAmount.toLocaleString("fr-FR")} FCFA → ${eurResult}€`,
-      amount: direction === "sell" ? fcfaResult : numAmount,
+      details: direction === "sell" ? `${displayEur.toFixed(2)}€ → ${fcfaResult.toLocaleString("fr-FR")} FCFA` : `${buyFcfa.toLocaleString("fr-FR")} FCFA → ${eurResult}€`,
+      amount: direction === "sell" ? fcfaResult : buyFcfa,
       currency: "FCFA",
       status: "pending",
     });
@@ -128,7 +145,7 @@ export default function PaypalPage() {
         {(["sell", "buy"] as const).map(d => (
           <button
             key={d}
-            onClick={() => { setDirection(d); setErrors({}); setAmount(""); }}
+            onClick={() => switchDirection(d)}
             className="flex-1 py-3 rounded-xl font-black text-sm transition-all"
             style={{
               background: direction === d ? "var(--gold)" : "transparent",
@@ -142,14 +159,22 @@ export default function PaypalPage() {
 
       {/* Rate card */}
       <div className="rounded-2xl p-4 mb-6" style={{ background: "#003087" + "22", border: "1px solid #003087" + "55" }}>
-        <div className="flex justify-between text-sm">
+        <div className="flex justify-between items-center text-sm">
           <div>
             <p className="text-xs font-bold mb-1" style={{ color: "var(--text-muted)" }}>Taux applicable</p>
-            <p className="font-black text-white tabular-nums">1€ = {direction === "sell" ? sellRate : buyRate} FCFA</p>
+            <p className="font-black tabular-nums" style={{ color: "var(--text-primary)" }}>1€ = {direction === "sell" ? sellRate : buyRate} FCFA</p>
           </div>
           <div className="text-right">
-            <p className="text-xs font-bold mb-1" style={{ color: "var(--text-muted)" }}>Limite</p>
-            <p className="font-black text-white tabular-nums">{limits.min.toLocaleString("fr-FR")} – {limits.max.toLocaleString("fr-FR")} {limits.currency}</p>
+            <p className="text-xs font-bold mb-1" style={{ color: "var(--text-muted)" }}>Saisie en</p>
+            <div className="flex rounded-xl overflow-hidden" style={{ border: "1px solid var(--border)" }}>
+              {(["EUR", "FCFA"] as const).map(c => (
+                <button key={c} type="button" onClick={() => { setInputCurrency(c); setAmount(""); setErrors({}); }}
+                  className="px-3 py-1.5 text-xs font-black transition-all"
+                  style={{ background: inputCurrency === c ? "#003087" : "transparent", color: inputCurrency === c ? "#fff" : "var(--text-muted)" }}>
+                  {c === "EUR" ? "€ EUR" : "FCFA"}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -163,14 +188,29 @@ export default function PaypalPage() {
           transition={{ duration: 0.18 }}
           className="flex flex-col gap-5"
         >
-          <Field label={direction === "sell" ? "Montant à vendre (€)" : "Montant à payer (FCFA)"} error={errors.amount}>
-            <input
-              type="number" min="0"
-              placeholder={direction === "sell" ? `ex: 50 (min ${PAYPAL_LIMITS.sell.min}€)` : "ex: 50 000 FCFA"}
-              value={amount}
-              onChange={e => { setAmount(e.target.value); setErrors(p => ({ ...p, amount: "" })); }}
-              className={inputCls} style={errors.amount ? inputErr : inputBase}
-            />
+          <Field
+            label={direction === "sell"
+              ? (inputCurrency === "EUR" ? "Montant à vendre (€)" : "Montant à vendre (FCFA)")
+              : (inputCurrency === "FCFA" ? "Montant à payer (FCFA)" : "Montant à payer (€)")}
+            error={errors.amount}
+          >
+            <div className="relative">
+              <input
+                type="number" min="0"
+                placeholder={
+                  direction === "sell"
+                    ? (inputCurrency === "EUR" ? `ex: 50 (min ${PAYPAL_LIMITS.sell.min}€)` : `ex: ${(PAYPAL_LIMITS.sell.min * sellRate).toLocaleString("fr-FR")} FCFA`)
+                    : (inputCurrency === "FCFA" ? `ex: ${PAYPAL_LIMITS.buy.min.toLocaleString("fr-FR")} FCFA` : "ex: 20€")
+                }
+                value={amount}
+                onChange={e => { setAmount(e.target.value); setErrors(p => ({ ...p, amount: "" })); }}
+                className={`${inputCls} pr-16`} style={errors.amount ? inputErr : inputBase}
+              />
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-black pointer-events-none"
+                style={{ color: "var(--text-muted)" }}>
+                {inputCurrency === "EUR" ? "€" : "FCFA"}
+              </span>
+            </div>
           </Field>
 
           {/* Tableau de calcul */}
@@ -186,14 +226,14 @@ export default function PaypalPage() {
               </p>
               {direction === "sell" ? (
                 <>
-                  <CalcRow label="Solde PayPal vendu" value={`${amount}€`} />
+                  <CalcRow label="Solde PayPal vendu" value={`${displayEur.toFixed(2)}€`} />
                   <CalcRow label="Taux d'achat" value={`1€ = ${sellRate} FCFA`} />
                   <CalcRow label="Commission" value="0 FCFA (0%)" />
                   <CalcRow label="Vous recevez" value={`${fcfaResult.toLocaleString("fr-FR")} FCFA`} highlight />
                 </>
               ) : (
                 <>
-                  <CalcRow label="FCFA à payer" value={`${numAmount.toLocaleString("fr-FR")} FCFA`} />
+                  <CalcRow label="FCFA à payer" value={`${displayFcfa.toLocaleString("fr-FR")} FCFA`} />
                   <CalcRow label="Taux de vente" value={`1€ = ${buyRate} FCFA`} />
                   <CalcRow label="Commission" value="0 FCFA (0%)" />
                   <CalcRow label="Vous recevez" value={`${eurResult}€`} highlight />

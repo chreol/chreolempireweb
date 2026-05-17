@@ -48,6 +48,7 @@ export const IMAGES = {
   camwater:"/assets/Camwater logo.webp",
   startimes:"/assets/StarTimes logo.webp",
   boutique: "/assets/boutique.webp",
+  banner:   "/assets/Baniere_ChreolEMpire_Cartes-Cadeaux.webp",
 };
 
 const STANDARD_AMOUNTS = [
