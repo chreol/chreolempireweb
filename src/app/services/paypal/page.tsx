@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { PAYPAL_RATES, PAYPAL_LIMITS, CONTACT, MOMO_OPERATORS } from "@/lib/services";
+import { PAYPAL_RATES, PAYPAL_LIMITS, CONTACT, MOMO_OPERATORS, IMAGES } from "@/lib/services";
 import { useCart } from "@/contexts/CartContext";
 import { useHistory } from "@/contexts/HistoryContext";
 import { useToast } from "@/components/Toast";
@@ -246,7 +247,8 @@ export default function PaypalPage() {
           className="w-full py-3 rounded-full font-black text-white text-sm transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
           style={{ background: "#25D366" }}
         >
-          💬 {direction === "sell" ? "Commander directement via WhatsApp" : "Commander via WhatsApp"}
+          <Image src={IMAGES.whatsapp} alt="" width={20} height={20} unoptimized className="shrink-0" />
+          {direction === "sell" ? "Commander directement via WhatsApp" : "Commander via WhatsApp"}
         </button>
       </div>
 

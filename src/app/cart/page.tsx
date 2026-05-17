@@ -320,7 +320,11 @@ export default function CartPage() {
               className="block w-full py-4 rounded-full font-black text-white text-center text-sm transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
               style={{ background: "#25D366" }}
             >
-              {isSell ? "📤 Envoyer la demande via WhatsApp" : "💬 Commander via WhatsApp"}
+              {isSell ? (
+                <>📤 Envoyer la demande via WhatsApp</>
+              ) : (
+                <><Image src={IMAGES.whatsapp} alt="" width={20} height={20} unoptimized className="shrink-0" /> Commander via WhatsApp</>
+              )}
             </a>
           </div>
 

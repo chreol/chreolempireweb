@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { motion } from "framer-motion";
-import { COUPON_RATES, CONTACT, MOMO_OPERATORS } from "@/lib/services";
+import { COUPON_RATES, CONTACT, MOMO_OPERATORS, IMAGES } from "@/lib/services";
 import { useCart } from "@/contexts/CartContext";
 import { useHistory } from "@/contexts/HistoryContext";
 import { useToast } from "@/components/Toast";
@@ -242,7 +243,8 @@ export default function CouponsPage() {
           className="w-full py-3 rounded-full font-black text-white text-sm transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
           style={{ background: "#25D366" }}
         >
-          💬 Démarrer directement via WhatsApp
+          <Image src={IMAGES.whatsapp} alt="" width={20} height={20} unoptimized className="shrink-0" />
+          Démarrer directement via WhatsApp
         </button>
       </div>
 

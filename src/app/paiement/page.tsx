@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { CONTACT, IMAGES } from "@/lib/services";
 
+
 const METHODS = [
   {
     image: IMAGES.mtn,
@@ -162,7 +163,8 @@ export default function PaiementPage() {
           className="inline-flex items-center gap-2 px-6 py-3 rounded-full font-black text-white text-sm"
           style={{ background: "#25D366" }}
         >
-          💬 Nous contacter
+          <Image src={IMAGES.whatsapp} alt="" width={20} height={20} unoptimized className="shrink-0" />
+          Nous contacter
         </a>
       </div>
     </div>

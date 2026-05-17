@@ -6,7 +6,8 @@ import { HistoryProvider } from "@/contexts/HistoryContext";
 import { ToastProvider } from "@/components/Toast";
 import Navbar from "@/components/Navbar";
 import RateTicker from "@/components/RateTicker";
-import { CONTACT } from "@/lib/services";
+import Image from "next/image";
+import { CONTACT, IMAGES } from "@/lib/services";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist-sans" });
 
@@ -51,7 +52,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     style={{ background: "#25D366" }}
                     target="_blank" rel="noopener noreferrer"
                   >
-                    💬 {CONTACT.whatsappDisplay}
+                    <Image src={IMAGES.whatsapp} alt="WhatsApp" width={16} height={16} unoptimized className="shrink-0" />
+                    {CONTACT.whatsappDisplay}
                   </a>
                 </div>
 

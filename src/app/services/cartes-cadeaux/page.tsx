@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { useCart } from "@/contexts/CartContext";
-import { GIFT_CARDS, CONTACT } from "@/lib/services";
+import { GIFT_CARDS, CONTACT, IMAGES } from "@/lib/services";
 import Link from "next/link";
 
 const TABS = [
@@ -223,7 +223,8 @@ export default function CartesCadeauxPage() {
                   className="flex-1 py-3 rounded-full font-black text-sm text-white text-center transition-opacity hover:opacity-85"
                   style={{ background: "#25D366" }}
                 >
-                  💬 WhatsApp
+                  <Image src={IMAGES.whatsapp} alt="" width={16} height={16} unoptimized className="shrink-0" />
+                  WhatsApp
                 </a>
               </div>
             </div>

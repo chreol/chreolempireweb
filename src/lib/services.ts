@@ -8,7 +8,8 @@ export const CONTACT = {
 };
 
 export const IMAGES = {
-  logo:    "/assets/chreolempire logo avec contact m.webp",
+  logo:       "/assets/chreolempire logo avec contact m.webp",
+  whatsapp:   "/assets/whatsapp.webp",
   psn:     "/assets/PlayStation_Store_Card.webp",
   itunes:  "/assets/itunes-gifts-for-business-hero_2x.webp",
   roblox:  "/assets/App-icon-roblox.webp",

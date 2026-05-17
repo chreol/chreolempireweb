@@ -69,7 +69,8 @@ export default function HomePage() {
                 <a href={`https://wa.me/${CONTACT.whatsapp}`} target="_blank" rel="noopener noreferrer"
                   className="px-8 py-4 rounded-2xl font-black text-white text-base transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96] text-center"
                   style={{ background: "#25D366" }}>
-                  💬 Commander sur WhatsApp
+                  <Image src={IMAGES.whatsapp} alt="" width={20} height={20} unoptimized className="shrink-0" />
+                  Commander sur WhatsApp
                 </a>
               </div>
 
@@ -226,7 +227,8 @@ export default function HomePage() {
                 target="_blank" rel="noopener noreferrer"
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl font-black text-white text-base transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
                 style={{ background: "#25D366" }}>
-                💬 Ouvrir WhatsApp
+                <Image src={IMAGES.whatsapp} alt="" width={20} height={20} unoptimized className="shrink-0" />
+                Ouvrir WhatsApp
               </a>
               <Link href="/services"
                 className="inline-flex items-center justify-center px-8 py-4 rounded-2xl font-black text-sm transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"

@@ -60,7 +60,7 @@ export default function Navbar() {
             className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold text-white transition-[opacity,transform] duration-150 ease-out hover:opacity-80 active:scale-[0.96]"
             style={{ background: "#25D366" }}
           >
-            <span>💬</span>
+            <Image src={IMAGES.whatsapp} alt="WhatsApp" width={18} height={18} unoptimized className="shrink-0" />
             <span>WhatsApp</span>
           </a>
 

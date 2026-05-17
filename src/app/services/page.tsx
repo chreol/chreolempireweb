@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { CONTACT, IMAGES } from "@/lib/services";
 
+
 const SERVICES = [
   {
     image: IMAGES.psn, title: "Cartes Cadeaux", emoji: "🎮",
@@ -64,7 +65,8 @@ export default function ServicesPage() {
           <a href={`https://wa.me/${CONTACT.whatsapp}`} target="_blank" rel="noopener noreferrer"
             className="shrink-0 inline-flex items-center gap-2 px-5 py-3 rounded-2xl font-black text-white text-sm transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
             style={{ background: "#25D366" }}>
-            💬 Commander maintenant
+            <Image src={IMAGES.whatsapp} alt="" width={18} height={18} unoptimized className="shrink-0" />
+            Commander maintenant
           </a>
         </div>
       </div>
@@ -122,7 +124,8 @@ export default function ServicesPage() {
             <a href={`https://wa.me/${CONTACT.whatsapp}`} target="_blank" rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl font-black text-white transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
               style={{ background: "#25D366" }}>
-              💬 Ouvrir WhatsApp
+              <Image src={IMAGES.whatsapp} alt="" width={20} height={20} unoptimized className="shrink-0" />
+              Ouvrir WhatsApp
             </a>
           </div>
         </div>

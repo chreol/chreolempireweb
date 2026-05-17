@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { CONTACT, FACTURE_BILLERS, FACTURE_COMMISSION, MOMO_OPERATORS } from "@/lib/services";
+import { CONTACT, FACTURE_BILLERS, FACTURE_COMMISSION, MOMO_OPERATORS, IMAGES } from "@/lib/services";
 import { useHistory } from "@/contexts/HistoryContext";
 import { useToast } from "@/components/Toast";
 
@@ -261,7 +262,8 @@ export default function FacturesPage() {
               className="w-full py-4 rounded-full font-black text-white text-sm transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
               style={{ background: "#25D366" }}
             >
-              💬 Envoyer la demande de paiement
+              <Image src={IMAGES.whatsapp} alt="" width={20} height={20} unoptimized className="shrink-0" />
+              Envoyer la demande de paiement
             </button>
           </motion.div>
         ) : (
@@ -377,7 +379,8 @@ export default function FacturesPage() {
               className="w-full py-4 rounded-full font-black text-white text-sm transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
               style={{ background: "#25D366" }}
             >
-              💬 Initier l'échange via WhatsApp
+              <Image src={IMAGES.whatsapp} alt="" width={20} height={20} unoptimized className="shrink-0" />
+              Initier l'échange via WhatsApp
             </button>
           </motion.div>
         )}

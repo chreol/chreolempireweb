@@ -113,7 +113,9 @@ export default function AProposPage() {
             className="flex items-center gap-4 p-5 rounded-2xl transition-all hover:-translate-y-0.5"
             style={{ background: "#0D1A0F", border: "1px solid #25D36633" }}
           >
-            <span className="text-3xl">💬</span>
+            <div className="relative w-10 h-10 rounded-xl overflow-hidden shrink-0">
+              <Image src={IMAGES.whatsapp} alt="WhatsApp" fill style={{ objectFit: "cover" }} unoptimized />
+            </div>
             <div>
               <p className="font-black text-white text-sm">WhatsApp</p>
               <p className="text-xs" style={{ color: "var(--text-secondary)" }}>{CONTACT.whatsappDisplay}</p>
