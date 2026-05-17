@@ -151,26 +151,26 @@ export default function CommentCaMarchePage() {
           Paiement Mobile Money, livraison WhatsApp, 0% commission. Voici exactement comment se déroule chaque transaction chez Chreol Empire.
         </p>
 
-        {/* Global 4 steps */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-16">
+        {/* Global 4 steps — ol/li pour SEO */}
+        <ol className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-16 list-none p-0">
           {GLOBAL_STEPS.map((s, i) => (
-            <div key={s.n} className="relative flex flex-col items-center text-center gap-3 p-4 rounded-2xl"
+            <li key={s.n} className="relative flex flex-col items-center text-center gap-3 p-4 rounded-2xl"
               style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
               <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-xl font-black shrink-0"
                 style={{ background: "var(--gold)", color: "#0A0A0A" }}>
                 {s.n}
               </div>
-              <p className="text-lg">{s.icon}</p>
+              <p className="text-lg" aria-hidden="true">{s.icon}</p>
               <div>
                 <p className="font-black text-white text-sm mb-1">{s.title}</p>
                 <p className="text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>{s.desc}</p>
               </div>
               {i < GLOBAL_STEPS.length - 1 && (
-                <span className="hidden sm:block absolute -right-3 top-8 text-lg z-10" style={{ color: "var(--gold)" }}>→</span>
+                <span className="hidden sm:block absolute -right-3 top-8 text-lg z-10" aria-hidden="true" style={{ color: "var(--gold)" }}>→</span>
               )}
-            </div>
+            </li>
           ))}
-        </div>
+        </ol>
       </div>
 
       {/* Per-service steppers */}
@@ -200,13 +200,13 @@ export default function CommentCaMarchePage() {
               </a>
             </div>
 
-            {/* Steps */}
+            {/* Steps — ol/li pour SEO */}
             <div className="p-6">
-              <div className="flex flex-col gap-0">
+              <ol className="flex flex-col gap-0 list-none p-0">
                 {guide.steps.map((step, i) => (
-                  <div key={i} className="flex gap-4">
+                  <li key={i} className="flex gap-4">
                     {/* Timeline */}
-                    <div className="flex flex-col items-center shrink-0">
+                    <div className="flex flex-col items-center shrink-0" aria-hidden="true">
                       <div className="w-9 h-9 rounded-full flex items-center justify-center text-base shrink-0 font-black"
                         style={{ background: `${guide.color}20`, border: `2px solid ${guide.color}`, color: guide.color }}>
                         {i + 1}
@@ -218,14 +218,14 @@ export default function CommentCaMarchePage() {
                     {/* Content */}
                     <div className="pb-5 pt-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-base">{step.icon}</span>
+                        <span className="text-base" aria-hidden="true">{step.icon}</span>
                         <p className="font-black text-white text-sm">{step.title}</p>
                       </div>
                       <p className="text-xs leading-relaxed" style={{ color: "var(--text-secondary)" }}>{step.desc}</p>
                     </div>
-                  </div>
+                  </li>
                 ))}
-              </div>
+              </ol>
             </div>
           </div>
         ))}
