@@ -11,6 +11,7 @@ export const SOCIAL_LINKS = {
   facebook:      "https://www.facebook.com/chreolempire",
   facebookGroup: "https://www.facebook.com/groups/chreolempire",
   telegram:      "https://t.me/chreolempire",
+  instagram:     "https://www.instagram.com/chreolempire",
   googleBusiness:"https://maps.app.goo.gl/y6ZUqprA579ykBc46",
   businesslist:  "https://www.businesslist.co.cm/company/138059/chreol-empire-services-digitaux",
 };
@@ -21,6 +22,7 @@ export const IMAGES = {
   telegram:   "/assets/telegram.webp",
   instagram:  "/assets/instagram.webp",
   xTwitter:   "/assets/x-twitter.webp",
+  email:      "/assets/email.webp",
   psn:     "/assets/PlayStation_Store_Card.webp",
   itunes:  "/assets/itunes-gifts-for-business-hero_2x.webp",
   roblox:  "/assets/App-icon-roblox.webp",

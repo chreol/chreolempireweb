@@ -16,6 +16,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: "/services/factures",      priority: 0.8, freq: "weekly"  },
     { url: "/paiement",               priority: 0.7, freq: "monthly" },
     { url: "/a-propos",               priority: 0.6, freq: "monthly" },
+    { url: "/historique",             priority: 0.4, freq: "never"   },
   ];
 
   return routes.map(r => ({

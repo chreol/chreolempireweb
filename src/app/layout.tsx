@@ -9,6 +9,7 @@ import Navbar from "@/components/Navbar";
 import RateTicker from "@/components/RateTicker";
 import WASupport from "@/components/WASupport";
 import WAPopover from "@/components/WAPopover";
+import FloatingCalc from "@/components/FloatingCalc";
 import Image from "next/image";
 import { CONTACT, IMAGES, SOCIAL_LINKS } from "@/lib/services";
 
@@ -112,6 +113,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <RateTicker />
           <Navbar />
           <main className="flex-1">{children}</main>
+          <FloatingCalc />
 
           {/* Footer */}
           <footer style={{ background: "var(--bg-secondary)", borderTop: "1px solid var(--border)" }} className="mt-16">
