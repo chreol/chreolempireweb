@@ -3,10 +3,12 @@
 import { useState } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { COUPON_RATES, CONTACT, MOMO_OPERATORS, IMAGES } from "@/lib/services";
+import { COUPON_RATES, MOMO_OPERATORS, IMAGES } from "@/lib/services";
+import WAPopover from "@/components/WAPopover";
 import { useCart } from "@/contexts/CartContext";
 import { useHistory } from "@/contexts/HistoryContext";
 import { useToast } from "@/components/Toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 type CouponType = keyof typeof COUPON_RATES;
 
@@ -14,14 +16,16 @@ export default function CouponsPage() {
   const { addItem } = useCart();
   const { addEntry } = useHistory();
   const { showToast } = useToast();
+  const { t } = useLanguage();
 
-  const [type, setType]     = useState<CouponType>("pcs");
-  const [amount, setAmount] = useState("");
-  const [code, setCode]     = useState("");
-  const [name, setName]     = useState("");
-  const [momoOp, setMomoOp] = useState("orange");
-  const [phone, setPhone]   = useState("");
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [type, setType]         = useState<CouponType>("pcs");
+  const [amount, setAmount]     = useState("");
+  const [code, setCode]         = useState("");
+  const [name, setName]         = useState("");
+  const [momoOp, setMomoOp]     = useState("orange");
+  const [phone, setPhone]       = useState("");
+  const [errors, setErrors]     = useState<Record<string, string>>({});
+  const [showCalc, setShowCalc] = useState(false);
 
   const rate       = COUPON_RATES[type];
   const numAmt     = parseFloat(amount) || 0;
@@ -54,12 +58,10 @@ export default function CouponsPage() {
     return `${typeName} ${amount}€ | Code : ${code.trim()}\n${op} +237 ${phone} | Nom : ${name}`;
   }
 
-  function buildWAMsg() {
+  function buildMsgPlain() {
     const op = MOMO_OPERATORS.find(o => o.id === momoOp)?.name ?? momoOp;
     const typeName = type === "pcs" ? "PCS Mastercard" : "Transcash";
-    return encodeURIComponent(
-      `Bonjour Chreol Empire,\n\n🎫 ÉCHANGE COUPON\nType : ${typeName}\nValeur : ${amount}€\nCode : ${code.trim()}\nCommission : ${rate.commission}%\nÀ recevoir : ${fcfaResult.toLocaleString("fr-FR")} FCFA\n\n💰 Réception MoMo\nOpérateur : ${op}\nNuméro : +237 ${phone}\nNom : ${name}`,
-    );
+    return `🎫 ÉCHANGE COUPON\nType : ${typeName}\nValeur : ${amount}€\nCode : ${code.trim()}\nCommission : ${rate.commission}%\nÀ recevoir : ${fcfaResult.toLocaleString("fr-FR")} FCFA\n\n💰 Réception MoMo\nOpérateur : ${op}\nNuméro : +237 ${phone}\nNom : ${name}`;
   }
 
   function handleAddToCart() {
@@ -83,10 +85,6 @@ export default function CouponsPage() {
     showToast("Coupon ajouté au panier !", "success");
   }
 
-  function handleWhatsApp() {
-    if (!validate()) { showToast("Corrigez les erreurs", "error"); return; }
-    window.open(`https://wa.me/${CONTACT.whatsapp}?text=${buildWAMsg()}`, "_blank");
-  }
 
   const inputCls  = "w-full px-4 py-3 rounded-2xl text-white text-sm outline-none";
   const inputBase = { background: "var(--bg-elevated)", border: "1px solid var(--border)" };
@@ -110,9 +108,9 @@ export default function CouponsPage() {
         <span style={{ color: "var(--gold)" }}>Échange Coupons</span>
       </div>
 
-      <h1 className="text-3xl font-black text-white mb-1">Échange Coupons</h1>
+      <h1 className="text-3xl font-black text-white mb-1">{t("p.coupons.title")}</h1>
       <p className="text-sm mb-8" style={{ color: "var(--text-secondary)" }}>
-        Échangez vos coupons PCS ou Transcash contre du FCFA sur votre Mobile Money.
+        {t("p.coupons.sub")}
       </p>
 
       {/* Type selector */}
@@ -143,46 +141,59 @@ export default function CouponsPage() {
           <input
             type="number" min="20" placeholder="ex: 50"
             value={amount}
-            onChange={e => { setAmount(e.target.value); setErrors(p => ({ ...p, amount: "" })); }}
+            autoFocus
+            onChange={e => { setAmount(e.target.value); setErrors(p => ({ ...p, amount: "" })); setShowCalc(false); }}
             className={inputCls} style={errors.amount ? inputErr : inputBase}
           />
         </Field>
 
-        {/* Tableau de calcul */}
+        {/* Tableau de calcul — toggleable */}
         {numAmt >= 20 && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.97 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="rounded-2xl p-4"
-            style={{ background: "#1B5E20" + "22", border: "1px solid #25D36644" }}
-          >
-            <p className="text-xs font-black uppercase tracking-wider mb-3" style={{ color: "#25D366" }}>
-              Tableau de calcul
-            </p>
-            <div className="flex flex-col">
-              {[
-                ["Valeur du coupon", `${numAmt}€`],
-                ...(rate.commission > 0
-                  ? [
-                    [`Commission ${type.toUpperCase()} (${rate.commission}%)`, `− ${commission.toFixed(2)}€`],
-                    ["Valeur nette", `${netAmt.toFixed(2)}€`],
-                  ]
-                  : [["Commission", "0€ (0%)"]]),
-                ["Taux d'échange", `${rate.rate} FCFA/€`],
-              ].map(([label, value]) => (
-                <div key={label} className="flex justify-between items-center py-2" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                  <span className="text-xs" style={{ color: "var(--text-muted)" }}>{label}</span>
-                  <span className="text-sm font-bold text-white tabular-nums">{value}</span>
+          <div>
+            <button
+              type="button"
+              onClick={() => setShowCalc(v => !v)}
+              className="flex items-center gap-2 text-xs font-bold px-3 py-2 rounded-xl transition-all"
+              style={{ background: showCalc ? "#1B5E2022" : "var(--bg-card)", border: "1px solid #25D36633", color: "#25D366" }}
+            >
+              📊 {showCalc ? "Masquer" : "Voir"} le tableau de calcul
+            </button>
+            {showCalc && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.97 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="rounded-2xl p-4 mt-2"
+                style={{ background: "#1B5E2022", border: "1px solid #25D36644" }}
+              >
+                <p className="text-xs font-black uppercase tracking-wider mb-3" style={{ color: "#25D366" }}>
+                  Tableau de calcul
+                </p>
+                <div className="flex flex-col">
+                  {[
+                    ["Valeur du coupon", `${numAmt}€`],
+                    ...(rate.commission > 0
+                      ? [
+                        [`Commission ${type.toUpperCase()} (${rate.commission}%)`, `− ${commission.toFixed(2)}€`],
+                        ["Valeur nette", `${netAmt.toFixed(2)}€`],
+                      ]
+                      : [["Commission", "0€ (0%)"]]),
+                    ["Taux d'échange", `${rate.rate} FCFA/€`],
+                  ].map(([label, value]) => (
+                    <div key={label} className="flex justify-between items-center py-2" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                      <span className="text-xs" style={{ color: "var(--text-muted)" }}>{label}</span>
+                      <span className="text-sm font-bold text-white tabular-nums">{value}</span>
+                    </div>
+                  ))}
+                  <div className="flex justify-between items-center pt-3 mt-1">
+                    <span className="text-xs font-black uppercase tracking-wider" style={{ color: "#25D366" }}>Vous recevez</span>
+                    <span className="text-xl font-black tabular-nums" style={{ color: "var(--gold)" }}>
+                      {fcfaResult.toLocaleString("fr-FR")} FCFA
+                    </span>
+                  </div>
                 </div>
-              ))}
-              <div className="flex justify-between items-center pt-3 mt-1">
-                <span className="text-xs font-black uppercase tracking-wider" style={{ color: "#25D366" }}>Vous recevez</span>
-                <span className="text-xl font-black tabular-nums" style={{ color: "var(--gold)" }}>
-                  {fcfaResult.toLocaleString("fr-FR")} FCFA
-                </span>
-              </div>
-            </div>
-          </motion.div>
+              </motion.div>
+            )}
+          </div>
         )}
 
         <Field label={`Code ${type === "pcs" ? "PCS (8 caractères alphanumériques)" : "Transcash (12 chiffres)"}`} error={errors.code}>
@@ -249,14 +260,16 @@ export default function CouponsPage() {
         >
           🛒 Ajouter au panier
         </button>
-        <button
-          onClick={handleWhatsApp}
-          className="w-full py-3 rounded-full font-black text-white text-sm transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
+        <WAPopover
+          onBeforeOpen={() => { const ok = validate(); if (!ok) showToast("Corrigez les erreurs", "error"); return ok; }}
+          getMsg={buildMsgPlain}
+          prefillPrenom={name}
+          className="w-full py-3 rounded-full font-black text-white text-sm flex items-center justify-center gap-2 transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
           style={{ background: "#25D366" }}
         >
           <Image src={IMAGES.whatsapp} alt="" width={20} height={20} unoptimized className="shrink-0" />
           Démarrer directement via WhatsApp
-        </button>
+        </WAPopover>
       </div>
 
       <div className="mt-8 rounded-2xl p-5" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>

@@ -3,9 +3,12 @@
 import { useState } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { CONTACT, FACTURE_BILLERS, FACTURE_COMMISSION, MOMO_OPERATORS, IMAGES } from "@/lib/services";
+import { FACTURE_BILLERS, FACTURE_COMMISSION, MOMO_OPERATORS, IMAGES } from "@/lib/services";
+import WAPopover from "@/components/WAPopover";
 import { useHistory } from "@/contexts/HistoryContext";
 import { useToast } from "@/components/Toast";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useCart } from "@/contexts/CartContext";
 
 type Tab = "factures" | "momo";
 type IdType = "phone" | "decoder";
@@ -13,6 +16,8 @@ type IdType = "phone" | "decoder";
 export default function FacturesPage() {
   const { addEntry } = useHistory();
   const { showToast } = useToast();
+  const { t } = useLanguage();
+  const { addItem } = useCart();
 
   const [tab, setTab]       = useState<Tab>("factures");
 
@@ -45,30 +50,22 @@ export default function FacturesPage() {
     return Object.keys(e).length === 0;
   }
 
-  function buildFactureMsg() {
+  function buildFactureMsgPlain() {
     const billerName = FACTURE_BILLERS.find(b => b.id === biller)?.name ?? biller;
-    return encodeURIComponent(
-      `Bonjour Chreol Empire,\n\n` +
-      `📋 PAIEMENT FACTURE\n` +
-      `Fournisseur : ${billerName}\n` +
-      `Identifiant : ${identifier} (${idType === "phone" ? "téléphone" : "décodeur"})\n` +
-      `Montant facture : ${numFacAmt.toLocaleString("fr-FR")} FCFA\n` +
-      `Commission : ${FACTURE_COMMISSION} FCFA\n` +
-      `Total à payer : ${totalFacture.toLocaleString("fr-FR")} FCFA`,
-    );
+    return `📋 PAIEMENT FACTURE\nFournisseur : ${billerName}\nIdentifiant : ${identifier} (${idType === "phone" ? "téléphone" : "décodeur"})\nMontant facture : ${numFacAmt.toLocaleString("fr-FR")} FCFA\nCommission : ${FACTURE_COMMISSION} FCFA\nTotal à payer : ${totalFacture.toLocaleString("fr-FR")} FCFA`;
   }
 
-  function handleFacture() {
-    if (!validateFacture()) { showToast("Corrigez les erreurs", "error"); return; }
+  function handleFactureBeforeOpen() {
+    const ok = validateFacture();
+    if (!ok) { showToast("Corrigez les erreurs", "error"); return false; }
     addEntry({
       service: `Facture — ${FACTURE_BILLERS.find(b => b.id === biller)?.name}`,
       details: `${numFacAmt.toLocaleString("fr-FR")} FCFA + ${FACTURE_COMMISSION} FCFA commission`,
       amount: totalFacture,
       currency: "FCFA",
       status: "pending",
-      waText: buildFactureMsg(),
     });
-    window.open(`https://wa.me/${CONTACT.whatsapp}?text=${buildFactureMsg()}`, "_blank");
+    return true;
   }
 
   /* === MoMo exchange logic === */
@@ -84,31 +81,23 @@ export default function FacturesPage() {
     return Object.keys(e).length === 0;
   }
 
-  function buildMomoMsg() {
+  function buildMomoMsgPlain() {
     const src = MOMO_OPERATORS.find(o => o.id === srcOp)?.name ?? srcOp;
     const dst = MOMO_OPERATORS.find(o => o.id === dstOp)?.name ?? dstOp;
-    return encodeURIComponent(
-      `Bonjour Chreol Empire,\n\n` +
-      `🔄 ÉCHANGE MOBILE MONEY\n` +
-      `De : ${src} — +237 ${srcPhone}\n` +
-      `Vers : ${dst} — +237 ${dstPhone}\n` +
-      `Montant : ${numMomoAmt.toLocaleString("fr-FR")} FCFA\n` +
-      `À recevoir : ${numMomoAmt.toLocaleString("fr-FR")} FCFA\n` +
-      `Commission : 0%`,
-    );
+    return `🔄 ÉCHANGE MOBILE MONEY\nDe : ${src} — +237 ${srcPhone}\nVers : ${dst} — +237 ${dstPhone}\nMontant : ${numMomoAmt.toLocaleString("fr-FR")} FCFA\nÀ recevoir : ${numMomoAmt.toLocaleString("fr-FR")} FCFA\nCommission : 0%`;
   }
 
-  function handleMomo() {
-    if (!validateMomo()) { showToast("Corrigez les erreurs", "error"); return; }
+  function handleMomoBeforeOpen() {
+    const ok = validateMomo();
+    if (!ok) { showToast("Corrigez les erreurs", "error"); return false; }
     addEntry({
       service: "Échange MoMo",
       details: `${MOMO_OPERATORS.find(o => o.id === srcOp)?.name} → ${MOMO_OPERATORS.find(o => o.id === dstOp)?.name}`,
       amount: numMomoAmt,
       currency: "FCFA",
       status: "pending",
-      waText: buildMomoMsg(),
     });
-    window.open(`https://wa.me/${CONTACT.whatsapp}?text=${buildMomoMsg()}`, "_blank");
+    return true;
   }
 
   const inputCls  = "w-full px-4 py-3 rounded-2xl text-white text-sm outline-none";
@@ -133,9 +122,9 @@ export default function FacturesPage() {
         <span style={{ color: "var(--gold)" }}>Factures & Échange MoMo</span>
       </div>
 
-      <h1 className="text-3xl font-black text-white mb-1">Factures & Échange MoMo</h1>
+      <h1 className="text-3xl font-black text-white mb-1">{t("p.factures.title")}</h1>
       <p className="text-sm mb-8" style={{ color: "var(--text-secondary)" }}>
-        Payez vos factures camerounaises ou échangez de l'argent entre opérateurs Mobile Money.
+        {t("p.factures.sub")}
       </p>
 
       {/* Tab toggle */}
@@ -168,14 +157,17 @@ export default function FacturesPage() {
                   <button
                     key={b.id}
                     onClick={() => { setBiller(b.id); setFacErrors(p => ({ ...p, biller: "" })); }}
-                    className="flex flex-col items-center gap-2 p-4 rounded-2xl transition-all hover:-translate-y-0.5"
+                    className="flex flex-col items-center gap-2 p-3 rounded-2xl transition-all hover:-translate-y-0.5"
                     style={{
                       background: biller === b.id ? b.color + "22" : "var(--bg-card)",
                       border: `2px solid ${biller === b.id ? b.color : "var(--border)"}`,
                     }}
                   >
-                    <span className="text-3xl">{b.emoji}</span>
-                    <p className="text-xs font-black text-white">{b.name}</p>
+                    <div className="relative w-12 h-12 rounded-xl overflow-hidden flex items-center justify-center"
+                      style={{ background: b.color + "15" }}>
+                      <Image src={b.image} alt={b.name} fill style={{ objectFit: "contain" }} unoptimized className="p-1" />
+                    </div>
+                    <p className="text-xs font-black" style={{ color: "var(--text-primary)" }}>{b.name}</p>
                     <p className="text-[10px] text-center" style={{ color: "var(--text-muted)" }}>{b.desc}</p>
                   </button>
                 ))}
@@ -257,14 +249,36 @@ export default function FacturesPage() {
               </motion.div>
             )}
 
-            <button
-              onClick={handleFacture}
-              className="w-full py-4 rounded-full font-black text-white text-sm transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
-              style={{ background: "#25D366" }}
-            >
-              <Image src={IMAGES.whatsapp} alt="" width={20} height={20} unoptimized className="shrink-0" />
-              Envoyer la demande de paiement
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  if (!validateFacture()) { showToast("Corrigez les erreurs", "error"); return; }
+                  const billerName = FACTURE_BILLERS.find(b => b.id === biller)?.name ?? biller ?? "";
+                  addItem({
+                    id: `facture-${biller}-${identifier}`,
+                    cardName: `Facture ${billerName}`,
+                    amount: `${numFacAmt.toLocaleString("fr-FR")} FCFA`,
+                    price: totalFacture,
+                    details: `Identifiant: ${identifier}`,
+                    type: "buy",
+                  });
+                  showToast("Ajouté au panier !", "success");
+                }}
+                className="flex-1 py-4 rounded-full font-black text-sm transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
+                style={{ background: "var(--bg-elevated)", color: "var(--text-secondary)", border: "1px solid var(--border)" }}
+              >
+                🛒 Ajouter au panier
+              </button>
+              <WAPopover
+                onBeforeOpen={handleFactureBeforeOpen}
+                getMsg={buildFactureMsgPlain}
+                className="flex-1 py-4 rounded-full font-black text-white text-sm flex items-center justify-center gap-2 transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
+                style={{ background: "#25D366" }}
+              >
+                <Image src={IMAGES.whatsapp} alt="" width={18} height={18} unoptimized className="shrink-0" />
+                Commander
+              </WAPopover>
+            </div>
           </motion.div>
         ) : (
           <motion.div key="momo" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }} className="flex flex-col gap-5">
@@ -380,14 +394,15 @@ export default function FacturesPage() {
               </motion.div>
             )}
 
-            <button
-              onClick={handleMomo}
-              className="w-full py-4 rounded-full font-black text-white text-sm transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
+            <WAPopover
+              onBeforeOpen={handleMomoBeforeOpen}
+              getMsg={buildMomoMsgPlain}
+              className="w-full py-4 rounded-full font-black text-white text-sm flex items-center justify-center gap-2 transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
               style={{ background: "#25D366" }}
             >
               <Image src={IMAGES.whatsapp} alt="" width={20} height={20} unoptimized className="shrink-0" />
               Initier l'échange via WhatsApp
-            </button>
+            </WAPopover>
           </motion.div>
         )}
       </AnimatePresence>

@@ -3,10 +3,12 @@
 import { useState } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { UBA_CARDS, UBA_RECHARGE_FEES, CONTACT, IMAGES } from "@/lib/services";
+import { UBA_CARDS, UBA_RECHARGE_FEES, IMAGES } from "@/lib/services";
+import WAPopover from "@/components/WAPopover";
 import { useCart } from "@/contexts/CartContext";
 import { useHistory } from "@/contexts/HistoryContext";
 import { useToast } from "@/components/Toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 function calcFee(amount: number) {
   const tier = UBA_RECHARGE_FEES.find(t => amount >= t.min && amount <= t.max);
@@ -17,9 +19,19 @@ function calcFee(amount: number) {
 export default function UBAPage() {
   const { addItem } = useCart();
   const { addEntry } = useHistory();
+  const { t } = useLanguage();
   const { showToast } = useToast();
 
   const [mode, setMode]           = useState<"buy" | "recharge">("buy");
+
+  /* ── Buy mode state ── */
+  const [selectedSeg, setSelectedSeg]   = useState<string | null>(null);
+  const [buyName, setBuyName]           = useState("");
+  const [buyPhone, setBuyPhone]         = useState("");
+  const [buyAccepted, setBuyAccepted]   = useState(false);
+  const [buyErrors, setBuyErrors]       = useState<Record<string, string>>({});
+
+  /* ── Recharge mode state ── */
   const [card6, setCard6]         = useState("");
   const [card4, setCard4]         = useState("");
   const [clientId, setClientId]   = useState("");
@@ -32,6 +44,39 @@ export default function UBAPage() {
   const fee       = calcFee(numAmount);
   const total     = numAmount + fee;
 
+  /* ── Buy validation ── */
+  function validateBuy() {
+    const e: Record<string, string> = {};
+    if (!selectedSeg) e.seg = "Sélectionnez un segment de carte";
+    if (!buyName.trim()) e.buyName = "Nom complet requis";
+    if (!buyPhone || buyPhone.length !== 9) e.buyPhone = "Numéro invalide (9 chiffres)";
+    if (!buyAccepted) e.accepted = "Vous devez accepter les conditions";
+    setBuyErrors(e);
+    return Object.keys(e).length === 0;
+  }
+
+  function handleBuyAddToCart() {
+    if (!validateBuy()) { showToast("Corrigez les erreurs", "error"); return; }
+    const card = UBA_CARDS.find(c => c.segment === selectedSeg)!;
+    addItem({
+      id: `uba-buy-${Date.now()}`,
+      cardName: `Carte UBA Segment ${card.segment}`,
+      amount: `${card.price.toLocaleString("fr-FR")} FCFA · Limite ${card.limit}`,
+      price: card.price,
+      type: "buy",
+      details: `Segment ${card.segment} | Nom : ${buyName} | +237 ${buyPhone}`,
+    });
+    addEntry({
+      service: `UBA — Achat Carte Segment ${card.segment}`,
+      details: `${card.price.toLocaleString("fr-FR")} FCFA | Nom : ${buyName}`,
+      amount: card.price,
+      currency: "FCFA",
+      status: "pending",
+    });
+    showToast("Carte UBA ajoutée au panier !", "success");
+  }
+
+  /* ── Recharge validation ── */
   function validate() {
     const e: Record<string, string> = {};
     if (card6.length !== 6) e.card6 = "6 chiffres requis";
@@ -44,27 +89,8 @@ export default function UBAPage() {
     return Object.keys(e).length === 0;
   }
 
-  function buildRechargeMsg() {
-    return encodeURIComponent(
-      `Bonjour Chreol Empire,\n\n` +
-      `💳 RECHARGE UBA\n` +
-      `Carte : ${card6}••••••${card4}\n` +
-      `Client ID : ${clientId}\n` +
-      `Nom : ${fullName}\n` +
-      `Téléphone : +237 ${phone}\n` +
-      `Montant : ${numAmount.toLocaleString("fr-FR")} FCFA\n` +
-      `Frais : ${fee.toLocaleString("fr-FR")} FCFA\n` +
-      `Total à payer : ${total.toLocaleString("fr-FR")} FCFA`,
-    );
-  }
-
-  function buildBuyMsg(segment: string, price: number) {
-    return encodeURIComponent(
-      `Bonjour Chreol Empire,\n\n` +
-      `🏦 ACHAT CARTE UBA\n` +
-      `Segment : ${segment}\n` +
-      `Prix : ${price.toLocaleString("fr-FR")} FCFA`,
-    );
+  function buildRechargeMsgPlain() {
+    return `💳 RECHARGE UBA\nCarte : ${card6}••••••${card4}\nClient ID : ${clientId}\nNom : ${fullName}\nTéléphone : +237 ${phone}\nMontant : ${numAmount.toLocaleString("fr-FR")} FCFA\nFrais : ${fee.toLocaleString("fr-FR")} FCFA\nTotal à payer : ${total.toLocaleString("fr-FR")} FCFA`;
   }
 
   function handleAddToCart() {
@@ -87,9 +113,10 @@ export default function UBAPage() {
     showToast("Recharge UBA ajoutée au panier !", "success");
   }
 
-  function handleRecharge() {
-    if (!validate()) { showToast("Corrigez les erreurs", "error"); return; }
-    window.open(`https://wa.me/${CONTACT.whatsapp}?text=${buildRechargeMsg()}`, "_blank");
+  function handleRechargeBeforeOpen() {
+    const ok = validate();
+    if (!ok) { showToast("Corrigez les erreurs", "error"); return false; }
+    return true;
   }
 
   const inputCls  = "w-full px-4 py-3 rounded-2xl text-white text-sm outline-none";
@@ -114,9 +141,9 @@ export default function UBAPage() {
         <span style={{ color: "var(--gold)" }}>UBA Cameroun</span>
       </div>
 
-      <h1 className="text-3xl font-black text-white mb-1">UBA Cameroun</h1>
+      <h1 className="text-3xl font-black text-white mb-1">{t("p.uba.title")}</h1>
       <p className="text-sm mb-8" style={{ color: "var(--text-secondary)" }}>
-        Achetez votre carte UBA prépayée ou rechargez votre solde existant.
+        {t("p.uba.sub")}
       </p>
 
       {/* Tab toggle */}
@@ -124,7 +151,7 @@ export default function UBAPage() {
         {(["buy", "recharge"] as const).map(m => (
           <button
             key={m}
-            onClick={() => { setMode(m); setErrors({}); }}
+            onClick={() => { setMode(m); setErrors({}); setBuyErrors({}); }}
             className="flex-1 py-3 rounded-xl font-black text-sm transition-all"
             style={{
               background: mode === m ? "var(--gold)" : "transparent",
@@ -139,14 +166,19 @@ export default function UBAPage() {
       <AnimatePresence mode="wait" initial={false}>
         {mode === "buy" ? (
           <motion.div key="buy" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }}>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+
+            {/* Card selection */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-2">
               {UBA_CARDS.map(card => (
-                <div
+                <button
                   key={card.segment}
-                  className="flex flex-col rounded-2xl overflow-hidden"
+                  type="button"
+                  onClick={() => { setSelectedSeg(card.segment); setBuyErrors(p => ({ ...p, seg: "" })); }}
+                  className="flex flex-col rounded-2xl overflow-hidden text-left transition-all"
                   style={{
                     background: "var(--bg-card)",
-                    border: `1px solid ${card.popular ? "#C9A84C" : "var(--border)"}`,
+                    border: `2px solid ${selectedSeg === card.segment ? "var(--gold)" : card.popular ? "#C9A84C44" : "var(--border)"}`,
+                    boxShadow: selectedSeg === card.segment ? "0 0 0 3px rgba(201,168,76,0.15)" : "none",
                   }}
                 >
                   {card.popular && (
@@ -169,19 +201,81 @@ export default function UBAPage() {
                         </p>
                       ))}
                     </div>
-                    <a
-                      href={`https://wa.me/${CONTACT.whatsapp}?text=${buildBuyMsg(card.segment, card.price)}`}
-                      target="_blank" rel="noopener noreferrer"
-                      className="mt-auto block text-center py-3 rounded-xl font-black text-sm transition-opacity hover:opacity-85"
-                      style={{ background: card.popular ? "var(--gold)" : "var(--bg-elevated)", color: card.popular ? "#0A0A0A" : "var(--text-secondary)", border: "1px solid var(--border)" }}
-                      onClick={() => addEntry({ service: `UBA — Achat Segment ${card.segment}`, details: `${card.price.toLocaleString("fr-FR")} FCFA`, amount: card.price, currency: "FCFA", status: "pending" })}
-                    >
-                      Commander →
-                    </a>
+                    {selectedSeg === card.segment && (
+                      <div className="mt-1 text-center text-xs font-black py-1 rounded-lg" style={{ background: "var(--gold)", color: "#0A0A0A" }}>
+                        ✓ Sélectionné
+                      </div>
+                    )}
                   </div>
-                </div>
+                </button>
               ))}
             </div>
+            {buyErrors.seg && <p className="text-xs font-semibold mb-4 mt-1" style={{ color: "#EF4444" }}>{buyErrors.seg}</p>}
+
+            {/* Documentation form — shown after card selection */}
+            {selectedSeg && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex flex-col gap-4 mt-6"
+              >
+                <div className="rounded-2xl p-4" style={{ background: "#8B000012", border: "1px solid #8B000044" }}>
+                  <p className="text-sm font-bold mb-1" style={{ color: "#CD5C5C" }}>📋 Informations requises</p>
+                  <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
+                    Ces informations sont nécessaires pour activer votre carte UBA Cameroun. Un agent vous contactera pour finaliser.
+                  </p>
+                </div>
+
+                <Field label="Nom complet" error={buyErrors.buyName}>
+                  <input
+                    type="text"
+                    placeholder="Votre nom complet"
+                    value={buyName}
+                    autoFocus
+                    onChange={e => { setBuyName(e.target.value); setBuyErrors(p => ({ ...p, buyName: "" })); }}
+                    className={inputCls}
+                    style={buyErrors.buyName ? inputErr : inputBase}
+                  />
+                </Field>
+
+                <Field label="Téléphone (+237)" error={buyErrors.buyPhone}>
+                  <div className="flex items-center rounded-2xl overflow-hidden" style={buyErrors.buyPhone ? inputErr : inputBase}>
+                    <span className="px-3 text-sm font-bold shrink-0" style={{ color: "var(--text-muted)" }}>+237</span>
+                    <input
+                      type="tel"
+                      placeholder="6XXXXXXXX"
+                      value={buyPhone}
+                      maxLength={9}
+                      onChange={e => { setBuyPhone(e.target.value.replace(/\D/g, "").slice(0, 9)); setBuyErrors(p => ({ ...p, buyPhone: "" })); }}
+                      className="flex-1 py-3 pr-4 bg-transparent text-white text-sm outline-none"
+                    />
+                  </div>
+                </Field>
+
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={buyAccepted}
+                    onChange={e => { setBuyAccepted(e.target.checked); setBuyErrors(p => ({ ...p, accepted: "" })); }}
+                    className="mt-0.5 shrink-0 w-4 h-4 accent-amber-400"
+                  />
+                  <span className="text-xs leading-relaxed" style={{ color: buyErrors.accepted ? "#EF4444" : "var(--text-secondary)" }}>
+                    J&apos;ai lu et j&apos;accepte de fournir les éléments nécessaires au bureau Chreol Empire pour obtenir ma carte UBA Cameroun (pièce d&apos;identité, justificatif).
+                  </span>
+                </label>
+                {buyErrors.accepted && (
+                  <p className="text-xs font-semibold -mt-2" style={{ color: "#EF4444" }}>{buyErrors.accepted}</p>
+                )}
+
+                <button
+                  onClick={handleBuyAddToCart}
+                  className="w-full py-4 rounded-full font-black text-black text-sm transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
+                  style={{ background: "var(--gold)" }}
+                >
+                  🛒 Ajouter au panier
+                </button>
+              </motion.div>
+            )}
           </motion.div>
         ) : (
           <motion.div key="recharge" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }} className="flex flex-col gap-5">
@@ -194,6 +288,7 @@ export default function UBAPage() {
                   placeholder="123456"
                   value={card6}
                   maxLength={6}
+                  autoFocus
                   onChange={e => { setCard6(e.target.value.replace(/\D/g, "").slice(0, 6)); setErrors(p => ({ ...p, card6: "" })); }}
                   className={inputCls}
                   style={errors.card6 ? inputErr : inputBase}
@@ -242,6 +337,7 @@ export default function UBAPage() {
                   type="tel"
                   placeholder="6XXXXXXXX"
                   value={phone}
+                  maxLength={9}
                   onChange={e => { setPhone(e.target.value.replace(/\D/g, "").slice(0, 9)); setErrors(p => ({ ...p, phone: "" })); }}
                   className="flex-1 py-3 pr-4 bg-transparent text-white text-sm outline-none"
                 />
@@ -267,7 +363,7 @@ export default function UBAPage() {
                 initial={{ opacity: 0, scale: 0.97 }}
                 animate={{ opacity: 1, scale: 1 }}
                 className="rounded-2xl p-4"
-                style={{ background: "#8B0000" + "18", border: "1px solid #8B000055" }}
+                style={{ background: "#8B000018", border: "1px solid #8B000055" }}
               >
                 <div className="flex justify-between text-sm mb-2">
                   <span style={{ color: "var(--text-secondary)" }}>Recharge</span>
@@ -306,14 +402,16 @@ export default function UBAPage() {
             >
               🛒 Ajouter au panier
             </button>
-            <button
-              onClick={handleRecharge}
-              className="w-full py-3 rounded-full font-black text-white text-sm transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
+            <WAPopover
+              onBeforeOpen={handleRechargeBeforeOpen}
+              getMsg={buildRechargeMsgPlain}
+              prefillPrenom={fullName}
+              className="w-full py-3 rounded-full font-black text-white text-sm flex items-center justify-center gap-2 transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
               style={{ background: "#25D366" }}
             >
               <Image src={IMAGES.whatsapp} alt="" width={20} height={20} unoptimized className="shrink-0" />
               Commander directement via WhatsApp
-            </button>
+            </WAPopover>
           </motion.div>
         )}
       </AnimatePresence>

@@ -3,15 +3,18 @@
 import { useState } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { PAYPAL_RATES, PAYPAL_LIMITS, CONTACT, MOMO_OPERATORS, IMAGES } from "@/lib/services";
+import { PAYPAL_RATES, PAYPAL_LIMITS, MOMO_OPERATORS, IMAGES } from "@/lib/services";
+import WAPopover from "@/components/WAPopover";
 import { useCart } from "@/contexts/CartContext";
 import { useHistory } from "@/contexts/HistoryContext";
 import { useToast } from "@/components/Toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function PaypalPage() {
   const { addItem } = useCart();
   const { addEntry } = useHistory();
   const { showToast } = useToast();
+  const { t } = useLanguage();
 
   const [direction, setDirection] = useState<"sell" | "buy">("sell");
   const [amount, setAmount]       = useState("");
@@ -52,16 +55,12 @@ export default function PaypalPage() {
     return `PayPal à recharger : ${paypalEmail} | ${numAmount.toLocaleString("fr-FR")} FCFA → ${eurResult}€\n${op} +237 ${momoPhone}`;
   }
 
-  function buildWAMsg() {
+  function buildMsgPlain() {
     const op = MOMO_OPERATORS.find(o => o.id === momoOp)?.name ?? momoOp;
     if (direction === "sell") {
-      return encodeURIComponent(
-        `Bonjour Chreol Empire,\n\n💸 VENTE PAYPAL\nCompte PayPal : ${paypalEmail}\nMontant : ${amount}€\nÀ recevoir : ${fcfaResult.toLocaleString("fr-FR")} FCFA\nTaux : 1€ = ${sellRate} FCFA\n\n💰 Réception MoMo\nOpérateur : ${op}\nNuméro : +237 ${momoPhone}`,
-      );
+      return `💸 VENTE PAYPAL\nCompte PayPal : ${paypalEmail}\nMontant : ${amount}€\nÀ recevoir : ${fcfaResult.toLocaleString("fr-FR")} FCFA\nTaux : 1€ = ${sellRate} FCFA\n\n💰 Réception MoMo\nOpérateur : ${op}\nNuméro : +237 ${momoPhone}`;
     }
-    return encodeURIComponent(
-      `Bonjour Chreol Empire,\n\n💳 ACHAT PAYPAL\nCompte PayPal à recharger : ${paypalEmail}\nJe paie : ${numAmount.toLocaleString("fr-FR")} FCFA\nÀ recevoir : ${eurResult}€\nTaux : 1€ = ${buyRate} FCFA\n\n💰 Paiement MoMo\nOpérateur : ${op}\nNuméro : +237 ${momoPhone}`,
-    );
+    return `💳 ACHAT PAYPAL\nCompte PayPal à recharger : ${paypalEmail}\nJe paie : ${numAmount.toLocaleString("fr-FR")} FCFA\nÀ recevoir : ${eurResult}€\nTaux : 1€ = ${buyRate} FCFA\n\n💰 Paiement MoMo\nOpérateur : ${op}\nNuméro : +237 ${momoPhone}`;
   }
 
   function handleAddToCart() {
@@ -87,10 +86,6 @@ export default function PaypalPage() {
     showToast("PayPal ajouté au panier !", "success");
   }
 
-  function handleWhatsApp() {
-    if (!validate()) { showToast("Corrigez les erreurs", "error"); return; }
-    window.open(`https://wa.me/${CONTACT.whatsapp}?text=${buildWAMsg()}`, "_blank");
-  }
 
   const inputCls  = "w-full px-4 py-3 rounded-2xl text-white text-sm outline-none";
   const inputBase = { background: "var(--bg-elevated)", border: "1px solid var(--border)" };
@@ -123,9 +118,9 @@ export default function PaypalPage() {
         <span style={{ color: "var(--gold)" }}>PayPal Europe</span>
       </div>
 
-      <h1 className="text-3xl font-black text-white mb-1">PayPal Europe</h1>
+      <h1 className="text-3xl font-black text-white mb-1">{t("p.paypal.title")}</h1>
       <p className="text-sm mb-8" style={{ color: "var(--text-secondary)" }}>
-        Vendez votre solde PayPal contre FCFA ou rechargez votre compte PayPal Europe.
+        {t("p.paypal.sub")}
       </p>
 
       {/* Direction toggle */}
@@ -251,14 +246,15 @@ export default function PaypalPage() {
         >
           🛒 Ajouter au panier
         </button>
-        <button
-          onClick={handleWhatsApp}
-          className="w-full py-3 rounded-full font-black text-white text-sm transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
+        <WAPopover
+          onBeforeOpen={() => { const ok = validate(); if (!ok) showToast("Corrigez les erreurs", "error"); return ok; }}
+          getMsg={buildMsgPlain}
+          className="w-full py-3 rounded-full font-black text-white text-sm flex items-center justify-center gap-2 transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
           style={{ background: "#25D366" }}
         >
           <Image src={IMAGES.whatsapp} alt="" width={20} height={20} unoptimized className="shrink-0" />
           {direction === "sell" ? "Commander directement via WhatsApp" : "Commander via WhatsApp"}
-        </button>
+        </WAPopover>
       </div>
 
       <div className="mt-6 rounded-2xl p-4 text-xs flex flex-col gap-1.5" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>

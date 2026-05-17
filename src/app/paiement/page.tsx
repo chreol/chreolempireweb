@@ -1,6 +1,10 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
-import { CONTACT, IMAGES } from "@/lib/services";
+import { IMAGES } from "@/lib/services";
+import WAPopover from "@/components/WAPopover";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 
 const METHODS = [
@@ -31,6 +35,7 @@ const METHODS = [
 ];
 
 export default function PaiementPage() {
+  const { t } = useLanguage();
   return (
     <div className="max-w-4xl mx-auto px-4 py-10">
       <div className="mb-10">
@@ -40,10 +45,9 @@ export default function PaiementPage() {
         >
           🔒 Paiement sécurisé
         </span>
-        <h1 className="text-3xl font-black text-white mb-2">Modes de paiement</h1>
+        <h1 className="text-3xl font-black text-white mb-2">{t("pay.title")}</h1>
         <p style={{ color: "var(--text-secondary)" }}>
-          Nous acceptons MTN MoMo, Orange Money et le paiement via WhatsApp. Tous les paiements
-          sont sécurisés via Campay ou traités manuellement par notre équipe.
+          {t("pay.subtitle")}
         </p>
       </div>
 
@@ -157,15 +161,14 @@ export default function PaiementPage() {
         <p className="text-sm mb-5" style={{ color: "var(--text-secondary)" }}>
           Notre équipe répond en moins de 5 minutes sur WhatsApp.
         </p>
-        <a
-          href={`https://wa.me/${CONTACT.whatsapp}`}
-          target="_blank" rel="noopener noreferrer"
+        <WAPopover
+          prefill="J'ai une question sur les modes de paiement."
           className="inline-flex items-center gap-2 px-6 py-3 rounded-full font-black text-white text-sm"
           style={{ background: "#25D366" }}
         >
           <Image src={IMAGES.whatsapp} alt="" width={20} height={20} unoptimized className="shrink-0" />
           Nous contacter
-        </a>
+        </WAPopover>
       </div>
     </div>
   );

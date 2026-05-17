@@ -47,6 +47,7 @@ export const IMAGES = {
   eneo:    "/assets/Eneo logo.webp",
   camwater:"/assets/Camwater logo.webp",
   startimes:"/assets/StarTimes logo.webp",
+  boutique: "/assets/boutique.webp",
 };
 
 const STANDARD_AMOUNTS = [
@@ -157,10 +158,10 @@ export const MOMO_OPERATORS = [
 ];
 
 export const FACTURE_BILLERS = [
-  { id: "canal",     name: "Canal+",    emoji: "📺", color: "#0071BC", desc: "Abonnement Canal+ Cameroun" },
-  { id: "eneo",      name: "Eneo",      emoji: "💡", color: "#FFD700", desc: "Facture d'électricité Eneo" },
-  { id: "camwater",  name: "Camwater",  emoji: "💧", color: "#00AEEF", desc: "Facture d'eau Camwater" },
-  { id: "startimes", name: "StarTimes", emoji: "📡", color: "#E31837", desc: "Abonnement StarTimes" },
+  { id: "canal",     name: "Canal+",    image: IMAGES.canal,      color: "#0071BC", desc: "Abonnement Canal+ Cameroun" },
+  { id: "eneo",      name: "Eneo",      image: IMAGES.eneo,       color: "#FFD700", desc: "Facture d'électricité Eneo" },
+  { id: "camwater",  name: "Camwater",  image: IMAGES.camwater,   color: "#00AEEF", desc: "Facture d'eau Camwater" },
+  { id: "startimes", name: "StarTimes", image: IMAGES.startimes,  color: "#E31837", desc: "Abonnement StarTimes" },
 ];
 
 export const FACTURE_COMMISSION = 200;

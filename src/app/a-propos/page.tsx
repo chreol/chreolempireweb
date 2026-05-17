@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { CONTACT, IMAGES, SOCIAL_LINKS } from "@/lib/services";
+import WAPopover from "@/components/WAPopover";
 
 export default function AProposPage() {
   return (
@@ -107,10 +108,10 @@ export default function AProposPage() {
       <section>
         <h2 className="text-xl font-black text-white mb-4">Nous contacter</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <a
-            href={`https://wa.me/${CONTACT.whatsapp}`}
-            target="_blank" rel="noopener noreferrer"
-            className="flex items-center gap-4 p-5 rounded-2xl transition-all hover:-translate-y-0.5"
+          <WAPopover
+            prefill="Bonjour, j'aimerais vous contacter."
+            align="right"
+            className="flex items-center gap-4 p-5 rounded-2xl transition-all hover:-translate-y-0.5 text-left"
             style={{ background: "#0D1A0F", border: "1px solid #25D36633" }}
           >
             <div className="relative w-10 h-10 rounded-xl overflow-hidden shrink-0">
@@ -120,7 +121,7 @@ export default function AProposPage() {
               <p className="font-black text-white text-sm">WhatsApp</p>
               <p className="text-xs" style={{ color: "var(--text-secondary)" }}>{CONTACT.whatsappDisplay}</p>
             </div>
-          </a>
+          </WAPopover>
           <div
             className="flex items-center gap-4 p-5 rounded-2xl"
             style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}

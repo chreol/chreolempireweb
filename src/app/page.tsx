@@ -1,44 +1,98 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
-import { CONTACT, IMAGES } from "@/lib/services";
+import { IMAGES } from "@/lib/services";
+import WAPopover from "@/components/WAPopover";
+import { useLanguage } from "@/contexts/LanguageContext";
 
-const SERVICES = [
-  { image: IMAGES.psn,       title: "Cartes Cadeaux",    sub: "PSN · iTunes · Roblox · Steam · Razer · Nintendo", color: "#C9A84C", href: "/services/cartes-cadeaux", emoji: "🎮" },
-  { image: IMAGES.cryptoMomo,title: "Crypto & MoMo",     sub: "USDT · BTC · TRX · ETH — 0% commission",           color: "#26A17B", href: "/services/crypto",          emoji: "₿" },
-  { image: IMAGES.coupons,   title: "Coupons",           sub: "Transcash · PCS Mastercard",                        color: "#25D366", href: "/services/coupons",         emoji: "🎫" },
-  { image: IMAGES.ubaCard,   title: "UBA Cameroun",      sub: "Achat carte & recharge",                            color: "#8B0000", href: "/services/uba",             emoji: "💳" },
-  { image: IMAGES.paypal2,   title: "PayPal Europe",     sub: "Achat & vente de solde PayPal",                     color: "#003087", href: "/services/paypal",          emoji: "💸" },
-  { image: IMAGES.factures,  title: "Factures & MoMo",   sub: "Canal+ · Eneo · Camwater · Échange MoMo",           color: "#FF6B00", href: "/services/factures",        emoji: "🔄" },
+const SERVICE_DATA = [
+  { image: IMAGES.psn,        tk: "svc.giftcards", color: "#C9A84C", href: "/services/cartes-cadeaux", emoji: "🎮" },
+  { image: IMAGES.cryptoMomo, tk: "svc.crypto",    color: "#26A17B", href: "/services/crypto",          emoji: "₿" },
+  { image: IMAGES.coupons,    tk: "svc.coupons",   color: "#25D366", href: "/services/coupons",         emoji: "🎫" },
+  { image: IMAGES.ubaCard,    tk: "svc.uba",       color: "#8B0000", href: "/services/uba",             emoji: "💳" },
+  { image: IMAGES.paypal2,    tk: "svc.paypal",    color: "#003087", href: "/services/paypal",          emoji: "💸" },
+  { image: IMAGES.factures,   tk: "svc.factures",  color: "#FF6B00", href: "/services/factures",        emoji: "🔄" },
 ];
 
-const STEPS = [
-  { n: "1", title: "Choisissez",    desc: "Parcourez notre catalogue et sélectionnez votre service." },
-  { n: "2", title: "Commandez",     desc: "Ajoutez au panier ou envoyez via WhatsApp en 30 secondes." },
-  { n: "3", title: "Payez",         desc: "MTN MoMo, Orange Money ou Campay — 100% sécurisé." },
-  { n: "4", title: "Recevez",       desc: "Votre code ou virement en 15–30 min, garanti." },
+const STEPS_DATA = [
+  { n: "1", tk: "step.1" },
+  { n: "2", tk: "step.2" },
+  { n: "3", tk: "step.3" },
+  { n: "4", tk: "step.4" },
 ];
 
-const STATS = [
-  { value: "500+",   label: "Clients satisfaits" },
-  { value: "0%",     label: "Commission crypto" },
-  { value: "15 min", label: "Délai moyen" },
-  { value: "7j/7",   label: "Support WhatsApp" },
+const STAT_DATA = [
+  { value: "500+",   lk: "hero.stat.clients" },
+  { value: "0%",     lk: "hero.stat.commission" },
+  { value: "15 min", lk: "hero.stat.delay" },
+  { value: "7j/7",   lk: "hero.stat.support" },
+];
+
+const AVIS = [
+  {
+    name: "Jean-Paul M.", city: "Douala", rating: 5, service: "PSN",
+    text: "Code PSN reçu en 20 minutes. Très professionnel et prix compétitif. Je recommande sans hésiter !",
+    date: "il y a 2 jours",
+  },
+  {
+    name: "Aminata K.", city: "Yaoundé", rating: 5, service: "Crypto",
+    text: "J'ai échangé 100 USDT contre FCFA, taux honnête et virement MTN MoMo instantané. Merci Chreol Empire !",
+    date: "il y a 1 semaine",
+  },
+  {
+    name: "Patrick N.", city: "Bafoussam", rating: 5, service: "Coupons",
+    text: "Coupon Transcash échangé sans aucun problème. L'équipe répond très vite sur WhatsApp.",
+    date: "il y a 3 jours",
+  },
+  {
+    name: "Marie-Claire B.", city: "Douala", rating: 5, service: "UBA",
+    text: "Rechargement de carte UBA rapide et sans complications. Service client au top, je suis très satisfaite.",
+    date: "il y a 5 jours",
+  },
+  {
+    name: "Rodrigue E.", city: "Douala", rating: 5, service: "PayPal",
+    text: "Achat de solde PayPal parfait. Taux correct, livraison WhatsApp en moins de 30 min. Fiable !",
+    date: "il y a 2 semaines",
+  },
+  {
+    name: "Solange T.", city: "Limbé", rating: 5, service: "Factures",
+    text: "Paiement de ma facture Eneo en moins de 15 minutes. Je commande ici chaque mois maintenant !",
+    date: "il y a 4 jours",
+  },
 ];
 
 export default function HomePage() {
+  const { t } = useLanguage();
+
+  const SERVICES = SERVICE_DATA.map(s => ({
+    ...s,
+    title: t(`${s.tk}.title`),
+    sub:   t(`${s.tk}.sub`),
+  }));
+  const STEPS = STEPS_DATA.map(s => ({
+    ...s,
+    title: t(`${s.tk}.title`),
+    desc:  t(`${s.tk}.desc`),
+  }));
+  const STATS = STAT_DATA.map(s => ({ ...s, label: t(s.lk) }));
+
   return (
     <div className="overflow-x-hidden">
 
       {/* ── HERO ── */}
       <section className="relative min-h-[92vh] flex items-center">
-        {/* Background */}
-        <div className="absolute inset-0" style={{ background: "var(--bg-primary)" }} />
+        {/* Background photo — boutique Chreol Empire */}
+        <div className="absolute inset-0 overflow-hidden">
+          <Image src={IMAGES.boutique} alt="" fill style={{ objectFit: "cover", objectPosition: "center 30%" }} unoptimized priority />
+          <div className="absolute inset-0" style={{ background: "rgba(10,10,10,0.78)" }} />
+          <div className="absolute inset-0" style={{ background: "linear-gradient(to right, rgba(10,10,10,0.55) 0%, rgba(10,10,10,0.1) 60%, rgba(10,10,10,0.45) 100%)" }} />
+        </div>
+        {/* Glow accents */}
         <div className="absolute -top-64 -right-64 w-[800px] h-[800px] rounded-full pointer-events-none"
-          style={{ background: "var(--gold)", opacity: 0.045, filter: "blur(120px)" }} />
+          style={{ background: "var(--gold)", opacity: 0.06, filter: "blur(120px)" }} />
         <div className="absolute -bottom-48 -left-48 w-[600px] h-[600px] rounded-full pointer-events-none"
-          style={{ background: "#25D366", opacity: 0.035, filter: "blur(100px)" }} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full pointer-events-none"
-          style={{ background: "var(--gold)", opacity: 0.02, filter: "blur(80px)" }} />
+          style={{ background: "#25D366", opacity: 0.045, filter: "blur(100px)" }} />
 
         <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-16 lg:py-0">
           <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
@@ -47,31 +101,34 @@ export default function HomePage() {
             <div className="flex-1 text-center lg:text-left">
               <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-black mb-8"
                 style={{ background: "var(--gold)", color: "#0A0A0A" }}>
-                🛡️ Magasin officiel · Douala, Cameroun
+                {t("hero.badge")}
               </span>
 
               <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black leading-[1.05] tracking-tight mb-6 text-white">
-                Cartes cadeaux<br />
+                {t("hero.h1.1")}<br />
                 <span style={{ color: "var(--gold)" }}>&amp; crypto</span><br />
-                au meilleur taux
+                {t("hero.h1.3")}
               </h1>
 
               <p className="text-lg sm:text-xl mb-10 max-w-xl mx-auto lg:mx-0" style={{ color: "var(--text-secondary)" }}>
-                PSN, iTunes, Roblox, USDT, BTC, PCS, Transcash — livraison express 15–30 min via WhatsApp. Paiement Mobile Money.
+                {t("hero.subtitle")}
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <Link href="/services"
-                  className="px-8 py-4 rounded-2xl font-black text-black text-base transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96] text-center"
+                  className="flex items-center justify-center px-8 py-4 rounded-2xl font-black text-black text-base transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
                   style={{ background: "var(--gold)" }}>
-                  Voir le catalogue →
+                  {t("hero.cta.catalog")}
                 </Link>
-                <a href={`https://wa.me/${CONTACT.whatsapp}`} target="_blank" rel="noopener noreferrer"
-                  className="px-8 py-4 rounded-2xl font-black text-white text-base transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96] text-center"
-                  style={{ background: "#25D366" }}>
+                <WAPopover
+                  dropDown
+                  align="center"
+                  className="flex items-center justify-center gap-2 px-8 py-4 rounded-2xl font-black text-white text-base transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
+                  style={{ background: "#25D366" }}
+                >
                   <Image src={IMAGES.whatsapp} alt="" width={20} height={20} unoptimized className="shrink-0" />
-                  Commander sur WhatsApp
-                </a>
+                  {t("hero.cta.wa")}
+                </WAPopover>
               </div>
 
               {/* Stats inline */}
@@ -85,29 +142,35 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Right — Image mosaic */}
+            {/* Right — Image mosaic (clickable) */}
             <div className="hidden lg:flex flex-col gap-4 shrink-0 w-[440px]">
               {/* Top wide card */}
-              <div className="relative h-48 rounded-3xl overflow-hidden" style={{ boxShadow: "var(--shadow-border)" }}>
+              <Link href="/services/cartes-cadeaux"
+                className="relative h-48 rounded-3xl overflow-hidden block transition-transform duration-300 hover:scale-[1.02]"
+                style={{ boxShadow: "var(--shadow-border)" }}>
                 <Image src={IMAGES.psn} alt="PSN" fill style={{ objectFit: "cover" }}
                   className="outline outline-1 -outline-offset-1 outline-white/10" unoptimized />
                 <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, rgba(0,55,145,0.6) 0%, transparent 60%)" }} />
                 <span className="absolute bottom-3 left-4 text-sm font-black text-white">PSN · iTunes · Roblox</span>
-              </div>
+              </Link>
               {/* Bottom 2 cards */}
               <div className="grid grid-cols-2 gap-4">
-                <div className="relative h-36 rounded-3xl overflow-hidden" style={{ boxShadow: "var(--shadow-border)" }}>
+                <Link href="/services/crypto"
+                  className="relative h-36 rounded-3xl overflow-hidden block transition-transform duration-300 hover:scale-[1.02]"
+                  style={{ boxShadow: "var(--shadow-border)" }}>
                   <Image src={IMAGES.cryptoMomo} alt="Crypto" fill style={{ objectFit: "cover" }}
                     className="outline outline-1 -outline-offset-1 outline-white/10" unoptimized />
                   <div className="absolute inset-0" style={{ background: "rgba(38,161,123,0.4)" }} />
                   <span className="absolute bottom-3 left-3 text-xs font-black text-white">Crypto</span>
-                </div>
-                <div className="relative h-36 rounded-3xl overflow-hidden" style={{ boxShadow: "var(--shadow-border)" }}>
+                </Link>
+                <Link href="/services/paypal"
+                  className="relative h-36 rounded-3xl overflow-hidden block transition-transform duration-300 hover:scale-[1.02]"
+                  style={{ boxShadow: "var(--shadow-border)" }}>
                   <Image src={IMAGES.paypal2} alt="PayPal" fill style={{ objectFit: "cover" }}
                     className="outline outline-1 -outline-offset-1 outline-white/10" unoptimized />
                   <div className="absolute inset-0" style={{ background: "rgba(0,48,135,0.4)" }} />
                   <span className="absolute bottom-3 left-3 text-xs font-black text-white">PayPal</span>
-                </div>
+                </Link>
               </div>
             </div>
           </div>
@@ -119,7 +182,7 @@ export default function HomePage() {
         <div className="flex items-end justify-between mb-10">
           <div>
             <p className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: "var(--gold)" }}>Catalogue</p>
-            <h2 className="text-3xl sm:text-4xl font-black text-white">Tous nos services</h2>
+            <h2 className="text-3xl sm:text-4xl font-black text-white">{t("section.services")}</h2>
           </div>
           <Link href="/services" className="text-sm font-bold hidden sm:block transition-opacity hover:opacity-70"
             style={{ color: "var(--gold)" }}>Tout voir →</Link>
@@ -140,7 +203,7 @@ export default function HomePage() {
                 <p className="font-black text-white text-lg leading-tight">{s.title}</p>
                 <p className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.65)" }}>{s.sub}</p>
                 <span className="mt-3 text-xs font-black uppercase tracking-widest transition-[opacity,transform] duration-200 group-hover:translate-x-1"
-                  style={{ color: s.color }}>Commander →</span>
+                  style={{ color: s.color }}>{t("services.btn.order")}</span>
               </div>
             </Link>
           ))}
@@ -155,7 +218,7 @@ export default function HomePage() {
         <div className="rounded-3xl p-8 sm:p-12" style={{ background: "var(--bg-card)", boxShadow: "var(--shadow-border)" }}>
           <div className="text-center mb-10">
             <p className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: "var(--gold)" }}>Processus</p>
-            <h2 className="text-3xl sm:text-4xl font-black text-white">Comment ça marche ?</h2>
+            <h2 className="text-3xl sm:text-4xl font-black text-white">{t("section.how")}</h2>
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
             {STEPS.map((s, i) => (
@@ -177,13 +240,47 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ── AVIS CLIENTS ── */}
+      <section className="px-4 sm:px-6 lg:px-12 pb-24 max-w-7xl mx-auto">
+        <div className="text-center mb-10">
+          <p className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: "var(--gold)" }}>Témoignages</p>
+          <h2 className="text-3xl sm:text-4xl font-black text-white">{t("section.reviews")}</h2>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {AVIS.map((a, i) => (
+            <div key={i} className="p-5 rounded-2xl flex flex-col gap-3"
+              style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+              <div className="flex items-center gap-0.5">
+                {[...Array(a.rating)].map((_, j) => (
+                  <span key={j} className="text-base" style={{ color: "var(--gold)" }}>★</span>
+                ))}
+              </div>
+              <p className="text-sm leading-relaxed flex-1" style={{ color: "var(--text-secondary)" }}>
+                &ldquo;{a.text}&rdquo;
+              </p>
+              <div className="pt-3 flex items-center justify-between" style={{ borderTop: "1px solid var(--border)" }}>
+                <div>
+                  <p className="text-sm font-black text-white">{a.name}</p>
+                  <p className="text-xs" style={{ color: "var(--text-muted)" }}>{a.city} · {a.date}</p>
+                </div>
+                <span className="text-xs px-2 py-1 rounded-full font-bold"
+                  style={{ background: "var(--bg-elevated)", color: "var(--gold)" }}>
+                  {a.service}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* ── PAYMENT METHODS ── */}
       <section className="px-4 sm:px-6 lg:px-12 pb-24 max-w-7xl mx-auto">
-        <h2 className="text-2xl font-black mb-6 text-white text-center">Modes de paiement acceptés</h2>
+        <h2 className="text-2xl font-black mb-6 text-white text-center">{t("section.payment")}</h2>
         <div className="flex flex-wrap justify-center gap-4">
           {[
-            { image: IMAGES.mtn,    label: "MTN MoMo",    sub: "Mobile Money" },
-            { image: IMAGES.orange, label: "Orange Money", sub: "Mobile Money" },
+            { image: IMAGES.mtn,      label: "MTN MoMo",    sub: "Mobile Money" },
+            { image: IMAGES.orange,   label: "Orange Money", sub: "Mobile Money" },
+            { image: IMAGES.whatsapp, label: "WhatsApp",     sub: "Paiement direct" },
           ].map(p => (
             <div key={p.label} className="flex items-center gap-4 px-6 py-4 rounded-2xl"
               style={{ background: "var(--bg-card)", boxShadow: "var(--shadow-border)" }}>
@@ -197,14 +294,6 @@ export default function HomePage() {
               </div>
             </div>
           ))}
-          <div className="flex items-center gap-4 px-6 py-4 rounded-2xl"
-            style={{ background: "var(--bg-card)", boxShadow: "var(--shadow-border)" }}>
-            <span className="text-3xl shrink-0">💬</span>
-            <div>
-              <p className="font-black text-white text-sm">WhatsApp</p>
-              <p className="text-xs" style={{ color: "var(--text-muted)" }}>Paiement direct</p>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -223,13 +312,16 @@ export default function HomePage() {
               Notre équipe répond en moins de 5 min. WhatsApp disponible 7j/7, de 7h à 23h.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a href={`https://wa.me/${CONTACT.whatsapp}?text=${encodeURIComponent("Bonjour Chreol Empire, je souhaite passer une commande.")}`}
-                target="_blank" rel="noopener noreferrer"
+              <WAPopover
+                prefill="Je souhaite passer une commande."
+                dropDown
+                align="center"
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl font-black text-white text-base transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
-                style={{ background: "#25D366" }}>
+                style={{ background: "#25D366" }}
+              >
                 <Image src={IMAGES.whatsapp} alt="" width={20} height={20} unoptimized className="shrink-0" />
                 Ouvrir WhatsApp
-              </a>
+              </WAPopover>
               <Link href="/services"
                 className="inline-flex items-center justify-center px-8 py-4 rounded-2xl font-black text-sm transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
                 style={{ background: "var(--bg-elevated)", color: "var(--text-secondary)", boxShadow: "var(--shadow-border)" }}>

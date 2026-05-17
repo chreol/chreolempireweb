@@ -1,6 +1,8 @@
 @import "tailwindcss";
 
-:root {
+/* ── Dark theme (default) ── */
+:root,
+[data-theme="dark"] {
   --gold: #C9A84C;
   --gold-light: #E8C96A;
   --gold-dim: #2A2210;
@@ -17,6 +19,26 @@
   --crypto: #26A17B;
   --shadow-border: 0 0 0 1px rgba(255, 255, 255, 0.08);
   --shadow-border-hover: 0 0 0 1px rgba(255, 255, 255, 0.13);
+}
+
+/* ── Light theme ── */
+[data-theme="light"] {
+  --gold: #A07000;
+  --gold-light: #C49400;
+  --gold-dim: #FFF8DC;
+  --bg-primary: #F7F4ED;
+  --bg-secondary: #EEE9DC;
+  --bg-card: #FFFFFF;
+  --bg-elevated: #FAF8F2;
+  --text-primary: #1A1000;
+  --text-secondary: #5C4200;
+  --text-muted: #9A7A40;
+  --border: #DDD5A8;
+  --border-strong: #C9A84C66;
+  --green: #1A8A40;
+  --crypto: #1A7060;
+  --shadow-border: 0 0 0 1px rgba(0, 0, 0, 0.08);
+  --shadow-border-hover: 0 0 0 1px rgba(0, 0, 0, 0.15);
 }
 
 @theme inline {
@@ -69,3 +91,19 @@
 
 .img-zoom { transition: transform 500ms ease; }
 .img-zoom:hover { transform: scale(1.05); }
+
+/* ─── Light-theme heading visibility ─── */
+/* Many components use .text-white (Tailwind) for headings.
+   On dark theme this is fine; on light we override to the dark text variable. */
+[data-theme="light"] h1,
+[data-theme="light"] h2,
+[data-theme="light"] h3,
+[data-theme="light"] h4 {
+  color: var(--text-primary);
+}
+
+/* Card & section content text-white elements (NOT on image overlays which use
+   absolute positioning over dark layers — those keep their context color) */
+[data-theme="light"] .card-text-white {
+  color: var(--text-primary);
+}

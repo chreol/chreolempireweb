@@ -4,8 +4,11 @@ import "./globals.css";
 import { CartProvider } from "@/contexts/CartContext";
 import { HistoryProvider } from "@/contexts/HistoryContext";
 import { ToastProvider } from "@/components/Toast";
+import Providers from "@/components/Providers";
 import Navbar from "@/components/Navbar";
 import RateTicker from "@/components/RateTicker";
+import WASupport from "@/components/WASupport";
+import WAPopover from "@/components/WAPopover";
 import Image from "next/image";
 import { CONTACT, IMAGES, SOCIAL_LINKS } from "@/lib/services";
 
@@ -92,14 +95,17 @@ const LOCAL_BUSINESS_JSON = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fr" data-scroll-behavior="smooth" className={`${geist.variable} antialiased`}>
+    <html lang="fr" data-scroll-behavior="smooth" className={`${geist.variable} antialiased`} suppressHydrationWarning>
       <head>
+        {/* Anti-flicker: apply saved theme before first paint */}
+        <script dangerouslySetInnerHTML={{ __html: `try{var t=localStorage.getItem('theme');if(t==='light')document.documentElement.setAttribute('data-theme','light');}catch(e){}try{var l=localStorage.getItem('lang');if(l)document.documentElement.lang=l;}catch(e){}` }} />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(LOCAL_BUSINESS_JSON) }}
         />
       </head>
       <body className="min-h-screen flex flex-col">
+        <Providers>
         <ToastProvider>
         <HistoryProvider>
         <CartProvider>
@@ -108,38 +114,44 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <main className="flex-1">{children}</main>
 
           {/* Footer */}
-          <footer style={{ background: "#0D0D0D", borderTop: "1px solid #1A1A1A" }} className="mt-16">
+          <footer style={{ background: "var(--bg-secondary)", borderTop: "1px solid var(--border)" }} className="mt-16">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-12">
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-8">
                 {/* Brand */}
                 <div>
-                  <p className="font-black text-xl mb-2">
+                  <p className="font-black text-xl mb-0.5">
                     Chreol<span style={{ color: "var(--gold)" }}>Empire</span>
+                  </p>
+                  <p className="text-[11px] font-black mb-1" style={{ color: "var(--text-secondary)" }}>
+                    le premium des services digitaux Camerounais
+                  </p>
+                  <p className="text-xs font-bold mb-2" style={{ color: "var(--gold)" }}>
+                    Cartes cadeaux &amp; crypto · 0% commission
                   </p>
                   <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
                     {CONTACT.address}
                   </p>
-                  <a
-                    href={`https://wa.me/${CONTACT.whatsapp}`}
+                  <WAPopover
+                    align="left"
+                    dropDown
                     className="inline-flex items-center gap-2 mt-3 px-4 py-2 rounded-full text-sm font-bold text-white"
                     style={{ background: "#25D366" }}
-                    target="_blank" rel="noopener noreferrer"
                   >
                     <Image src={IMAGES.whatsapp} alt="WhatsApp" width={16} height={16} unoptimized className="shrink-0" />
                     {CONTACT.whatsappDisplay}
-                  </a>
+                  </WAPopover>
                 </div>
 
                 {/* Links */}
                 <div>
                   <p className="font-bold text-sm mb-3" style={{ color: "var(--gold)" }}>SERVICES</p>
                   <div className="flex flex-col gap-2 text-sm" style={{ color: "var(--text-secondary)" }}>
-                    <a href="/services/cartes-cadeaux" className="hover:text-white transition-colors">Cartes Cadeaux</a>
-                    <a href="/services/crypto" className="hover:text-white transition-colors">Crypto & MoMo</a>
-                    <a href="/services/coupons" className="hover:text-white transition-colors">Coupons PCS / Transcash</a>
-                    <a href="/services/uba" className="hover:text-white transition-colors">UBA Cameroun</a>
-                    <a href="/services/paypal" className="hover:text-white transition-colors">PayPal Europe</a>
-                    <a href="/services/factures" className="hover:text-white transition-colors">Paiement Factures</a>
+                    <a href="/services/cartes-cadeaux" className="hover:text-white transition-colors">🎮 Cartes Cadeaux</a>
+                    <a href="/services/crypto" className="hover:text-white transition-colors">₿ Crypto &amp; MoMo</a>
+                    <a href="/services/coupons" className="hover:text-white transition-colors">🎫 Coupons PCS / Transcash</a>
+                    <a href="/services/uba" className="hover:text-white transition-colors">💳 UBA Cameroun</a>
+                    <a href="/services/paypal" className="hover:text-white transition-colors">💸 PayPal Europe</a>
+                    <a href="/services/factures" className="hover:text-white transition-colors">🔄 Paiement Factures</a>
                   </div>
                 </div>
 
@@ -147,9 +159,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <div>
                   <p className="font-bold text-sm mb-3" style={{ color: "var(--gold)" }}>INFORMATIONS</p>
                   <div className="flex flex-col gap-2 text-sm" style={{ color: "var(--text-secondary)" }}>
-                    <a href="/paiement" className="hover:text-white transition-colors">Modes de paiement</a>
-                    <a href="/a-propos" className="hover:text-white transition-colors">À propos</a>
-                    <a href="/sitemap" className="hover:text-white transition-colors">Plan du site</a>
+                    <a href="/paiement" className="hover:text-white transition-colors">💰 Modes de paiement</a>
+                    <a href="/a-propos" className="hover:text-white transition-colors">ℹ️ À propos</a>
+                    <a href="/sitemap" className="hover:text-white transition-colors">🗺️ Plan du site</a>
                   </div>
                 </div>
 
@@ -160,13 +172,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     <span>✅ Codes authentiques garantis</span>
                     <span>⚡ Livraison express 15–30 min</span>
                     <span>🔒 Paiement sécurisé Mobile Money</span>
-                    <span>💬 Support WhatsApp 7j/7</span>
+                    <WASupport />
                   </div>
                 </div>
               </div>
 
               {/* Réseaux sociaux */}
-              <div className="mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4" style={{ borderTop: "1px solid #1F1F1F" }}>
+              <div className="mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4" style={{ borderTop: "1px solid var(--border)" }}>
                 <div className="flex items-center gap-3 flex-wrap justify-center">
                   {/* WhatsApp */}
                   <a href={`https://wa.me/${CONTACT.whatsapp}`} target="_blank" rel="noopener noreferrer" title="WhatsApp"
@@ -204,7 +216,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     style={{ background: "#2563EB" }}>BL</a>
                 </div>
                 <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                  © {new Date().getFullYear()} Chreol Empire. Tous droits réservés.
+                  © 2012 – {new Date().getFullYear()} Chreol Empire. Tous droits réservés.
                 </p>
               </div>
             </div>
@@ -212,6 +224,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </CartProvider>
         </HistoryProvider>
         </ToastProvider>
+        </Providers>
       </body>
     </html>
   );

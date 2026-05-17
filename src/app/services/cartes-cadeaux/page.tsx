@@ -3,8 +3,10 @@
 import { useState } from "react";
 import Image from "next/image";
 import { useCart } from "@/contexts/CartContext";
-import { GIFT_CARDS, CONTACT, IMAGES } from "@/lib/services";
+import { GIFT_CARDS, IMAGES } from "@/lib/services";
+import WAPopover from "@/components/WAPopover";
 import Link from "next/link";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const TABS = [
   { key: "standard", label: "Standard" },
@@ -31,6 +33,7 @@ const CUSTOM_RATE = 750;
 
 export default function CartesCadeauxPage() {
   const { addItem } = useCart();
+  const { t: tl } = useLanguage();
   const [tab, setTab] = useState<TabKey>("standard");
   const [cardId, setCardId] = useState<string | null>(null);
   const [amountLabel, setAmountLabel] = useState<string | null>(null);
@@ -59,11 +62,11 @@ export default function CartesCadeauxPage() {
     setTimeout(() => setAdded(false), 1500);
   }
 
-  function buildWhatsApp() {
-    if (!card) return `https://wa.me/${CONTACT.whatsapp}`;
+  function buildMsgPlain() {
+    if (!card) return "";
     const finalLabel = customPrice ? `${customVal}€ (personnalisé)` : amountLabel ?? "";
     const finalPrice = (customPrice ?? amount?.price ?? 0).toLocaleString("fr-FR");
-    return `https://wa.me/${CONTACT.whatsapp}?text=${encodeURIComponent(`Bonjour, je veux commander ${card.name} ${finalLabel} [${region}] — ${finalPrice} FCFA`)}`;
+    return `Je veux commander ${card.name} ${finalLabel} [${region}] — ${finalPrice} FCFA`;
   }
 
   return (
@@ -75,8 +78,8 @@ export default function CartesCadeauxPage() {
           <span>›</span>
           <span className="text-white">Cartes Cadeaux</span>
         </div>
-        <h1 className="text-3xl font-black text-white mb-1">Cartes Cadeaux</h1>
-        <p style={{ color: "var(--text-secondary)" }}>Codes authentiques · Toutes régions · Livraison 15–30 min</p>
+        <h1 className="text-3xl font-black text-white mb-1">{tl("p.giftcards.title")}</h1>
+        <p style={{ color: "var(--text-secondary)" }}>{tl("p.giftcards.sub")}</p>
       </div>
 
       {/* Tabs */}
@@ -217,15 +220,14 @@ export default function CartesCadeauxPage() {
                 >
                   {added ? "✅ Ajouté !" : "🛒 Ajouter au panier"}
                 </button>
-                <a
-                  href={buildWhatsApp()}
-                  target="_blank" rel="noopener noreferrer"
-                  className="flex-1 py-3 rounded-full font-black text-sm text-white text-center transition-opacity hover:opacity-85"
+                <WAPopover
+                  getMsg={buildMsgPlain}
+                  className="flex-1 py-3 rounded-full font-black text-sm text-white flex items-center justify-center gap-2 transition-opacity hover:opacity-85"
                   style={{ background: "#25D366" }}
                 >
                   <Image src={IMAGES.whatsapp} alt="" width={16} height={16} unoptimized className="shrink-0" />
                   WhatsApp
-                </a>
+                </WAPopover>
               </div>
             </div>
           )}

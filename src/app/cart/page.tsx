@@ -4,8 +4,10 @@ import { useState } from "react";
 import Image from "next/image";
 import { useCart } from "@/contexts/CartContext";
 import { supabase } from "@/lib/supabase";
-import { CONTACT, IMAGES } from "@/lib/services";
+import { IMAGES } from "@/lib/services";
+import WAPopover from "@/components/WAPopover";
 import Link from "next/link";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const PAY_METHODS = [
   { id: "mtn",      label: "MTN MoMo",    image: IMAGES.mtn,      campay: true  },
@@ -16,6 +18,7 @@ type PayId = (typeof PAY_METHODS)[number]["id"];
 
 export default function CartPage() {
   const { items, total, removeItem, adjustQty, clearCart } = useCart();
+  const { t } = useLanguage();
   const [name, setName]               = useState("");
   const [email, setEmail]             = useState("");
   const [phone, setPhone]             = useState("");
@@ -29,7 +32,7 @@ export default function CartPage() {
   const canCampay = !isSell && (payMethod === "mtn" || payMethod === "orange");
   const summary   = items.map(i => `${i.cardName} ×${i.qty} (${i.amount})`).join(", ");
 
-  function buildWAMsg() {
+  function buildMsgPlain() {
     const lines = items.map(i => {
       if (i.details) {
         return `• ${i.cardName}\n  ${i.details}\n  Montant : ${(i.price * i.qty).toLocaleString("fr-FR")} FCFA`;
@@ -39,9 +42,7 @@ export default function CartPage() {
     const payLabel = isSell
       ? "Vente / Échange"
       : payMethod === "mtn" ? "MTN MoMo" : payMethod === "orange" ? "Orange Money" : "WhatsApp";
-    return encodeURIComponent(
-      `Bonjour Chreol Empire,\n\nJe souhaite :\n${lines}\n\nTotal : ${total.toLocaleString("fr-FR")} FCFA\nType : ${payLabel}\n\nNom : ${name}\nTél : ${phone}${referral ? `\nCode parrainage : ${referral.toUpperCase()}` : ""}`,
-    );
+    return `Je souhaite :\n${lines}\n\nTotal : ${total.toLocaleString("fr-FR")} FCFA\nType : ${payLabel}\n\nTél : ${phone}${referral ? `\nCode parrainage : ${referral.toUpperCase()}` : ""}`;
   }
 
   async function handleCampayOrder() {
@@ -95,10 +96,10 @@ export default function CartPage() {
     return (
       <div className="max-w-xl mx-auto px-4 py-20 text-center">
         <p className="text-6xl mb-4">🛒</p>
-        <h1 className="text-2xl font-black text-white mb-2">Panier vide</h1>
-        <p className="mb-6" style={{ color: "var(--text-secondary)" }}>Ajoutez des articles depuis nos services</p>
+        <h1 className="text-2xl font-black text-white mb-2">{t("cart.empty")}</h1>
+        <p className="mb-6" style={{ color: "var(--text-secondary)" }}>{t("cart.empty.desc")}</p>
         <Link href="/services" className="inline-block px-6 py-3 rounded-full font-black text-black text-sm" style={{ background: "var(--gold)" }}>
-          Voir les services →
+          {t("btn.see_all")}
         </Link>
       </div>
     );
@@ -110,18 +111,16 @@ export default function CartPage() {
       <div className="max-w-xl mx-auto px-4 py-20 text-center">
         <p className="text-6xl mb-4">⚡</p>
         <h1 className="text-2xl font-black text-white mb-2">
-          {isSell ? "Demande envoyée en traitement !" : "Demande de paiement envoyée !"}
+          {isSell ? t("cart.success.sell") : t("cart.success.buy")}
         </h1>
         <p className="mb-2" style={{ color: "var(--text-secondary)" }}>
-          {isSell
-            ? "Votre demande est en cours de traitement. Vous serez contacté sous 15-30 min."
-            : "Approuvez la demande Mobile Money sur votre téléphone."}
+          {isSell ? t("cart.success.sell.desc") : t("cart.success.buy.desc")}
         </p>
         <p className="text-xs mb-8" style={{ color: "var(--text-muted)" }}>
-          Réf : {done.slice(-8).toUpperCase()}
+          {t("history.ref")} {done.slice(-8).toUpperCase()}
         </p>
         <Link href="/services" className="inline-block px-6 py-3 rounded-full font-black text-black text-sm" style={{ background: "var(--gold)" }}>
-          Continuer mes achats
+          {t("cart.continue")}
         </Link>
       </div>
     );
@@ -132,13 +131,13 @@ export default function CartPage() {
     <div className="max-w-4xl lg:max-w-5xl mx-auto px-4 sm:px-6 py-8">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-black text-white">Mon Panier</h1>
+        <h1 className="text-3xl font-black text-white">{t("cart.title")}</h1>
         <button
           onClick={clearCart}
           className="text-xs font-semibold px-4 py-2 rounded-full transition-colors hover:text-white"
           style={{ color: "var(--text-muted)", border: "1px solid var(--border)" }}
         >
-          Vider le panier
+          {t("cart.clear")}
         </button>
       </div>
 
@@ -190,7 +189,7 @@ export default function CartPage() {
                   className="text-xs mt-1 transition-colors hover:text-red-400"
                   style={{ color: "var(--text-muted)" }}
                 >
-                  Retirer
+                  {t("cart.remove")}
                 </button>
               </div>
             </div>
@@ -200,7 +199,7 @@ export default function CartPage() {
             className="flex justify-between items-center p-4 rounded-2xl"
             style={{ background: "var(--bg-elevated)", border: "1px solid var(--border-strong)" }}
           >
-            <span className="font-black text-white">Total</span>
+            <span className="font-black text-white">{t("cart.total")}</span>
             <span className="text-2xl font-black tabular-nums" style={{ color: "var(--gold)" }}>
               {total.toLocaleString("fr-FR")} FCFA
             </span>
@@ -213,17 +212,17 @@ export default function CartPage() {
           {/* Infos client */}
           <div>
             <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "var(--text-muted)" }}>
-              Vos informations
+              {t("cart.your_info")}
             </p>
             <div className="flex flex-col gap-3">
-              <input type="text"  placeholder="Votre nom"            value={name}  onChange={e => setName(e.target.value)}  className="w-full px-4 py-3 rounded-2xl text-white text-sm outline-none" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }} />
-              <input type="email" placeholder="Email (confirmation)" value={email} onChange={e => setEmail(e.target.value)} className="w-full px-4 py-3 rounded-2xl text-white text-sm outline-none" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }} />
-              <input type="tel"   placeholder="Téléphone"            value={phone} onChange={e => setPhone(e.target.value)} className="w-full px-4 py-3 rounded-2xl text-white text-sm outline-none" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }} />
+              <input type="text"  placeholder={t("cart.name")}  value={name}  onChange={e => setName(e.target.value)}  className="w-full px-4 py-3 rounded-2xl text-white text-sm outline-none" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }} />
+              <input type="email" placeholder={t("cart.email")} value={email} onChange={e => setEmail(e.target.value)} className="w-full px-4 py-3 rounded-2xl text-white text-sm outline-none" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }} />
+              <input type="tel"   placeholder={t("cart.phone")} value={phone} onChange={e => setPhone(e.target.value)} className="w-full px-4 py-3 rounded-2xl text-white text-sm outline-none" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }} />
               {/* Code parrainage */}
               <div className="relative">
                 <input
                   type="text"
-                  placeholder="Code parrainage (optionnel)"
+                  placeholder={t("cart.referral")}
                   value={referral}
                   onChange={e => setReferral(e.target.value.replace(/\s/g, "").toUpperCase())}
                   maxLength={20}
@@ -243,7 +242,7 @@ export default function CartPage() {
           {!isSell && (
             <div>
               <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "var(--text-muted)" }}>
-                Mode de paiement
+                {t("cart.pay_method")}
               </p>
               <div className="grid grid-cols-3 gap-2">
                 {PAY_METHODS.map(m => (
@@ -282,10 +281,10 @@ export default function CartPage() {
               style={{ background: "#26A17B12", border: "1px solid #26A17B33" }}
             >
               <p className="text-sm font-bold mb-1" style={{ color: "#26A17B" }}>
-                📤 Demande de vente / échange
+                {t("cart.sell_info.title")}
               </p>
               <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
-                Votre demande sera envoyée en traitement. Chreol Empire vous contactera via WhatsApp pour finaliser la transaction.
+                {t("cart.sell_info.desc")}
               </p>
             </div>
           )}
@@ -297,7 +296,7 @@ export default function CartPage() {
               style={{ background: "#0D1525", border: "1px solid #3B82F633" }}
             >
               <p className="text-sm font-bold mb-1" style={{ color: "#93C5FD" }}>
-                ⚡ Paiement automatique Campay
+                {t("cart.campay.title")}
               </p>
               <p className="text-xs mb-3" style={{ color: "#6B7280" }}>
                 Entrez votre numéro {payMethod === "mtn" ? "MTN" : "Orange"} (9 chiffres). Vous recevrez une demande directement sur votre téléphone.
@@ -328,28 +327,27 @@ export default function CartPage() {
                 className="w-full py-4 rounded-full font-black text-black text-sm transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96] disabled:opacity-50"
                 style={{ background: "var(--gold)" }}
               >
-                {loading ? "Envoi en cours…" : "⚡ Payer maintenant (Mobile Money)"}
+                {loading ? t("cart.loading") : t("cart.pay_now")}
               </button>
             )}
-            <a
-              href={`https://wa.me/${CONTACT.whatsapp}?text=${buildWAMsg()}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block w-full py-4 rounded-full font-black text-white text-center text-sm transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
+            <WAPopover
+              getMsg={buildMsgPlain}
+              prefillPrenom={name}
+              className="flex items-center justify-center gap-2 w-full py-4 rounded-full font-black text-white text-sm transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
               style={{ background: "#25D366" }}
             >
               {isSell ? (
-                <>📤 Envoyer la demande via WhatsApp</>
+                <>{t("cart.wa.sell")}</>
               ) : (
-                <><Image src={IMAGES.whatsapp} alt="" width={20} height={20} unoptimized className="shrink-0" /> Commander via WhatsApp</>
+                <><Image src={IMAGES.whatsapp} alt="" width={20} height={20} unoptimized className="shrink-0" /> {t("cart.wa.order")}</>
               )}
-            </a>
+            </WAPopover>
           </div>
 
           {/* Info sécurité */}
           <div className="flex items-center gap-2 text-xs" style={{ color: "var(--text-muted)" }}>
             <span>🔒</span>
-            <span>Livraison 15–30 min · Support WhatsApp 7j/7</span>
+            <span>{t("cart.security")}</span>
           </div>
         </div>
       </div>

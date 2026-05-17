@@ -3,15 +3,18 @@
 import { useState } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { CONTACT, CRYPTO_RATES, CRYPTO_NETWORKS, MOMO_OPERATORS, IMAGES } from "@/lib/services";
+import { CRYPTO_RATES, CRYPTO_NETWORKS, MOMO_OPERATORS, IMAGES } from "@/lib/services";
+import WAPopover from "@/components/WAPopover";
 import { useCart } from "@/contexts/CartContext";
 import { useHistory } from "@/contexts/HistoryContext";
 import { useToast } from "@/components/Toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function CryptoPage() {
   const { addItem } = useCart();
   const { addEntry } = useHistory();
   const { showToast } = useToast();
+  const { t } = useLanguage();
 
   const [direction, setDirection] = useState<"sell" | "buy">("sell");
   const [cryptoId, setCryptoId]   = useState("usdt");
@@ -61,16 +64,12 @@ export default function CryptoPage() {
     return `Crypto : ${crypto.name} | Réseau : ${network} | Je paie : ${numAmount.toLocaleString("fr-FR")} FCFA\nWallet : ${walletAddr}`;
   }
 
-  function buildWAMsg() {
+  function buildMsgPlain() {
     const op = MOMO_OPERATORS.find(o => o.id === momoOp)?.name ?? momoOp;
     if (direction === "sell") {
-      return encodeURIComponent(
-        `Bonjour Chreol Empire,\n\n📤 VENTE CRYPTO\nCrypto : ${crypto.name} (${crypto.fullName})\nRéseau : ${network}\nMontant : ${amount} ${crypto.unit}\nÀ recevoir : ${fcfaReceived.toLocaleString("fr-FR")} FCFA\n\nTxID : ${txid}\n\n💰 Réception MoMo\nOpérateur : ${op}\nNuméro : +237 ${momoPhone}\nNom : ${beneficiary}`,
-      );
+      return `📤 VENTE CRYPTO\nCrypto : ${crypto.name} (${crypto.fullName})\nRéseau : ${network}\nMontant : ${amount} ${crypto.unit}\nÀ recevoir : ${fcfaReceived.toLocaleString("fr-FR")} FCFA\n\nTxID : ${txid}\n\n💰 Réception MoMo\nOpérateur : ${op}\nNuméro : +237 ${momoPhone}\nNom : ${beneficiary}`;
     }
-    return encodeURIComponent(
-      `Bonjour Chreol Empire,\n\n📥 ACHAT CRYPTO\nCrypto : ${crypto.name} (${crypto.fullName})\nRéseau : ${network}\nJe paie : ${numAmount.toLocaleString("fr-FR")} FCFA\nÀ recevoir : ${cryptoReceived.toFixed(6)} ${crypto.unit}\n\nWallet : ${walletAddr}`,
-    );
+    return `📥 ACHAT CRYPTO\nCrypto : ${crypto.name} (${crypto.fullName})\nRéseau : ${network}\nJe paie : ${numAmount.toLocaleString("fr-FR")} FCFA\nÀ recevoir : ${cryptoReceived.toFixed(6)} ${crypto.unit}\n\nWallet : ${walletAddr}`;
   }
 
   function handleAddToCart() {
@@ -98,10 +97,6 @@ export default function CryptoPage() {
     showToast(`${direction === "sell" ? "Vente" : "Achat"} ${crypto.name} ajouté au panier !`, "success");
   }
 
-  function handleWhatsApp() {
-    if (!validate()) { showToast("Corrigez les erreurs avant de continuer", "error"); return; }
-    window.open(`https://wa.me/${CONTACT.whatsapp}?text=${buildWAMsg()}`, "_blank");
-  }
 
   const inputCls  = "w-full px-4 py-3 rounded-2xl text-white text-sm outline-none transition-colors";
   const inputBase = { background: "var(--bg-elevated)", border: "1px solid var(--border)" };
@@ -136,9 +131,9 @@ export default function CryptoPage() {
         <span style={{ color: "var(--gold)" }}>Crypto & Échange MoMo</span>
       </div>
 
-      <h1 className="text-3xl font-black text-white mb-1">Crypto &amp; Échange MoMo</h1>
+      <h1 className="text-3xl font-black text-white mb-1">{t("p.crypto.title")}</h1>
       <p className="text-sm mb-8" style={{ color: "var(--text-secondary)" }}>
-        Achetez ou vendez vos cryptomonnaies contre FCFA via Mobile Money — 0% commission, 15–30 min.
+        {t("p.crypto.sub")}
       </p>
 
       {/* Direction toggle */}
@@ -323,14 +318,16 @@ export default function CryptoPage() {
         >
           🛒 Ajouter au panier
         </button>
-        <button
-          onClick={handleWhatsApp}
-          className="w-full py-3 rounded-full font-black text-white text-sm transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
+        <WAPopover
+          onBeforeOpen={() => { const ok = validate(); if (!ok) showToast("Corrigez les erreurs", "error"); return ok; }}
+          getMsg={buildMsgPlain}
+          prefillPrenom={beneficiary}
+          className="w-full py-3 rounded-full font-black text-white text-sm flex items-center justify-center gap-2 transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
           style={{ background: "#25D366" }}
         >
           <Image src={IMAGES.whatsapp} alt="" width={20} height={20} unoptimized className="shrink-0" />
           {direction === "sell" ? "Commander directement via WhatsApp" : "Commander via WhatsApp"}
-        </button>
+        </WAPopover>
       </div>
 
       {/* Trust */}
