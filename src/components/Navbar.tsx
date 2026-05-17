@@ -60,8 +60,8 @@ export default function Navbar() {
         {/* Right: toggles + WA + Cart */}
         <div className="flex items-center gap-2 shrink-0">
 
-          {/* Lang toggle */}
-          <div className="hidden sm:flex items-center gap-0.5 rounded-full p-0.5" style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)" }}>
+          {/* Lang toggle — visible on all screen sizes */}
+          <div className="flex items-center gap-0.5 rounded-full p-0.5" style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)" }}>
             {(["fr", "en"] as Lang[]).map(l => (
               <button
                 key={l}
@@ -135,21 +135,8 @@ export default function Navbar() {
             {t(l.key)}
           </Link>
         ))}
-        {/* Mobile lang + theme */}
+        {/* Mobile theme only — lang is in main header row */}
         <div className="shrink-0 flex items-center gap-1 ml-auto">
-          {(["fr", "en"] as Lang[]).map(l => (
-            <button
-              key={l}
-              onClick={() => setLang(l)}
-              className="px-2 py-1.5 rounded-full text-xs font-black transition-all"
-              style={{
-                background: lang === l ? "var(--gold)" : "var(--bg-elevated)",
-                color: lang === l ? "var(--bg-primary)" : "var(--text-muted)",
-              }}
-            >
-              {l.toUpperCase()}
-            </button>
-          ))}
           <button
             onClick={toggleTheme}
             className="w-7 h-7 flex items-center justify-center rounded-full text-xs"

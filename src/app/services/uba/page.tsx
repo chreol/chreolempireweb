@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { UBA_CARDS, UBA_RECHARGE_FEES, IMAGES } from "@/lib/services";
@@ -16,41 +16,55 @@ function calcFee(amount: number) {
   return tier.type === "fixed" ? tier.fee : Math.round(amount * tier.fee / 100);
 }
 
+const REQUIRED_DOCS = [
+  { icon: "🪪", label: "Photocopie CNI ou Passeport" },
+  { icon: "📍", label: "Plan de localisation" },
+  { icon: "📸", label: "Demi-photo type passeport (fond blanc)" },
+  { icon: "🔢", label: "NUI (Si perdu ou égaré — nous vous le retrouvons pour 1 500 FCFA)" },
+];
+
 export default function UBAPage() {
   const { addItem } = useCart();
   const { addEntry } = useHistory();
   const { t } = useLanguage();
   const { showToast } = useToast();
 
-  const [mode, setMode]           = useState<"buy" | "recharge">("buy");
+  const [mode, setMode]         = useState<"buy" | "recharge">("buy");
 
-  /* ── Buy mode state ── */
-  const [selectedSeg, setSelectedSeg]   = useState<string | null>(null);
-  const [buyName, setBuyName]           = useState("");
-  const [buyPhone, setBuyPhone]         = useState("");
-  const [buyAccepted, setBuyAccepted]   = useState(false);
-  const [buyErrors, setBuyErrors]       = useState<Record<string, string>>({});
+  /* ── Buy mode ── */
+  const [selectedSeg, setSelectedSeg] = useState<string | null>(null);
+  const [buyName, setBuyName]         = useState("");
+  const [buyPhone, setBuyPhone]       = useState("");
+  const [buyAccepted, setBuyAccepted] = useState(false);
+  const [buyErrors, setBuyErrors]     = useState<Record<string, string>>({});
 
-  /* ── Recharge mode state ── */
-  const [card6, setCard6]         = useState("");
-  const [card4, setCard4]         = useState("");
-  const [clientId, setClientId]   = useState("");
-  const [fullName, setFullName]   = useState("");
-  const [phone, setPhone]         = useState("");
-  const [amount, setAmount]       = useState("");
-  const [errors, setErrors]       = useState<Record<string, string>>({});
+  /* ── Recharge mode ── */
+  const [card6, setCard6]       = useState("");
+  const [card4, setCard4]       = useState("");
+  const [clientId, setClientId] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [phone, setPhone]       = useState("");
+  const [amount, setAmount]     = useState("");
+  const [errors, setErrors]     = useState<Record<string, string>>({});
+
+  /* ── Refs for auto-advance ── */
+  const refCard4    = useRef<HTMLInputElement>(null);
+  const refClientId = useRef<HTMLInputElement>(null);
+  const refFullName = useRef<HTMLInputElement>(null);
+  const refPhone    = useRef<HTMLInputElement>(null);
+  const refAmount   = useRef<HTMLInputElement>(null);
+  const refBuyPhone = useRef<HTMLInputElement>(null);
 
   const numAmount = parseInt(amount.replace(/\D/g, ""), 10) || 0;
   const fee       = calcFee(numAmount);
   const total     = numAmount + fee;
 
-  /* ── Buy validation ── */
+  /* ── Buy validation (name optional) ── */
   function validateBuy() {
     const e: Record<string, string> = {};
-    if (!selectedSeg) e.seg = "Sélectionnez un segment de carte";
-    if (!buyName.trim()) e.buyName = "Nom complet requis";
-    if (!buyPhone || buyPhone.length !== 9) e.buyPhone = "Numéro invalide (9 chiffres)";
-    if (!buyAccepted) e.accepted = "Vous devez accepter les conditions";
+    if (!selectedSeg)                           e.seg      = "Sélectionnez un segment de carte";
+    if (!buyPhone || buyPhone.length !== 9)     e.buyPhone = "Numéro invalide (9 chiffres)";
+    if (!buyAccepted)                           e.accepted = "Vous devez accepter les conditions";
     setBuyErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -64,11 +78,11 @@ export default function UBAPage() {
       amount: `${card.price.toLocaleString("fr-FR")} FCFA · Limite ${card.limit}`,
       price: card.price,
       type: "buy",
-      details: `Segment ${card.segment} | Nom : ${buyName} | +237 ${buyPhone}`,
+      details: `Segment ${card.segment}${buyName ? ` | Nom : ${buyName}` : ""} | +237 ${buyPhone}`,
     });
     addEntry({
       service: `UBA — Achat Carte Segment ${card.segment}`,
-      details: `${card.price.toLocaleString("fr-FR")} FCFA | Nom : ${buyName}`,
+      details: `${card.price.toLocaleString("fr-FR")} FCFA${buyName ? ` | Nom : ${buyName}` : ""}`,
       amount: card.price,
       currency: "FCFA",
       status: "pending",
@@ -76,21 +90,20 @@ export default function UBAPage() {
     showToast("Carte UBA ajoutée au panier !", "success");
   }
 
-  /* ── Recharge validation ── */
+  /* ── Recharge validation (name optional) ── */
   function validate() {
     const e: Record<string, string> = {};
-    if (card6.length !== 6) e.card6 = "6 chiffres requis";
-    if (card4.length !== 4) e.card4 = "4 chiffres requis";
-    if (!clientId || clientId.length > 10) e.clientId = "Client ID requis (max 10 chiffres)";
-    if (!fullName.trim()) e.fullName = "Nom requis";
-    if (!phone || phone.length !== 9) e.phone = "Numéro invalide (9 chiffres)";
+    if (card6.length !== 6)                             e.card6    = "6 chiffres requis";
+    if (card4.length !== 4)                             e.card4    = "4 chiffres requis";
+    if (!clientId || clientId.length > 10)              e.clientId = "Client ID requis (max 10 chiffres)";
+    if (!phone || phone.length !== 9)                   e.phone    = "Numéro invalide (9 chiffres)";
     if (!amount || numAmount < 1500 || numAmount > 500000) e.amount = "Montant entre 1 500 et 500 000 FCFA";
     setErrors(e);
     return Object.keys(e).length === 0;
   }
 
   function buildRechargeMsgPlain() {
-    return `💳 RECHARGE UBA\nCarte : ${card6}••••••${card4}\nClient ID : ${clientId}\nNom : ${fullName}\nTéléphone : +237 ${phone}\nMontant : ${numAmount.toLocaleString("fr-FR")} FCFA\nFrais : ${fee.toLocaleString("fr-FR")} FCFA\nTotal à payer : ${total.toLocaleString("fr-FR")} FCFA`;
+    return `💳 RECHARGE UBA\nCarte : ${card6}••••••${card4}\nClient ID : ${clientId}\n${fullName ? `Nom : ${fullName}\n` : ""}Téléphone : +237 ${phone}\nMontant : ${numAmount.toLocaleString("fr-FR")} FCFA\nFrais : ${fee.toLocaleString("fr-FR")} FCFA\nTotal à payer : ${total.toLocaleString("fr-FR")} FCFA`;
   }
 
   function handleAddToCart() {
@@ -101,7 +114,7 @@ export default function UBAPage() {
       amount: `${numAmount.toLocaleString("fr-FR")} FCFA + ${fee.toLocaleString("fr-FR")} FCFA frais`,
       price: total,
       type: "buy",
-      details: `Carte : ${card6}••••••${card4} | Client ID : ${clientId}\nNom : ${fullName} | +237 ${phone}\nMontant : ${numAmount.toLocaleString("fr-FR")} FCFA | Frais : ${fee.toLocaleString("fr-FR")} FCFA`,
+      details: `Carte : ${card6}••••••${card4} | Client ID : ${clientId}${fullName ? ` | Nom : ${fullName}` : ""} | +237 ${phone}\nMontant : ${numAmount.toLocaleString("fr-FR")} FCFA | Frais : ${fee.toLocaleString("fr-FR")} FCFA`,
     });
     addEntry({
       service: "UBA Cameroun — Recharge",
@@ -119,14 +132,17 @@ export default function UBAPage() {
     return true;
   }
 
-  const inputCls  = "w-full px-4 py-3 rounded-2xl text-white text-sm outline-none";
-  const inputBase = { background: "var(--bg-elevated)", border: "1px solid var(--border)" };
+  const inputCls  = "w-full px-4 py-3 rounded-2xl text-sm outline-none";
+  const inputBase = { background: "var(--bg-elevated)", border: "1px solid var(--border)", color: "var(--text-primary)" };
   const inputErr  = { ...inputBase, borderColor: "#EF4444" };
 
-  function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
+  function Field({ label, error, optional, children }: { label: string; error?: string; optional?: boolean; children: React.ReactNode }) {
     return (
       <div className="flex flex-col gap-1">
-        <label className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>{label}</label>
+        <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
+          {label}
+          {optional && <span className="text-[10px] font-semibold normal-case tracking-normal px-1.5 py-0.5 rounded-full" style={{ background: "var(--bg-elevated)", color: "var(--text-muted)" }}>optionnel</span>}
+        </label>
         {children}
         {error && <span className="text-xs font-semibold" style={{ color: "#EF4444" }}>{error}</span>}
       </div>
@@ -141,10 +157,8 @@ export default function UBAPage() {
         <span style={{ color: "var(--gold)" }}>UBA Cameroun</span>
       </div>
 
-      <h1 className="text-3xl font-black text-white mb-1">{t("p.uba.title")}</h1>
-      <p className="text-sm mb-8" style={{ color: "var(--text-secondary)" }}>
-        {t("p.uba.sub")}
-      </p>
+      <h1 className="text-3xl font-black mb-1" style={{ color: "var(--text-primary)" }}>{t("p.uba.title")}</h1>
+      <p className="text-sm mb-8" style={{ color: "var(--text-secondary)" }}>{t("p.uba.sub")}</p>
 
       {/* Tab toggle */}
       <div className="flex rounded-2xl p-1 mb-8" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
@@ -188,7 +202,7 @@ export default function UBAPage() {
                   )}
                   <div className="p-5 flex flex-col gap-3 flex-1">
                     <div>
-                      <p className="font-black text-white text-lg">Segment {card.segment}</p>
+                      <p className="font-black text-lg" style={{ color: "var(--text-primary)" }}>Segment {card.segment}</p>
                       <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>Limite : {card.limit}</p>
                     </div>
                     <p className="text-xl font-black" style={{ color: "var(--gold)" }}>
@@ -212,29 +226,39 @@ export default function UBAPage() {
             </div>
             {buyErrors.seg && <p className="text-xs font-semibold mb-4 mt-1" style={{ color: "#EF4444" }}>{buyErrors.seg}</p>}
 
-            {/* Documentation form — shown after card selection */}
+            {/* Documentation form */}
             {selectedSeg && (
               <motion.div
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="flex flex-col gap-4 mt-6"
               >
-                <div className="rounded-2xl p-4" style={{ background: "#8B000012", border: "1px solid #8B000044" }}>
-                  <p className="text-sm font-bold mb-1" style={{ color: "#CD5C5C" }}>📋 Informations requises</p>
-                  <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
-                    Ces informations sont nécessaires pour activer votre carte UBA Cameroun. Un agent vous contactera pour finaliser.
+                {/* Required documents list */}
+                <div className="rounded-2xl p-4" style={{ background: "var(--bg-card)", border: "1px solid var(--border-strong)" }}>
+                  <p className="text-sm font-black mb-3" style={{ color: "var(--gold)" }}>📋 Informations requises</p>
+                  <div className="flex flex-col gap-2">
+                    {REQUIRED_DOCS.map((doc, i) => (
+                      <div key={i} className="flex items-start gap-2.5">
+                        <span className="text-base shrink-0 mt-0.5">{doc.icon}</span>
+                        <p className="text-xs leading-relaxed" style={{ color: "var(--text-secondary)" }}>{doc.label}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-[11px] mt-3 font-semibold" style={{ color: "var(--text-muted)" }}>
+                    Un agent Chreol Empire vous contactera pour collecter ces documents.
                   </p>
                 </div>
 
-                <Field label="Nom complet" error={buyErrors.buyName}>
+                <Field label="Nom complet" optional>
                   <input
                     type="text"
-                    placeholder="Votre nom complet"
+                    placeholder="Votre nom complet (optionnel)"
                     value={buyName}
                     autoFocus
-                    onChange={e => { setBuyName(e.target.value); setBuyErrors(p => ({ ...p, buyName: "" })); }}
+                    onChange={e => setBuyName(e.target.value)}
+                    onKeyDown={e => e.key === "Enter" && refBuyPhone.current?.focus()}
                     className={inputCls}
-                    style={buyErrors.buyName ? inputErr : inputBase}
+                    style={inputBase}
                   />
                 </Field>
 
@@ -242,12 +266,18 @@ export default function UBAPage() {
                   <div className="flex items-center rounded-2xl overflow-hidden" style={buyErrors.buyPhone ? inputErr : inputBase}>
                     <span className="px-3 text-sm font-bold shrink-0" style={{ color: "var(--text-muted)" }}>+237</span>
                     <input
+                      ref={refBuyPhone}
                       type="tel"
                       placeholder="6XXXXXXXX"
                       value={buyPhone}
                       maxLength={9}
-                      onChange={e => { setBuyPhone(e.target.value.replace(/\D/g, "").slice(0, 9)); setBuyErrors(p => ({ ...p, buyPhone: "" })); }}
-                      className="flex-1 py-3 pr-4 bg-transparent text-white text-sm outline-none"
+                      onChange={e => {
+                        const v = e.target.value.replace(/\D/g, "").slice(0, 9);
+                        setBuyPhone(v);
+                        setBuyErrors(p => ({ ...p, buyPhone: "" }));
+                      }}
+                      className="flex-1 py-3 pr-4 bg-transparent text-sm outline-none"
+                      style={{ color: "var(--text-primary)" }}
                     />
                   </div>
                 </Field>
@@ -260,7 +290,7 @@ export default function UBAPage() {
                     className="mt-0.5 shrink-0 w-4 h-4 accent-amber-400"
                   />
                   <span className="text-xs leading-relaxed" style={{ color: buyErrors.accepted ? "#EF4444" : "var(--text-secondary)" }}>
-                    J&apos;ai lu et j&apos;accepte de fournir les éléments nécessaires au bureau Chreol Empire pour obtenir ma carte UBA Cameroun (pièce d&apos;identité, justificatif).
+                    J&apos;ai lu et j&apos;accepte de fournir les éléments nécessaires au bureau Chreol Empire pour obtenir ma carte UBA Cameroun (pièce d&apos;identité, photo, plan de localisation).
                   </span>
                 </label>
                 {buyErrors.accepted && (
@@ -280,7 +310,7 @@ export default function UBAPage() {
         ) : (
           <motion.div key="recharge" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }} className="flex flex-col gap-5">
 
-            {/* Card digits */}
+            {/* Card digits — auto-advance */}
             <div className="grid grid-cols-2 gap-3">
               <Field label="6 premiers chiffres" error={errors.card6}>
                 <input
@@ -289,18 +319,31 @@ export default function UBAPage() {
                   value={card6}
                   maxLength={6}
                   autoFocus
-                  onChange={e => { setCard6(e.target.value.replace(/\D/g, "").slice(0, 6)); setErrors(p => ({ ...p, card6: "" })); }}
+                  inputMode="numeric"
+                  onChange={e => {
+                    const v = e.target.value.replace(/\D/g, "").slice(0, 6);
+                    setCard6(v);
+                    setErrors(p => ({ ...p, card6: "" }));
+                    if (v.length === 6) refCard4.current?.focus();
+                  }}
                   className={inputCls}
                   style={errors.card6 ? inputErr : inputBase}
                 />
               </Field>
               <Field label="4 derniers chiffres" error={errors.card4}>
                 <input
+                  ref={refCard4}
                   type="tel"
                   placeholder="7890"
                   value={card4}
                   maxLength={4}
-                  onChange={e => { setCard4(e.target.value.replace(/\D/g, "").slice(0, 4)); setErrors(p => ({ ...p, card4: "" })); }}
+                  inputMode="numeric"
+                  onChange={e => {
+                    const v = e.target.value.replace(/\D/g, "").slice(0, 4);
+                    setCard4(v);
+                    setErrors(p => ({ ...p, card4: "" }));
+                    if (v.length === 4) refClientId.current?.focus();
+                  }}
                   className={inputCls}
                   style={errors.card4 ? inputErr : inputBase}
                 />
@@ -309,24 +352,33 @@ export default function UBAPage() {
 
             <Field label="Client ID (au dos de la carte, max 10 chiffres)" error={errors.clientId}>
               <input
+                ref={refClientId}
                 type="tel"
                 placeholder="Votre Client ID"
                 value={clientId}
                 maxLength={10}
-                onChange={e => { setClientId(e.target.value.replace(/\D/g, "").slice(0, 10)); setErrors(p => ({ ...p, clientId: "" })); }}
+                inputMode="numeric"
+                onChange={e => {
+                  const v = e.target.value.replace(/\D/g, "").slice(0, 10);
+                  setClientId(v);
+                  setErrors(p => ({ ...p, clientId: "" }));
+                  if (v.length >= 3) refFullName.current?.focus();
+                }}
                 className={inputCls}
                 style={errors.clientId ? inputErr : inputBase}
               />
             </Field>
 
-            <Field label="Nom complet" error={errors.fullName}>
+            <Field label="Nom complet" optional>
               <input
+                ref={refFullName}
                 type="text"
-                placeholder="Votre nom complet"
+                placeholder="Votre nom complet (optionnel)"
                 value={fullName}
-                onChange={e => { setFullName(e.target.value); setErrors(p => ({ ...p, fullName: "" })); }}
+                onChange={e => setFullName(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && refPhone.current?.focus()}
                 className={inputCls}
-                style={errors.fullName ? inputErr : inputBase}
+                style={inputBase}
               />
             </Field>
 
@@ -334,23 +386,33 @@ export default function UBAPage() {
               <div className="flex items-center rounded-2xl overflow-hidden" style={errors.phone ? inputErr : inputBase}>
                 <span className="px-3 text-sm font-bold shrink-0" style={{ color: "var(--text-muted)" }}>+237</span>
                 <input
+                  ref={refPhone}
                   type="tel"
                   placeholder="6XXXXXXXX"
                   value={phone}
                   maxLength={9}
-                  onChange={e => { setPhone(e.target.value.replace(/\D/g, "").slice(0, 9)); setErrors(p => ({ ...p, phone: "" })); }}
-                  className="flex-1 py-3 pr-4 bg-transparent text-white text-sm outline-none"
+                  inputMode="numeric"
+                  onChange={e => {
+                    const v = e.target.value.replace(/\D/g, "").slice(0, 9);
+                    setPhone(v);
+                    setErrors(p => ({ ...p, phone: "" }));
+                    if (v.length === 9) refAmount.current?.focus();
+                  }}
+                  className="flex-1 py-3 pr-4 bg-transparent text-sm outline-none"
+                  style={{ color: "var(--text-primary)" }}
                 />
               </div>
             </Field>
 
             <Field label="Montant à recharger (1 500 – 500 000 FCFA)" error={errors.amount}>
               <input
+                ref={refAmount}
                 type="number"
                 min="1500"
                 max="500000"
                 placeholder="ex: 25 000"
                 value={amount}
+                inputMode="numeric"
                 onChange={e => { setAmount(e.target.value); setErrors(p => ({ ...p, amount: "" })); }}
                 className={inputCls}
                 style={errors.amount ? inputErr : inputBase}
@@ -367,14 +429,14 @@ export default function UBAPage() {
               >
                 <div className="flex justify-between text-sm mb-2">
                   <span style={{ color: "var(--text-secondary)" }}>Recharge</span>
-                  <span className="text-white font-bold tabular-nums">{numAmount.toLocaleString("fr-FR")} FCFA</span>
+                  <span className="font-bold tabular-nums" style={{ color: "var(--text-primary)" }}>{numAmount.toLocaleString("fr-FR")} FCFA</span>
                 </div>
                 <div className="flex justify-between text-sm mb-2">
                   <span style={{ color: "var(--text-secondary)" }}>Frais de service</span>
-                  <span className="text-white font-bold tabular-nums">{fee.toLocaleString("fr-FR")} FCFA</span>
+                  <span className="font-bold tabular-nums" style={{ color: "var(--text-primary)" }}>{fee.toLocaleString("fr-FR")} FCFA</span>
                 </div>
                 <div className="flex justify-between text-base pt-2" style={{ borderTop: "1px solid #8B000033" }}>
-                  <span className="font-black text-white">Total à payer</span>
+                  <span className="font-black" style={{ color: "var(--text-primary)" }}>Total à payer</span>
                   <span className="font-black tabular-nums" style={{ color: "var(--gold)" }}>{total.toLocaleString("fr-FR")} FCFA</span>
                 </div>
               </motion.div>
@@ -389,7 +451,7 @@ export default function UBAPage() {
                 {UBA_RECHARGE_FEES.map((t, i) => (
                   <div key={i} className="flex justify-between text-xs py-1.5" style={{ borderBottom: i < UBA_RECHARGE_FEES.length - 1 ? "1px solid var(--border)" : "none", color: "var(--text-secondary)" }}>
                     <span>{t.min.toLocaleString("fr-FR")} – {t.max.toLocaleString("fr-FR")} FCFA</span>
-                    <span className="font-bold text-white">{t.type === "fixed" ? `${t.fee.toLocaleString("fr-FR")} FCFA` : `${t.fee}%`}</span>
+                    <span className="font-bold" style={{ color: "var(--text-primary)" }}>{t.type === "fixed" ? `${t.fee.toLocaleString("fr-FR")} FCFA` : `${t.fee}%`}</span>
                   </div>
                 ))}
               </div>

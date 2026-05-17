@@ -216,22 +216,36 @@ export default function HomePage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-5">
           {SERVICES.map((s, i) => (
-            <Link key={i} href={s.href}
-              className="group relative rounded-3xl overflow-hidden transition-[transform,box-shadow] duration-200 ease-out hover:-translate-y-1 hover:shadow-2xl active:scale-[0.98]"
-              style={{ boxShadow: `0 0 0 1px ${s.color}33`, minHeight: 200 }}>
-              <div className="absolute inset-0">
+            <div key={i} className="group rounded-3xl overflow-hidden flex flex-col transition-[transform,box-shadow] duration-200 ease-out hover:-translate-y-1 hover:shadow-2xl"
+              style={{ boxShadow: `0 0 0 1px ${s.color}33` }}>
+              {/* Clickable image area */}
+              <Link href={s.href} className="relative block flex-1" style={{ minHeight: 180 }}>
                 <Image src={s.image} alt={s.title} fill style={{ objectFit: "cover" }}
                   className="outline outline-1 -outline-offset-1 outline-white/10 transition-transform duration-500 group-hover:scale-105" unoptimized />
                 <div className="absolute inset-0" style={{ background: `linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.3) 50%, transparent 100%)` }} />
+                <div className="relative p-5 flex flex-col justify-end" style={{ minHeight: 180 }}>
+                  <span className="text-3xl mb-2">{s.emoji}</span>
+                  <p className="font-black text-white text-lg leading-tight">{s.title}</p>
+                  <p className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.65)" }}>{s.sub}</p>
+                </div>
+              </Link>
+              {/* Action buttons */}
+              <div className="flex gap-2 p-3 shrink-0" style={{ background: "var(--bg-card)", borderTop: `1px solid ${s.color}22` }}>
+                <Link href={s.href}
+                  className="flex-1 py-2.5 rounded-xl text-xs font-black text-center transition-opacity hover:opacity-80"
+                  style={{ background: "var(--bg-elevated)", color: "var(--text-secondary)" }}>
+                  Voir →
+                </Link>
+                <WAPopover
+                  prefill={`Bonjour, je voudrais commander : ${s.title}. Pouvez-vous m'aider ?`}
+                  className="flex-1 py-2.5 rounded-xl text-xs font-black text-white text-center flex items-center justify-center gap-1.5 transition-opacity hover:opacity-80"
+                  style={{ background: "#25D366" }}
+                >
+                  <Image src={IMAGES.whatsapp} alt="" width={12} height={12} unoptimized className="shrink-0" />
+                  Commander
+                </WAPopover>
               </div>
-              <div className="relative h-full p-5 flex flex-col justify-end" style={{ minHeight: 200 }}>
-                <span className="text-3xl mb-2">{s.emoji}</span>
-                <p className="font-black text-white text-lg leading-tight">{s.title}</p>
-                <p className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.65)" }}>{s.sub}</p>
-                <span className="mt-3 text-xs font-black uppercase tracking-widest transition-[opacity,transform] duration-200 group-hover:translate-x-1"
-                  style={{ color: s.color }}>{t("services.btn.order")}</span>
-              </div>
-            </Link>
+            </div>
           ))}
         </div>
 
