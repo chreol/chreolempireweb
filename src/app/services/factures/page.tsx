@@ -362,6 +362,7 @@ export default function FacturesPage() {
                     type="tel"
                     placeholder="6XXXXXXXX"
                     value={srcPhone}
+                    maxLength={9}
                     onChange={e => { setSrcPhone(e.target.value); setMomoErrors(p => ({ ...p, srcPhone: "" })); }}
                     className="flex-1 py-3 pr-4 bg-transparent text-white text-sm outline-none"
                   />
@@ -402,6 +403,7 @@ export default function FacturesPage() {
                     type="tel"
                     placeholder="6XXXXXXXX"
                     value={dstPhone}
+                    maxLength={9}
                     onChange={e => { setDstPhone(e.target.value); setMomoErrors(p => ({ ...p, dstPhone: "" })); }}
                     className="flex-1 py-3 pr-4 bg-transparent text-white text-sm outline-none"
                   />

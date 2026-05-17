@@ -270,6 +270,7 @@ export default function CryptoPage() {
                   <div className="flex items-center rounded-2xl overflow-hidden" style={errors.momoPhone ? inputErr : inputBase}>
                     <span className="px-3 text-sm font-bold shrink-0" style={{ color: "var(--text-muted)" }}>+237</span>
                     <input type="tel" placeholder="6XXXXXXXX" value={momoPhone}
+                      maxLength={9}
                       onChange={e => { setMomoPhone(e.target.value); setErrors(p => ({ ...p, momoPhone: "" })); }}
                       className="flex-1 py-3 pr-4 bg-transparent text-white text-sm outline-none"
                     />

@@ -237,6 +237,7 @@ export default function CouponsPage() {
               <div className="flex items-center rounded-2xl overflow-hidden" style={errors.phone ? inputErr : inputBase}>
                 <span className="px-3 text-sm font-bold shrink-0" style={{ color: "var(--text-muted)" }}>+237</span>
                 <input type="tel" placeholder="6XXXXXXXX" value={phone}
+                  maxLength={9}
                   onChange={e => { setPhone(e.target.value); setErrors(p => ({ ...p, phone: "" })); }}
                   className="flex-1 py-3 pr-4 bg-transparent text-white text-sm outline-none"
                 />
