@@ -51,17 +51,10 @@ export default function CouponsPage() {
     const e: Record<string, string> = {};
     if (!amount || numAmt <= 0) { e.amount = "Montant requis"; }
     else if (numAmt < 20)       { e.amount = "Minimum 20€"; }
-    if (!code.trim()) {
-      e.code = "Code requis";
-    } else if (type === "pcs" && code.trim().length !== rate.codeLength) {
-      e.code = `Code PCS : exactement ${rate.codeLength} caractères`;
-    } else if (type === "transcash" && !/^\d+$/.test(code.trim())) {
-      e.code = "Code Transcash : chiffres uniquement";
-    } else if (type === "transcash" && code.trim().length !== rate.codeLength) {
-      e.code = `Code Transcash : exactement ${rate.codeLength} chiffres`;
-    }
+    if (!code.trim()) e.code = "Code requis";
     if (!name.trim()) e.name = "Nom requis";
-    if (!phone || phone.length !== 9) e.phone = "Numéro invalide (9 chiffres)";
+    const phoneD = phone.replace(/\D/g, "").replace(/^237/, "");
+    if (phoneD.length < 9) e.phone = "Numéro invalide (9 chiffres)";
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -216,20 +209,15 @@ export default function CouponsPage() {
               type="text"
               placeholder={type === "pcs" ? "XXXXXXXX" : "123456789012"}
               value={code}
-              maxLength={type === "pcs" ? 8 : 20}
+              maxLength={type === "pcs" ? undefined : 14}
               onChange={e => {
-                const val = type === "transcash"
-                  ? e.target.value.replace(/\D/g, "").slice(0, 12)
-                  : e.target.value.toUpperCase().slice(0, 8);
+                const val = type === "pcs" ? e.target.value.toUpperCase() : e.target.value;
                 setCode(val);
                 setErrors(p => ({ ...p, code: "" }));
               }}
-              className={inputCls + " pr-24"}
+              className={inputCls}
               style={errors.code ? inputErr : inputBase}
             />
-            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold" style={{ color: code.length === rate.codeLength ? "#25D366" : "var(--text-muted)" }}>
-              {code.length}/{rate.codeLength}
-            </span>
           </div>
         </Field>
 
@@ -258,11 +246,7 @@ export default function CouponsPage() {
               <div className="flex items-center rounded-2xl overflow-hidden" style={errors.phone ? inputErr : inputBase}>
                 <span className="px-3 text-sm font-bold shrink-0" style={{ color: "var(--text-muted)" }}>+237</span>
                 <input type="tel" placeholder="6XXXXXXXX" value={phone}
-                  onChange={e => {
-                    const r = e.target.value.replace(/\D/g, "");
-                    setPhone((r.startsWith("237") && r.length > 9 ? r.slice(3) : r).slice(0, 9));
-                    setErrors(p => ({ ...p, phone: "" }));
-                  }}
+                  onChange={e => { setPhone(e.target.value); setErrors(p => ({ ...p, phone: "" })); }}
                   className="flex-1 py-3 pr-4 bg-transparent text-white text-sm outline-none"
                 />
               </div>

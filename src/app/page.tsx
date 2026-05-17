@@ -131,6 +131,16 @@ export default function HomePage() {
               </span>
 
               <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black leading-[1.05] tracking-tight mb-6 text-white">
+                <span
+                  className="flex items-center gap-2 mb-3 text-sm sm:text-base font-black tracking-[0.18em] uppercase"
+                  style={{ color: "var(--gold)", fontSize: "clamp(11px, 1.4vw, 16px)", opacity: 0.95 }}
+                >
+                  <span className="px-2.5 py-1 rounded-lg text-[11px] font-black shrink-0"
+                    style={{ background: "var(--gold)", color: "#0A0A0A", letterSpacing: "0.1em" }}>
+                    💳 UBA
+                  </span>
+                  CARTE UBA CAMEROUN DISPONIBLE
+                </span>
                 {t("hero.h1.1")}<br />
                 <span style={{ color: "var(--gold)" }}>&amp; crypto</span><br />
                 {t("hero.h1.3")}

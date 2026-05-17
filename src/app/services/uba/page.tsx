@@ -77,7 +77,8 @@ export default function UBAPage() {
   function validateBuy() {
     const e: Record<string, string> = {};
     if (!selectedSeg)                           e.seg      = "Sélectionnez un segment de carte";
-    if (!buyPhone || buyPhone.length !== 9)     e.buyPhone = "Numéro invalide (9 chiffres)";
+    const bpD = buyPhone.replace(/\D/g, "").replace(/^237/, "");
+    if (bpD.length < 9) e.buyPhone = "Numéro invalide (9 chiffres)";
     if (!buyAccepted)                           e.accepted = "Vous devez accepter les conditions";
     setBuyErrors(e);
     return Object.keys(e).length === 0;
@@ -110,7 +111,8 @@ export default function UBAPage() {
     if (card6.length !== 6)                             e.card6    = "6 chiffres requis";
     if (card4.length !== 4)                             e.card4    = "4 chiffres requis";
     if (!clientId || clientId.length > 10)              e.clientId = "Client ID requis (max 10 chiffres)";
-    if (!phone || phone.length !== 9)                   e.phone    = "Numéro invalide (9 chiffres)";
+    const phD = phone.replace(/\D/g, "").replace(/^237/, "");
+    if (phD.length < 9) e.phone = "Numéro invalide (9 chiffres)";
     if (!amount || numAmount < 1500 || numAmount > 500000) e.amount = "Montant entre 1 500 et 500 000 FCFA";
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -286,9 +288,7 @@ export default function UBAPage() {
                       value={buyPhone}
                       maxLength={9}
                       onChange={e => {
-                        const r = e.target.value.replace(/\D/g, "");
-                        const v = (r.startsWith("237") && r.length > 9 ? r.slice(3) : r).slice(0, 9);
-                        setBuyPhone(v);
+                        setBuyPhone(e.target.value);
                         setBuyErrors(p => ({ ...p, buyPhone: "" }));
                       }}
                       className="flex-1 py-3 pr-4 bg-transparent text-sm outline-none"
@@ -336,10 +336,9 @@ export default function UBAPage() {
                   autoFocus
                   inputMode="numeric"
                   onChange={e => {
-                    const v = e.target.value.replace(/\D/g, "").slice(0, 6);
-                    setCard6(v);
+                    setCard6(e.target.value);
                     setErrors(p => ({ ...p, card6: "" }));
-                    if (v.length === 6) refCard4.current?.focus();
+                    if (e.target.value.length >= 6) refCard4.current?.focus();
                   }}
                   className={inputCls}
                   style={errors.card6 ? inputErr : inputBase}
@@ -354,10 +353,9 @@ export default function UBAPage() {
                   maxLength={4}
                   inputMode="numeric"
                   onChange={e => {
-                    const v = e.target.value.replace(/\D/g, "").slice(0, 4);
-                    setCard4(v);
+                    setCard4(e.target.value);
                     setErrors(p => ({ ...p, card4: "" }));
-                    if (v.length === 4) refClientId.current?.focus();
+                    if (e.target.value.length >= 4) refClientId.current?.focus();
                   }}
                   className={inputCls}
                   style={errors.card4 ? inputErr : inputBase}
@@ -374,10 +372,9 @@ export default function UBAPage() {
                 maxLength={10}
                 inputMode="numeric"
                 onChange={e => {
-                  const v = e.target.value.replace(/\D/g, "").slice(0, 10);
-                  setClientId(v);
+                  setClientId(e.target.value);
                   setErrors(p => ({ ...p, clientId: "" }));
-                  if (v.length >= 3) refFullName.current?.focus();
+                  if (e.target.value.length >= 3) refFullName.current?.focus();
                 }}
                 className={inputCls}
                 style={errors.clientId ? inputErr : inputBase}
@@ -408,11 +405,8 @@ export default function UBAPage() {
                   maxLength={9}
                   inputMode="numeric"
                   onChange={e => {
-                    const r = e.target.value.replace(/\D/g, "");
-                    const v = (r.startsWith("237") && r.length > 9 ? r.slice(3) : r).slice(0, 9);
-                    setPhone(v);
+                    setPhone(e.target.value);
                     setErrors(p => ({ ...p, phone: "" }));
-                    if (v.length === 9) refAmount.current?.focus();
                   }}
                   className="flex-1 py-3 pr-4 bg-transparent text-sm outline-none"
                   style={{ color: "var(--text-primary)" }}

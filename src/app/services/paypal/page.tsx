@@ -75,7 +75,8 @@ export default function PaypalPage() {
       if (inFcfa < PAYPAL_LIMITS.buy.min) e.amount = `Minimum ${PAYPAL_LIMITS.buy.min.toLocaleString("fr-FR")} FCFA (≈ ${+(PAYPAL_LIMITS.buy.min / buyRate).toFixed(0)}€)`;
     }
     if (!paypalEmail.trim()) e.paypalEmail = "Email ou nom PayPal requis";
-    if (!momoPhone || momoPhone.length !== 9) e.momoPhone = "Numéro invalide (9 chiffres)";
+    const mpD = momoPhone.replace(/\D/g, "").replace(/^237/, "");
+    if (mpD.length < 9) e.momoPhone = "Numéro invalide (9 chiffres)";
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -282,11 +283,7 @@ export default function PaypalPage() {
               <div className="flex items-center rounded-2xl overflow-hidden" style={errors.momoPhone ? inputErr : inputBase}>
                 <span className="px-3 text-sm font-bold shrink-0" style={{ color: "var(--text-muted)" }}>+237</span>
                 <input type="tel" placeholder="6XXXXXXXX" value={momoPhone}
-                  onChange={e => {
-                    const r = e.target.value.replace(/\D/g, "");
-                    setMomoPhone((r.startsWith("237") && r.length > 9 ? r.slice(3) : r).slice(0, 9));
-                    setErrors(p => ({ ...p, momoPhone: "" }));
-                  }}
+                  onChange={e => { setMomoPhone(e.target.value); setErrors(p => ({ ...p, momoPhone: "" })); }}
                   className="flex-1 py-3 pr-4 bg-transparent text-white text-sm outline-none"
                 />
               </div>

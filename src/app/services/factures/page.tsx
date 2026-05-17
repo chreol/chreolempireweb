@@ -58,8 +58,9 @@ export default function FacturesPage() {
   function validateFacture() {
     const e: Record<string, string> = {};
     if (!biller) e.biller = "Choisissez un fournisseur";
-    if (idType === "phone" && identifier.length !== 9) e.identifier = "Numéro invalide (9 chiffres)";
-    if (idType === "decoder" && identifier.length !== 14) e.identifier = "Numéro décodeur invalide (14 chiffres)";
+    const idD = identifier.replace(/\D/g, "").replace(/^237/, "");
+    if (idType === "phone" && idD.length < 9) e.identifier = "Numéro invalide (9 chiffres)";
+    if (idType === "decoder" && idD.length < 14) e.identifier = "Numéro décodeur invalide (14 chiffres)";
     if (!amount || numFacAmt < 500) e.amount = "Montant minimum 500 FCFA";
     setFacErrors(e);
     return Object.keys(e).length === 0;
@@ -89,8 +90,10 @@ export default function FacturesPage() {
   function validateMomo() {
     const e: Record<string, string> = {};
     if (srcOp === dstOp) e.dstOp = "L'opérateur source et destination doivent être différents";
-    if (!srcPhone || srcPhone.length !== 9) e.srcPhone = "Numéro source invalide (9 chiffres)";
-    if (!dstPhone || dstPhone.length !== 9) e.dstPhone = "Numéro destination invalide (9 chiffres)";
+    const spD = srcPhone.replace(/\D/g, "").replace(/^237/, "");
+    const dpD = dstPhone.replace(/\D/g, "").replace(/^237/, "");
+    if (spD.length < 9) e.srcPhone = "Numéro source invalide (9 chiffres)";
+    if (dpD.length < 9) e.dstPhone = "Numéro destination invalide (9 chiffres)";
     if (!momoAmt || numMomoAmt < 1000 || numMomoAmt > 500000) e.momoAmt = "Montant entre 1 000 et 500 000 FCFA";
     setMomoErrors(e);
     return Object.keys(e).length === 0;
@@ -221,7 +224,7 @@ export default function FacturesPage() {
                   placeholder={idType === "phone" ? "6XXXXXXXX" : "12345678901234"}
                   value={identifier}
                   maxLength={idType === "phone" ? 9 : 14}
-                  onChange={e => { setIdentifier(e.target.value.replace(/\D/g, "").slice(0, idType === "phone" ? 9 : 14)); setFacErrors(p => ({ ...p, identifier: "" })); }}
+                  onChange={e => { setIdentifier(e.target.value); setFacErrors(p => ({ ...p, identifier: "" })); }}
                   className="flex-1 px-4 py-3 bg-transparent text-white text-sm outline-none"
                   style={idType === "phone" ? { paddingLeft: 0 } : {}}
                 />
@@ -368,11 +371,7 @@ export default function FacturesPage() {
                     type="tel"
                     placeholder="6XXXXXXXX"
                     value={srcPhone}
-                    onChange={e => {
-                      const r = e.target.value.replace(/\D/g, "");
-                      setSrcPhone((r.startsWith("237") && r.length > 9 ? r.slice(3) : r).slice(0, 9));
-                      setMomoErrors(p => ({ ...p, srcPhone: "" }));
-                    }}
+                    onChange={e => { setSrcPhone(e.target.value); setMomoErrors(p => ({ ...p, srcPhone: "" })); }}
                     className="flex-1 py-3 pr-4 bg-transparent text-white text-sm outline-none"
                   />
                 </div>
@@ -412,11 +411,7 @@ export default function FacturesPage() {
                     type="tel"
                     placeholder="6XXXXXXXX"
                     value={dstPhone}
-                    onChange={e => {
-                      const r = e.target.value.replace(/\D/g, "");
-                      setDstPhone((r.startsWith("237") && r.length > 9 ? r.slice(3) : r).slice(0, 9));
-                      setMomoErrors(p => ({ ...p, dstPhone: "" }));
-                    }}
+                    onChange={e => { setDstPhone(e.target.value); setMomoErrors(p => ({ ...p, dstPhone: "" })); }}
                     className="flex-1 py-3 pr-4 bg-transparent text-white text-sm outline-none"
                   />
                 </div>
