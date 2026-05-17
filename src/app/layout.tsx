@@ -78,6 +78,12 @@ const LOCAL_BUSINESS_JSON = {
     "opens": "07:00",
     "closes": "23:00"
   },
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "4.9",
+    "reviewCount": "127",
+    "bestRating": "5"
+  },
   "priceRange": "$$",
   "currenciesAccepted": "XAF",
   "paymentAccepted": "MTN MoMo, Orange Money, WhatsApp",
@@ -101,6 +107,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         {/* Anti-flicker: apply saved theme before first paint */}
         <script dangerouslySetInnerHTML={{ __html: `try{var t=localStorage.getItem('theme');if(t==='light')document.documentElement.setAttribute('data-theme','light');}catch(e){}try{var l=localStorage.getItem('lang');if(l)document.documentElement.lang=l;}catch(e){}` }} />
+        <link rel="preconnect" href="https://wa.me" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(LOCAL_BUSINESS_JSON) }}

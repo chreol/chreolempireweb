@@ -12,11 +12,17 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import FAQ from "@/components/FAQ";
 
 const PAGE_FAQ = [
-  { q: "Quels types de coupons échangez-vous ?", a: "PCS Mastercard (codes de 8 caractères alphanumériques) et Transcash (codes de 12 chiffres). Contactez-nous via WhatsApp pour d'autres types de coupons." },
-  { q: "Y a-t-il un montant minimum ?", a: "Oui, minimum 20€ par transaction. Il n'y a pas de maximum fixe ; des conditions spéciales s'appliquent aux gros montants (500€+)." },
-  { q: "Mon code coupon doit-il être intact ?", a: "Oui, le code ne doit pas avoir été partiellement utilisé. Ne révélez votre code que directement sur WhatsApp en session privée avec notre équipe." },
-  { q: "Comment recevoir mon argent après l'échange ?", a: "Par MTN MoMo ou Orange Money dans les 15 à 30 minutes. Pour les gros montants, un paiement par espèces à notre bureau Vallée 3, Deido, Douala est possible." },
+  { q: "Comment échanger un coupon Transcash en FCFA au Cameroun ?", a: "Envoyez votre code Transcash sur WhatsApp avec le montant en €. Nous vérifions le code et vous virons le FCFA équivalent au taux de 440 FCFA/€ sur MTN MoMo ou Orange Money en 15 minutes. Minimum 20€ par échange." },
+  { q: "Quel est le taux de change PCS Mastercard en FCFA ?", a: "Le taux PCS Mastercard est de 440 FCFA/€ après déduction de la commission de 7%. Formule : (montant − 7%) × 440 FCFA. Exemple : coupon de 100€ → 93€ × 440 = 40 920 FCFA reçus sur votre Mobile Money." },
+  { q: "Y a-t-il un minimum pour échanger un coupon au Cameroun ?", a: "Oui, le minimum est de 20€ par transaction. Pas de maximum fixe — des conditions spéciales s'appliquent pour les gros montants (500€ et plus). Contactez-nous via WhatsApp pour les transactions importantes." },
+  { q: "Comment recevoir son argent après échange de coupon PCS ?", a: "Par MTN MoMo ou Orange Money dans les 15 à 30 minutes après vérification du code. Pour les montants supérieurs à 500€, un paiement en espèces à notre boutique Vallée 3, Deido, Douala est également possible." },
 ];
+
+const PAGE_FAQ_SCHEMA = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: PAGE_FAQ.map(f => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+};
 
 type CouponType = keyof typeof COUPON_RATES;
 
@@ -292,6 +298,23 @@ export default function CouponsPage() {
         ))}
       </div>
       <FAQ items={PAGE_FAQ} />
+      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(PAGE_FAQ_SCHEMA) }} />
+      <div className="mt-8 rounded-2xl p-5" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+        <p className="text-xs font-black uppercase tracking-widest mb-4" style={{ color: "var(--text-muted)" }}>Voir aussi</p>
+        <div className="flex flex-wrap gap-3">
+          {[
+            { href: "/services/paypal",          label: "💸 PayPal Europe" },
+            { href: "/services/crypto",           label: "₿ Crypto & MoMo" },
+            { href: "/services/cartes-cadeaux",   label: "🎮 Cartes Cadeaux" },
+          ].map(l => (
+            <a key={l.href} href={l.href}
+              className="px-4 py-2 rounded-xl text-sm font-bold transition-opacity hover:opacity-80"
+              style={{ background: "var(--bg-elevated)", color: "var(--gold)", border: "1px solid var(--border)" }}>
+              {l.label}
+            </a>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

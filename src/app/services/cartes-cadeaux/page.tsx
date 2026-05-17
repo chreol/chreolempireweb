@@ -10,11 +10,17 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import FAQ from "@/components/FAQ";
 
 const PAGE_FAQ = [
-  { q: "Mes codes sont-ils garantis authentiques ?", a: "Oui, absolument. Tous nos codes proviennent de sources officielles et vérifiées. En cas de problème à l'activation, nous remplaçons ou remboursons sans discussion." },
-  { q: "En combien de temps je reçois mon code ?", a: "En général entre 15 et 30 minutes après confirmation du paiement, directement sur WhatsApp. Les commandes passées après 22h peuvent prendre jusqu'à 2 heures." },
-  { q: "Comment puis-je payer ?", a: "MTN MoMo, Orange Money, Express Union, Yoomee Money ou espèces à notre bureau Vallée 3, Boutiques Deido, Douala." },
-  { q: "Puis-je acheter plusieurs codes à la fois ?", a: "Oui, ajoutez plusieurs articles à votre panier ou précisez la quantité dans votre message WhatsApp. Des réductions sont possibles pour les grosses commandes." },
+  { q: "Où acheter des cartes cadeaux PSN en FCFA à Douala ?", a: "Chreol Empire est votre boutique locale à Douala (Vallée 3, Deido). Commandez vos cartes PSN, Steam, Nintendo, Roblox ou iTunes directement via WhatsApp — livraison du code en 15 minutes, paiement MTN MoMo ou Orange Money." },
+  { q: "Peut-on payer une carte Steam avec MTN MoMo au Cameroun ?", a: "Oui, tous nos modes de paiement Mobile Money sont acceptés : MTN MoMo, Orange Money, Express Union et Yoomee Money. Aucune carte bancaire requise. Commande et livraison 100% via WhatsApp." },
+  { q: "Combien coûte une carte PSN 20€ en FCFA ?", a: "Environ 14 500 FCFA au taux actuel. Le prix exact est fixé au moment de la commande selon le taux du jour. Consultez notre ticker de taux en haut de page pour les cours en temps réel." },
+  { q: "Les codes vendus par Chreol Empire sont-ils originaux ?", a: "Oui, absolument. Tous nos codes proviennent de sources officielles et vérifiées. En cas de code invalide à l'activation, nous le remplaçons ou remboursons intégralement, sans discussion." },
 ];
+
+const PAGE_FAQ_SCHEMA = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: PAGE_FAQ.map(f => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+};
 
 const TABS = [
   { key: "standard", label: "Standard" },
@@ -268,6 +274,23 @@ export default function CartesCadeauxPage() {
         ))}
       </div>
       <FAQ items={PAGE_FAQ} />
+      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(PAGE_FAQ_SCHEMA) }} />
+      <div className="mt-8 rounded-2xl p-5" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+        <p className="text-xs font-black uppercase tracking-widest mb-4" style={{ color: "var(--text-muted)" }}>Voir aussi</p>
+        <div className="flex flex-wrap gap-3">
+          {[
+            { href: "/services/crypto",   label: "₿ Crypto & MoMo" },
+            { href: "/services/paypal",   label: "💸 PayPal Europe" },
+            { href: "/services/coupons",  label: "🎫 Coupons PCS / Transcash" },
+          ].map(l => (
+            <a key={l.href} href={l.href}
+              className="px-4 py-2 rounded-xl text-sm font-bold transition-opacity hover:opacity-80"
+              style={{ background: "var(--bg-elevated)", color: "var(--gold)", border: "1px solid var(--border)" }}>
+              {l.label}
+            </a>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

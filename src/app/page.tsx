@@ -9,12 +9,12 @@ import WAPopover from "@/components/WAPopover";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const SERVICE_DATA = [
-  { image: IMAGES.psn,        tk: "svc.giftcards", color: "#C9A84C", href: "/services/cartes-cadeaux", emoji: "🎮" },
-  { image: IMAGES.cryptoMomo, tk: "svc.crypto",    color: "#26A17B", href: "/services/crypto",          emoji: "₿" },
-  { image: IMAGES.coupons,    tk: "svc.coupons",   color: "#25D366", href: "/services/coupons",         emoji: "🎫" },
-  { image: IMAGES.ubaCard,    tk: "svc.uba",       color: "#8B0000", href: "/services/uba",             emoji: "💳" },
-  { image: IMAGES.paypal2,    tk: "svc.paypal",    color: "#003087", href: "/services/paypal",          emoji: "💸" },
-  { image: IMAGES.factures,   tk: "svc.factures",  color: "#FF6B00", href: "/services/factures",        emoji: "🔄" },
+  { image: IMAGES.psn,        tk: "svc.giftcards", color: "#C9A84C", href: "/services/cartes-cadeaux", emoji: "🎮", price: "à partir de 7 500 FCFA" },
+  { image: IMAGES.cryptoMomo, tk: "svc.crypto",    color: "#26A17B", href: "/services/crypto",          emoji: "₿",  price: "taux temps réel" },
+  { image: IMAGES.coupons,    tk: "svc.coupons",   color: "#25D366", href: "/services/coupons",         emoji: "🎫", price: "440 FCFA/€" },
+  { image: IMAGES.ubaCard,    tk: "svc.uba",       color: "#8B0000", href: "/services/uba",             emoji: "💳", price: "à partir de 10 500 FCFA" },
+  { image: IMAGES.paypal2,    tk: "svc.paypal",    color: "#003087", href: "/services/paypal",          emoji: "💸", price: "580 FCFA/€" },
+  { image: IMAGES.factures,   tk: "svc.factures",  color: "#FF6B00", href: "/services/factures",        emoji: "🔄", price: "+200 FCFA par facture" },
 ];
 
 const STEPS_DATA = [
@@ -227,6 +227,7 @@ export default function HomePage() {
                   <span className="text-3xl mb-2">{s.emoji}</span>
                   <p className="font-black text-white text-lg leading-tight">{s.title}</p>
                   <p className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.65)" }}>{s.sub}</p>
+                  <span className="inline-block mt-2 text-xs font-black px-2 py-0.5 rounded-full w-fit" style={{ background: "var(--gold)", color: "#0A0A0A" }}>{s.price}</span>
                 </div>
               </Link>
               {/* Action buttons */}
@@ -358,6 +359,26 @@ export default function HomePage() {
               <div>
                 <p className="font-black text-white text-sm">{p.label}</p>
                 <p className="text-xs" style={{ color: "var(--text-muted)" }}>{p.sub}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── TRUST BADGES ── */}
+      <section className="px-4 sm:px-6 lg:px-12 pb-16 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {[
+            { icon: "🔒", title: "Paiement 100% sécurisé", sub: "MTN MoMo · Orange Money · Express Union" },
+            { icon: "✅", title: "Satisfait ou remboursé", sub: "Code défectueux ? Remplacé sans discussion." },
+            { icon: "🏅", title: "Codes authentiques garantis", sub: "Sources officielles · Depuis 2012" },
+          ].map(b => (
+            <div key={b.title} className="flex items-center gap-4 p-5 rounded-2xl"
+              style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+              <span className="text-3xl shrink-0">{b.icon}</span>
+              <div>
+                <p className="font-black text-white text-sm">{b.title}</p>
+                <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>{b.sub}</p>
               </div>
             </div>
           ))}

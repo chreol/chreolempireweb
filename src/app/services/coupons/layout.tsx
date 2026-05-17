@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Échange Transcash & PCS Mastercard contre FCFA — Douala",
+  title: { absolute: "Échange Transcash & PCS Mastercard en FCFA — Douala | Chreol Empire" },
   description: "Échangez vos coupons Transcash ou PCS Mastercard contre du FCFA à Douala. Taux garanti 440 FCFA/€. Paiement instantané MTN MoMo ou Orange Money. Cameroun.",
   keywords: ["Transcash cameroun", "PCS Mastercard cameroun", "échange Transcash FCFA", "coupon Transcash douala", "PCS contre FCFA cameroun"],
   openGraph: {

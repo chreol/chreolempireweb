@@ -12,11 +12,17 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import FAQ from "@/components/FAQ";
 
 const PAGE_FAQ = [
-  { q: "Comment vendre mon solde PayPal ?", a: "Envoyez le montant en € à notre compte PayPal (communiqué sur WhatsApp), partagez la capture de confirmation, et nous vous virons le FCFA équivalent sur votre Mobile Money sous 30 minutes." },
-  { q: "Mon compte PayPal doit-il être vérifié ?", a: "Recommandé pour les montants supérieurs à 100€. Pour les petits montants un compte basique suffit. Les comptes américains ou africains non vérifiés peuvent être refusés." },
-  { q: "Quels sont les montants minimum et maximum ?", a: "Vente (PayPal → FCFA) : minimum 20€, maximum 500€. Achat (FCFA → PayPal) : minimum 10 000 FCFA, maximum 500 000 FCFA par transaction." },
-  { q: "PayPal Europe uniquement — qu'est-ce que ça signifie ?", a: "Nous travaillons avec des comptes PayPal européens (France, Belgique, Italie, Espagne…). Les comptes américains, camerounais ou d'autres régions ne sont pas éligibles." },
+  { q: "Comment vendre son solde PayPal en FCFA au Cameroun ?", a: "3 étapes simples : (1) envoyez le montant en € à notre compte PayPal communiqué sur WhatsApp, (2) partagez la capture de confirmation d'envoi, (3) recevez votre FCFA sur MTN MoMo ou Orange Money en moins de 30 minutes. Taux garanti au moment de la transaction." },
+  { q: "Quel est le taux de change PayPal en FCFA en 2026 ?", a: "Nous achetons votre solde PayPal à 580 FCFA par euro et vendons à 700 FCFA par euro. Ces taux sont mis à jour régulièrement selon le marché. Consultez notre ticker en haut de page pour le cours en temps réel." },
+  { q: "Peut-on acheter du solde PayPal avec Orange Money au Cameroun ?", a: "Oui, minimum 10 000 FCFA (environ 14€). Payez via Orange Money, MTN MoMo ou Express Union et recevez le solde PayPal correspondant dans les 30 minutes. Votre compte PayPal doit être européen (France, Belgique, Suisse…)." },
+  { q: "Chreol Empire travaille-t-il avec les comptes PayPal camerounais ?", a: "Non. Nous travaillons uniquement avec des comptes PayPal européens (France, Belgique, Italie, Espagne, Suisse…). Les comptes africains ou camerounais ne sont pas éligibles en raison des restrictions PayPal sur les transferts internationaux." },
 ];
+
+const PAGE_FAQ_SCHEMA = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: PAGE_FAQ.map(f => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+};
 
 export default function PaypalPage() {
   const { addItem } = useCart();
@@ -311,6 +317,23 @@ export default function PaypalPage() {
         ))}
       </div>
       <FAQ items={PAGE_FAQ} />
+      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(PAGE_FAQ_SCHEMA) }} />
+      <div className="mt-8 rounded-2xl p-5" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+        <p className="text-xs font-black uppercase tracking-widest mb-4" style={{ color: "var(--text-muted)" }}>Voir aussi</p>
+        <div className="flex flex-wrap gap-3">
+          {[
+            { href: "/services/crypto",         label: "₿ Crypto & MoMo" },
+            { href: "/services/coupons",         label: "🎫 Coupons PCS / Transcash" },
+            { href: "/services/cartes-cadeaux",  label: "🎮 Cartes Cadeaux" },
+          ].map(l => (
+            <a key={l.href} href={l.href}
+              className="px-4 py-2 rounded-xl text-sm font-bold transition-opacity hover:opacity-80"
+              style={{ background: "var(--bg-elevated)", color: "var(--gold)", border: "1px solid var(--border)" }}>
+              {l.label}
+            </a>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { track } from "@vercel/analytics";
 import { CONTACT, IMAGES } from "@/lib/services";
 
 interface WAPopoverProps {
@@ -44,6 +45,7 @@ export default function WAPopover({
     const p = prenom.trim();
     const r = requete.trim();
     if (!p || !r) return;
+    track("whatsapp_open", { context: title });
     const msg = encodeURIComponent(`Bonjour Chreol Empire, je m'appelle ${p}.\n\n${r}`);
     window.open(`https://wa.me/${CONTACT.whatsapp}?text=${msg}`, "_blank");
     setOpen(false);

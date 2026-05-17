@@ -12,11 +12,17 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import FAQ from "@/components/FAQ";
 
 const PAGE_FAQ = [
-  { q: "Comment fonctionne l'échange crypto → FCFA ?", a: "Envoyez vos crypto à notre adresse de dépôt, partagez le TxID (hash de transaction) sur WhatsApp, et nous vous reversons le FCFA sur votre Mobile Money dans les 30 minutes après confirmation blockchain." },
-  { q: "Quels réseaux blockchain acceptez-vous ?", a: "TRC20, BEP20, ERC20 pour USDT/USDC ; réseau natif pour BTC, SOL, LTC, ADA, ETH, BNB et TRX. En cas de doute sur le réseau à utiliser, contactez-nous avant d'envoyer." },
-  { q: "Y a-t-il une commission sur l'échange ?", a: "0% de commission sur tous les échanges crypto. Le taux affiché dans le ticker en haut de page est le taux final — sans frais cachés." },
-  { q: "Que faire si ma transaction blockchain prend du temps ?", a: "Les confirmations varient selon la congestion du réseau. Partagez votre TxID dès l'envoi et nous surveillons l'arrivée. Nous ne créditons qu'après confirmation réseau." },
+  { q: "Quel est le taux USDT en FCFA aujourd'hui au Cameroun ?", a: "Le taux USDT/FCFA est mis à jour en temps réel dans notre ticker en haut de page. Nous achetons à 580 FCFA/$ et vendons à 700 FCFA/$. Ce taux est garanti au moment de votre transaction, sans aucune commission cachée." },
+  { q: "Comment vendre ses crypto en FCFA au Cameroun sans arnaque ?", a: "Chreol Empire opère depuis 2012 à Douala. Processus sécurisé en 3 étapes : (1) envoyez vos crypto à notre adresse vérifiée, (2) partagez le TxID sur WhatsApp avec capture de l'envoi, (3) recevez votre FCFA sur MTN MoMo ou Orange Money sous 30 min post-confirmation blockchain." },
+  { q: "Quelle blockchain utiliser pour envoyer de l'USDT au Cameroun ?", a: "TRC20 (réseau Tron) est recommandé : frais proches de zéro et confirmations en 1-2 minutes. BEP20 (BNB Chain) est aussi accepté. Évitez ERC20 pour l'USDT — les frais de gas Ethereum peuvent dépasser 10$." },
+  { q: "Combien de temps pour recevoir son MoMo après vente crypto ?", a: "En général 15 à 30 minutes après la première confirmation blockchain. Pour BTC, jusqu'à 1 heure selon la congestion du réseau. Partagez votre TxID dès l'envoi pour que nous surveillions l'arrivée en temps réel." },
 ];
+
+const PAGE_FAQ_SCHEMA = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: PAGE_FAQ.map(f => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+};
 
 export default function CryptoPage() {
   const { addItem } = useCart();
@@ -375,6 +381,23 @@ export default function CryptoPage() {
         )}
       </div>
       <FAQ items={PAGE_FAQ} />
+      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(PAGE_FAQ_SCHEMA) }} />
+      <div className="mt-8 rounded-2xl p-5" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+        <p className="text-xs font-black uppercase tracking-widest mb-4" style={{ color: "var(--text-muted)" }}>Voir aussi</p>
+        <div className="flex flex-wrap gap-3">
+          {[
+            { href: "/services/cartes-cadeaux", label: "🎮 Cartes Cadeaux" },
+            { href: "/services/paypal",          label: "💸 PayPal Europe" },
+            { href: "/services/factures",        label: "🔄 Factures & Échange MoMo" },
+          ].map(l => (
+            <a key={l.href} href={l.href}
+              className="px-4 py-2 rounded-xl text-sm font-bold transition-opacity hover:opacity-80"
+              style={{ background: "var(--bg-elevated)", color: "var(--gold)", border: "1px solid var(--border)" }}>
+              {l.label}
+            </a>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

@@ -12,11 +12,17 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import FAQ from "@/components/FAQ";
 
 const PAGE_FAQ = [
-  { q: "Combien de temps pour recevoir ma carte UBA ?", a: "En général 2 à 5 jours ouvrables après dépôt et vérification de vos documents. Notre équipe vous tient informé en temps réel via WhatsApp." },
-  { q: "Ma carte est-elle utilisable à l'international ?", a: "Oui, la carte UBA Cameroun Visa prépayée est acceptée partout où Visa l'est — en ligne (Amazon, Alibaba, Shopify…) et dans les terminaux physiques à l'étranger." },
-  { q: "Qu'est-ce que le NUI et où le trouver ?", a: "Le Numéro Unique d'Identification figure sur votre Carte Nationale d'Identité. Si vous l'avez perdu ou égaré, notre service de recherche le retrouve pour seulement 1 500 FCFA." },
-  { q: "Quels sont les frais de recharge de la carte ?", a: "De 1 500 FCFA fixe pour les petits montants jusqu'à 3% pour les montants supérieurs à 350 000 FCFA. Consultez la grille complète des frais dans l'onglet Recharger." },
+  { q: "Comment obtenir une carte UBA Cameroun pour payer sur Amazon ?", a: "Commandez votre carte UBA Cameroun via WhatsApp en fournissant : CNI, plan de localisation, demi-photo et NUI. Livraison en 2 à 5 jours ouvrables. La carte Visa UBA est acceptée sur Amazon, Alibaba, Airbnb et tous les sites internationaux." },
+  { q: "Quel est le plafond de la carte UBA Cameroun ?", a: "De 2 500 000 FCFA/mois pour le segment Classic à 10 000 000 FCFA/mois pour le segment Gold. La carte est utilisable pour les paiements en ligne et en magasin partout où Visa est accepté dans le monde." },
+  { q: "La carte UBA Cameroun fonctionne-t-elle à l'international ?", a: "Oui, c'est une carte Visa prépayée internationale. Utilisable sur tous les sites e-commerce mondiaux (Amazon, Netflix, PayPal, Booking…) et dans les terminaux physiques Visa à l'étranger." },
+  { q: "Combien coûte une carte UBA Cameroun à Douala ?", a: "De 10 500 FCFA pour la carte Classic à 25 000 FCFA pour la carte Gold selon votre segment. Les frais de recharge varient de 1 500 FCFA fixe (petits montants) à 3% pour les rechargements supérieurs à 350 000 FCFA." },
 ];
+
+const PAGE_FAQ_SCHEMA = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: PAGE_FAQ.map(f => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+};
 
 function calcFee(amount: number) {
   const tier = UBA_RECHARGE_FEES.find(t => amount >= t.min && amount <= t.max);
@@ -486,6 +492,23 @@ export default function UBAPage() {
         )}
       </AnimatePresence>
       <FAQ items={PAGE_FAQ} />
+      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(PAGE_FAQ_SCHEMA) }} />
+      <div className="mt-8 rounded-2xl p-5" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+        <p className="text-xs font-black uppercase tracking-widest mb-4" style={{ color: "var(--text-muted)" }}>Voir aussi</p>
+        <div className="flex flex-wrap gap-3">
+          {[
+            { href: "/services/cartes-cadeaux", label: "🎮 Cartes Cadeaux" },
+            { href: "/services/crypto",          label: "₿ Crypto & MoMo" },
+            { href: "/services/factures",        label: "🔄 Factures & Échange MoMo" },
+          ].map(l => (
+            <a key={l.href} href={l.href}
+              className="px-4 py-2 rounded-xl text-sm font-bold transition-opacity hover:opacity-80"
+              style={{ background: "var(--bg-elevated)", color: "var(--gold)", border: "1px solid var(--border)" }}>
+              {l.label}
+            </a>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

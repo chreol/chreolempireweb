@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { track } from "@vercel/analytics";
 
 export interface CartItem {
   id: string;
@@ -39,6 +40,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [items]);
 
   const addItem = useCallback((item: Omit<CartItem, "qty">) => {
+    track("cart_add", { service: item.cardName, price: item.price });
     setItems(prev => {
       const existing = prev.find(i => i.id === item.id);
       if (existing) {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { track } from "@vercel/analytics";
 import { PAYPAL_RATES, CRYPTO_RATES } from "@/lib/services";
 
 const EUR_RATE  = PAYPAL_RATES.sellRate;                                // 1€  = 580 FCFA
@@ -131,7 +132,7 @@ export default function FloatingCalc() {
 
       {/* Floating button */}
       <button
-        onClick={() => setOpen(v => !v)}
+        onClick={() => { if (!open) track("calc_use", { mode }); setOpen(v => !v); }}
         title="Calculatrice de change"
         className="w-12 h-12 rounded-2xl flex items-center justify-center text-lg font-black shadow-xl transition-all duration-200 hover:scale-105 active:scale-95"
         style={{

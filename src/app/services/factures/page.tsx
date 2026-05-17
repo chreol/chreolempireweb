@@ -12,11 +12,17 @@ import { useCart } from "@/contexts/CartContext";
 import FAQ from "@/components/FAQ";
 
 const PAGE_FAQ = [
-  { q: "Quelles factures pouvez-vous régler à ma place ?", a: "Canal+ (abonnements TV), Eneo (électricité), Camwater (eau), StarTimes (satellite). D'autres billers sont disponibles sur demande via WhatsApp." },
-  { q: "Combien coûte ce service ?", a: "Commission fixe de 200 FCFA par paiement, quel que soit le montant de la facture. Aucun frais caché." },
-  { q: "En combien de temps ma facture est-elle payée ?", a: "En général sous 15 minutes après votre paiement Mobile Money confirmé. Vous recevez une confirmation de paiement sur WhatsApp." },
-  { q: "Comment fonctionne l'échange MoMo ↔ MoMo ?", a: "Indiquez votre numéro source (avec opérateur), le numéro destination et le montant. Nous effectuons le transfert entre Orange Money, MTN MoMo, Express Union et Yoomee sans frais supplémentaires, taux 1:1." },
+  { q: "Comment payer sa facture Eneo sans se déplacer à Douala ?", a: "Envoyez le montant + 200 FCFA de commission via MTN MoMo ou Orange Money, puis transmettez votre numéro de compteur sur WhatsApp. Nous réglons votre facture Eneo sous 15 minutes et vous envoyons la confirmation de paiement." },
+  { q: "Peut-on payer Canal+ avec MTN MoMo via Chreol Empire ?", a: "Oui, nous prenons en charge Canal+, Eneo, Camwater et StarTimes. Commission unique de 200 FCFA par facture, quel que soit le montant. Paiement accepté par MTN MoMo, Orange Money ou Express Union." },
+  { q: "Quel est le coût du service de paiement de factures ?", a: "200 FCFA fixe par facture, quel que soit le montant. Pas de pourcentage, pas de frais cachés. Pour 5 000 FCFA de facture, vous payez 5 200 FCFA au total. Service disponible 7j/7 de 7h à 23h." },
+  { q: "Comment transférer de l'Orange Money vers MTN MoMo au Cameroun ?", a: "Via notre service d'échange MoMo gratuit : indiquez votre numéro Orange Money source et votre numéro MTN MoMo destination. Nous effectuons l'échange au taux 1:1, sans frais. Minimum 1 000 FCFA, maximum 500 000 FCFA." },
 ];
+
+const PAGE_FAQ_SCHEMA = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: PAGE_FAQ.map(f => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+};
 
 type Tab = "factures" | "momo";
 type IdType = "phone" | "decoder";
@@ -452,6 +458,23 @@ export default function FacturesPage() {
         )}
       </AnimatePresence>
       <FAQ items={PAGE_FAQ} />
+      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(PAGE_FAQ_SCHEMA) }} />
+      <div className="mt-8 rounded-2xl p-5" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+        <p className="text-xs font-black uppercase tracking-widest mb-4" style={{ color: "var(--text-muted)" }}>Voir aussi</p>
+        <div className="flex flex-wrap gap-3">
+          {[
+            { href: "/services/crypto",          label: "₿ Crypto & MoMo" },
+            { href: "/services/uba",              label: "💳 Carte UBA Cameroun" },
+            { href: "/services/cartes-cadeaux",   label: "🎮 Cartes Cadeaux" },
+          ].map(l => (
+            <a key={l.href} href={l.href}
+              className="px-4 py-2 rounded-xl text-sm font-bold transition-opacity hover:opacity-80"
+              style={{ background: "var(--bg-elevated)", color: "var(--gold)", border: "1px solid var(--border)" }}>
+              {l.label}
+            </a>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

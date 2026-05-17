@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { track } from "@vercel/analytics";
 
 export interface FAQItem { q: string; a: string }
 
@@ -25,7 +26,7 @@ export default function FAQ({ items, title = "Questions fréquentes" }: { items:
               style={{ border: `1px solid ${isOpen ? "var(--border-strong)" : "var(--border)"}` }}
             >
               <button
-                onClick={() => setOpen(isOpen ? null : i)}
+                onClick={() => { if (!isOpen) track("faq_open", { question: item.q.slice(0, 60) }); setOpen(isOpen ? null : i); }}
                 className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left transition-colors duration-150"
                 style={{ background: isOpen ? "var(--gold-dim)" : "var(--bg-card)" }}
               >
