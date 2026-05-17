@@ -8,9 +8,9 @@ import { CONTACT, IMAGES } from "@/lib/services";
 import Link from "next/link";
 
 const PAY_METHODS = [
-  { id: "mtn",      label: "MTN MoMo",    image: IMAGES.mtn,    campay: true  },
-  { id: "orange",   label: "Orange Money", image: IMAGES.orange, campay: true  },
-  { id: "whatsapp", label: "Via WhatsApp", image: null,          campay: false },
+  { id: "mtn",      label: "MTN MoMo",    image: IMAGES.mtn,      campay: true  },
+  { id: "orange",   label: "Orange Money", image: IMAGES.orange,   campay: true  },
+  { id: "whatsapp", label: "Via WhatsApp", image: IMAGES.whatsapp, campay: false },
 ] as const;
 type PayId = (typeof PAY_METHODS)[number]["id"];
 
@@ -23,6 +23,7 @@ export default function CartPage() {
   const [campayPhone, setCampayPhone] = useState("");
   const [loading, setLoading]         = useState(false);
   const [done, setDone]               = useState<string | null>(null);
+  const [referral, setReferral]       = useState("");
 
   const isSell    = items.length > 0 && items.every(i => i.type === "sell");
   const canCampay = !isSell && (payMethod === "mtn" || payMethod === "orange");
@@ -39,7 +40,7 @@ export default function CartPage() {
       ? "Vente / Échange"
       : payMethod === "mtn" ? "MTN MoMo" : payMethod === "orange" ? "Orange Money" : "WhatsApp";
     return encodeURIComponent(
-      `Bonjour Chreol Empire,\n\nJe souhaite :\n${lines}\n\nTotal : ${total.toLocaleString("fr-FR")} FCFA\nType : ${payLabel}\n\nNom : ${name}\nTél : ${phone}`,
+      `Bonjour Chreol Empire,\n\nJe souhaite :\n${lines}\n\nTotal : ${total.toLocaleString("fr-FR")} FCFA\nType : ${payLabel}\n\nNom : ${name}\nTél : ${phone}${referral ? `\nCode parrainage : ${referral.toUpperCase()}` : ""}`,
     );
   }
 
@@ -218,6 +219,23 @@ export default function CartPage() {
               <input type="text"  placeholder="Votre nom"            value={name}  onChange={e => setName(e.target.value)}  className="w-full px-4 py-3 rounded-2xl text-white text-sm outline-none" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }} />
               <input type="email" placeholder="Email (confirmation)" value={email} onChange={e => setEmail(e.target.value)} className="w-full px-4 py-3 rounded-2xl text-white text-sm outline-none" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }} />
               <input type="tel"   placeholder="Téléphone"            value={phone} onChange={e => setPhone(e.target.value)} className="w-full px-4 py-3 rounded-2xl text-white text-sm outline-none" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }} />
+              {/* Code parrainage */}
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Code parrainage (optionnel)"
+                  value={referral}
+                  onChange={e => setReferral(e.target.value.replace(/\s/g, "").toUpperCase())}
+                  maxLength={20}
+                  className="w-full px-4 py-3 rounded-2xl text-white text-sm outline-none uppercase tracking-widest"
+                  style={{ background: "var(--gold-dim)", border: "1px solid var(--gold)", color: "var(--gold)" }}
+                />
+                {referral && (
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-black" style={{ color: "var(--gold)" }}>
+                    🎁 −500 FCFA
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 

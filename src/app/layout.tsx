@@ -7,7 +7,7 @@ import { ToastProvider } from "@/components/Toast";
 import Navbar from "@/components/Navbar";
 import RateTicker from "@/components/RateTicker";
 import Image from "next/image";
-import { CONTACT, IMAGES } from "@/lib/services";
+import { CONTACT, IMAGES, SOCIAL_LINKS } from "@/lib/services";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist-sans" });
 
@@ -165,8 +165,47 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 </div>
               </div>
 
-              <div className="mt-8 pt-6 text-center text-xs" style={{ borderTop: "1px solid #1F1F1F", color: "var(--text-muted)" }}>
-                © {new Date().getFullYear()} Chreol Empire. Tous droits réservés.
+              {/* Réseaux sociaux */}
+              <div className="mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4" style={{ borderTop: "1px solid #1F1F1F" }}>
+                <div className="flex items-center gap-3 flex-wrap justify-center">
+                  {/* WhatsApp */}
+                  <a href={`https://wa.me/${CONTACT.whatsapp}`} target="_blank" rel="noopener noreferrer" title="WhatsApp"
+                    className="w-9 h-9 rounded-xl overflow-hidden flex items-center justify-center transition-opacity hover:opacity-75 shrink-0"
+                    style={{ background: "#25D366" }}>
+                    <Image src={IMAGES.whatsapp} alt="WhatsApp" width={22} height={22} unoptimized />
+                  </a>
+                  {/* Facebook Page */}
+                  <a href={SOCIAL_LINKS.facebook} target="_blank" rel="noopener noreferrer" title="Page Facebook"
+                    className="w-9 h-9 rounded-xl flex items-center justify-center font-black text-white text-sm transition-opacity hover:opacity-75 shrink-0"
+                    style={{ background: "#1877F2" }}>f</a>
+                  {/* Groupe Facebook */}
+                  <a href={SOCIAL_LINKS.facebookGroup} target="_blank" rel="noopener noreferrer" title="Groupe Facebook"
+                    className="w-9 h-9 rounded-xl flex items-center justify-center font-black text-white text-[10px] transition-opacity hover:opacity-75 shrink-0"
+                    style={{ background: "#1877F2", opacity: 0.8 }}>G·FB</a>
+                  {/* Telegram */}
+                  <a href={SOCIAL_LINKS.telegram} target="_blank" rel="noopener noreferrer" title="Telegram"
+                    className="w-9 h-9 rounded-xl overflow-hidden flex items-center justify-center transition-opacity hover:opacity-75 shrink-0"
+                    style={{ background: "#229ED9" }}>
+                    <Image src={IMAGES.telegram} alt="Telegram" width={22} height={22} unoptimized />
+                  </a>
+                  {/* Instagram */}
+                  <a href="https://www.instagram.com/chreolempire" target="_blank" rel="noopener noreferrer" title="Instagram"
+                    className="w-9 h-9 rounded-xl overflow-hidden flex items-center justify-center transition-opacity hover:opacity-75 shrink-0"
+                    style={{ background: "linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)" }}>
+                    <Image src={IMAGES.instagram} alt="Instagram" width={22} height={22} unoptimized />
+                  </a>
+                  {/* Google My Business */}
+                  <a href={SOCIAL_LINKS.googleBusiness} target="_blank" rel="noopener noreferrer" title="Google My Business"
+                    className="w-9 h-9 rounded-xl flex items-center justify-center font-black text-white text-sm transition-opacity hover:opacity-75 shrink-0"
+                    style={{ background: "#EA4335" }}>G</a>
+                  {/* BusinessList */}
+                  <a href={SOCIAL_LINKS.businesslist} target="_blank" rel="noopener noreferrer" title="BusinessList"
+                    className="w-9 h-9 rounded-xl flex items-center justify-center font-black text-white text-xs transition-opacity hover:opacity-75 shrink-0"
+                    style={{ background: "#2563EB" }}>BL</a>
+                </div>
+                <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                  © {new Date().getFullYear()} Chreol Empire. Tous droits réservés.
+                </p>
               </div>
             </div>
           </footer>

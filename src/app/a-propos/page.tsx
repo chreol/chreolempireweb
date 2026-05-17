@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { CONTACT, IMAGES } from "@/lib/services";
+import { CONTACT, IMAGES, SOCIAL_LINKS } from "@/lib/services";
 
 export default function AProposPage() {
   return (
@@ -151,6 +151,74 @@ export default function AProposPage() {
             <div>
               <p className="font-black text-white text-sm">Téléphone</p>
               <p className="text-xs" style={{ color: "var(--text-secondary)" }}>{CONTACT.tel}</p>
+            </div>
+          </a>
+
+          {/* Google My Business */}
+          <a
+            href={SOCIAL_LINKS.googleBusiness}
+            target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-4 p-5 rounded-2xl transition-all hover:-translate-y-0.5"
+            style={{ background: "#1A0A0A", border: "1px solid #EA433533" }}
+          >
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-white text-xl shrink-0"
+              style={{ background: "#EA4335" }}>G</div>
+            <div>
+              <p className="font-black text-white text-sm">Google My Business</p>
+              <p className="text-xs" style={{ color: "var(--text-secondary)" }}>Trouvez-nous sur Google Maps</p>
+            </div>
+          </a>
+
+          {/* BusinessList */}
+          <a
+            href={SOCIAL_LINKS.businesslist}
+            target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-4 p-5 rounded-2xl transition-all hover:-translate-y-0.5"
+            style={{ background: "var(--bg-card)", border: "1px solid #2563EB33" }}
+          >
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-white text-sm shrink-0"
+              style={{ background: "#2563EB" }}>BL</div>
+            <div>
+              <p className="font-black text-white text-sm">BusinessList</p>
+              <p className="text-xs" style={{ color: "var(--text-secondary)" }}>Annuaire professionnel Cameroun</p>
+            </div>
+          </a>
+        </div>
+      </section>
+
+      {/* Réseaux sociaux */}
+      <section>
+        <h2 className="text-xl font-black text-white mb-4">Suivez-nous</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <a href={SOCIAL_LINKS.facebook} target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-3 p-4 rounded-2xl transition-all hover:-translate-y-0.5"
+            style={{ background: "#0D1326", border: "1px solid #1877F233" }}>
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-white text-lg shrink-0"
+              style={{ background: "#1877F2" }}>f</div>
+            <div>
+              <p className="font-black text-white text-sm">Page Facebook</p>
+              <p className="text-xs" style={{ color: "var(--text-secondary)" }}>@chreolempire</p>
+            </div>
+          </a>
+          <a href={SOCIAL_LINKS.facebookGroup} target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-3 p-4 rounded-2xl transition-all hover:-translate-y-0.5"
+            style={{ background: "#0D1326", border: "1px solid #1877F233" }}>
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-white text-xs shrink-0"
+              style={{ background: "#1877F2" }}>FB·G</div>
+            <div>
+              <p className="font-black text-white text-sm">Groupe Facebook</p>
+              <p className="text-xs" style={{ color: "var(--text-secondary)" }}>Communauté Chreol Empire</p>
+            </div>
+          </a>
+          <a href={SOCIAL_LINKS.telegram} target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-3 p-4 rounded-2xl transition-all hover:-translate-y-0.5"
+            style={{ background: "#071520", border: "1px solid #229ED933" }}>
+            <div className="relative w-10 h-10 rounded-xl overflow-hidden shrink-0">
+              <Image src={IMAGES.telegram} alt="Telegram" fill style={{ objectFit: "cover" }} unoptimized />
+            </div>
+            <div>
+              <p className="font-black text-white text-sm">Telegram</p>
+              <p className="text-xs" style={{ color: "var(--text-secondary)" }}>@chreolempire</p>
             </div>
           </a>
         </div>

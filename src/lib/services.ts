@@ -7,9 +7,20 @@ export const CONTACT = {
   paypalEmail: "LARAMBAMBO@GMAIL.COM",
 };
 
+export const SOCIAL_LINKS = {
+  facebook:      "https://www.facebook.com/chreolempire",
+  facebookGroup: "https://www.facebook.com/groups/chreolempire",
+  telegram:      "https://t.me/chreolempire",
+  googleBusiness:"https://maps.app.goo.gl/y6ZUqprA579ykBc46",
+  businesslist:  "https://www.businesslist.co.cm/company/138059/chreol-empire-services-digitaux",
+};
+
 export const IMAGES = {
   logo:       "/assets/chreolempire logo avec contact m.webp",
   whatsapp:   "/assets/whatsapp.webp",
+  telegram:   "/assets/telegram.webp",
+  instagram:  "/assets/instagram.webp",
+  xTwitter:   "/assets/x-twitter.webp",
   psn:     "/assets/PlayStation_Store_Card.webp",
   itunes:  "/assets/itunes-gifts-for-business-hero_2x.webp",
   roblox:  "/assets/App-icon-roblox.webp",
