@@ -9,6 +9,14 @@ import { useCart } from "@/contexts/CartContext";
 import { useHistory } from "@/contexts/HistoryContext";
 import { useToast } from "@/components/Toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+import FAQ from "@/components/FAQ";
+
+const PAGE_FAQ = [
+  { q: "Combien de temps pour recevoir ma carte UBA ?", a: "En général 2 à 5 jours ouvrables après dépôt et vérification de vos documents. Notre équipe vous tient informé en temps réel via WhatsApp." },
+  { q: "Ma carte est-elle utilisable à l'international ?", a: "Oui, la carte UBA Cameroun Visa prépayée est acceptée partout où Visa l'est — en ligne (Amazon, Alibaba, Shopify…) et dans les terminaux physiques à l'étranger." },
+  { q: "Qu'est-ce que le NUI et où le trouver ?", a: "Le Numéro Unique d'Identification figure sur votre Carte Nationale d'Identité. Si vous l'avez perdu ou égaré, notre service de recherche le retrouve pour seulement 1 500 FCFA." },
+  { q: "Quels sont les frais de recharge de la carte ?", a: "De 1 500 FCFA fixe pour les petits montants jusqu'à 3% pour les montants supérieurs à 350 000 FCFA. Consultez la grille complète des frais dans l'onglet Recharger." },
+];
 
 function calcFee(amount: number) {
   const tier = UBA_RECHARGE_FEES.find(t => amount >= t.min && amount <= t.max);
@@ -477,6 +485,7 @@ export default function UBAPage() {
           </motion.div>
         )}
       </AnimatePresence>
+      <FAQ items={PAGE_FAQ} />
     </div>
   );
 }

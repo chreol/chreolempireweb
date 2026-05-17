@@ -7,6 +7,14 @@ import { GIFT_CARDS, IMAGES } from "@/lib/services";
 import WAPopover from "@/components/WAPopover";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
+import FAQ from "@/components/FAQ";
+
+const PAGE_FAQ = [
+  { q: "Mes codes sont-ils garantis authentiques ?", a: "Oui, absolument. Tous nos codes proviennent de sources officielles et vérifiées. En cas de problème à l'activation, nous remplaçons ou remboursons sans discussion." },
+  { q: "En combien de temps je reçois mon code ?", a: "En général entre 15 et 30 minutes après confirmation du paiement, directement sur WhatsApp. Les commandes passées après 22h peuvent prendre jusqu'à 2 heures." },
+  { q: "Comment puis-je payer ?", a: "MTN MoMo, Orange Money, Express Union, Yoomee Money ou espèces à notre bureau Vallée 3, Boutiques Deido, Douala." },
+  { q: "Puis-je acheter plusieurs codes à la fois ?", a: "Oui, ajoutez plusieurs articles à votre panier ou précisez la quantité dans votre message WhatsApp. Des réductions sont possibles pour les grosses commandes." },
+];
 
 const TABS = [
   { key: "standard", label: "Standard" },
@@ -259,6 +267,7 @@ export default function CartesCadeauxPage() {
           </div>
         ))}
       </div>
+      <FAQ items={PAGE_FAQ} />
     </div>
   );
 }

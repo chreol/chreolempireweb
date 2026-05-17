@@ -9,6 +9,14 @@ import { useHistory } from "@/contexts/HistoryContext";
 import { useToast } from "@/components/Toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useCart } from "@/contexts/CartContext";
+import FAQ from "@/components/FAQ";
+
+const PAGE_FAQ = [
+  { q: "Quelles factures pouvez-vous régler à ma place ?", a: "Canal+ (abonnements TV), Eneo (électricité), Camwater (eau), StarTimes (satellite). D'autres billers sont disponibles sur demande via WhatsApp." },
+  { q: "Combien coûte ce service ?", a: "Commission fixe de 200 FCFA par paiement, quel que soit le montant de la facture. Aucun frais caché." },
+  { q: "En combien de temps ma facture est-elle payée ?", a: "En général sous 15 minutes après votre paiement Mobile Money confirmé. Vous recevez une confirmation de paiement sur WhatsApp." },
+  { q: "Comment fonctionne l'échange MoMo ↔ MoMo ?", a: "Indiquez votre numéro source (avec opérateur), le numéro destination et le montant. Nous effectuons le transfert entre Orange Money, MTN MoMo, Express Union et Yoomee sans frais supplémentaires, taux 1:1." },
+];
 
 type Tab = "factures" | "momo";
 type IdType = "phone" | "decoder";
@@ -443,6 +451,7 @@ export default function FacturesPage() {
           </motion.div>
         )}
       </AnimatePresence>
+      <FAQ items={PAGE_FAQ} />
     </div>
   );
 }

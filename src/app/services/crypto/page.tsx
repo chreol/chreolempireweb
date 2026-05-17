@@ -9,6 +9,14 @@ import { useCart } from "@/contexts/CartContext";
 import { useHistory } from "@/contexts/HistoryContext";
 import { useToast } from "@/components/Toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+import FAQ from "@/components/FAQ";
+
+const PAGE_FAQ = [
+  { q: "Comment fonctionne l'échange crypto → FCFA ?", a: "Envoyez vos crypto à notre adresse de dépôt, partagez le TxID (hash de transaction) sur WhatsApp, et nous vous reversons le FCFA sur votre Mobile Money dans les 30 minutes après confirmation blockchain." },
+  { q: "Quels réseaux blockchain acceptez-vous ?", a: "TRC20, BEP20, ERC20 pour USDT/USDC ; réseau natif pour BTC, SOL, LTC, ADA, ETH, BNB et TRX. En cas de doute sur le réseau à utiliser, contactez-nous avant d'envoyer." },
+  { q: "Y a-t-il une commission sur l'échange ?", a: "0% de commission sur tous les échanges crypto. Le taux affiché dans le ticker en haut de page est le taux final — sans frais cachés." },
+  { q: "Que faire si ma transaction blockchain prend du temps ?", a: "Les confirmations varient selon la congestion du réseau. Partagez votre TxID dès l'envoi et nous surveillons l'arrivée. Nous ne créditons qu'après confirmation réseau." },
+];
 
 export default function CryptoPage() {
   const { addItem } = useCart();
@@ -366,6 +374,7 @@ export default function CryptoPage() {
           </div>
         )}
       </div>
+      <FAQ items={PAGE_FAQ} />
     </div>
   );
 }

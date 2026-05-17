@@ -9,6 +9,14 @@ import { useCart } from "@/contexts/CartContext";
 import { useHistory } from "@/contexts/HistoryContext";
 import { useToast } from "@/components/Toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+import FAQ from "@/components/FAQ";
+
+const PAGE_FAQ = [
+  { q: "Quels types de coupons échangez-vous ?", a: "PCS Mastercard (codes de 8 caractères alphanumériques) et Transcash (codes de 12 chiffres). Contactez-nous via WhatsApp pour d'autres types de coupons." },
+  { q: "Y a-t-il un montant minimum ?", a: "Oui, minimum 20€ par transaction. Il n'y a pas de maximum fixe ; des conditions spéciales s'appliquent aux gros montants (500€+)." },
+  { q: "Mon code coupon doit-il être intact ?", a: "Oui, le code ne doit pas avoir été partiellement utilisé. Ne révélez votre code que directement sur WhatsApp en session privée avec notre équipe." },
+  { q: "Comment recevoir mon argent après l'échange ?", a: "Par MTN MoMo ou Orange Money dans les 15 à 30 minutes. Pour les gros montants, un paiement par espèces à notre bureau Vallée 3, Deido, Douala est possible." },
+];
 
 type CouponType = keyof typeof COUPON_RATES;
 
@@ -283,6 +291,7 @@ export default function CouponsPage() {
           </div>
         ))}
       </div>
+      <FAQ items={PAGE_FAQ} />
     </div>
   );
 }

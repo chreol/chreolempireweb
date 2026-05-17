@@ -9,6 +9,14 @@ import { useCart } from "@/contexts/CartContext";
 import { useHistory } from "@/contexts/HistoryContext";
 import { useToast } from "@/components/Toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+import FAQ from "@/components/FAQ";
+
+const PAGE_FAQ = [
+  { q: "Comment vendre mon solde PayPal ?", a: "Envoyez le montant en € à notre compte PayPal (communiqué sur WhatsApp), partagez la capture de confirmation, et nous vous virons le FCFA équivalent sur votre Mobile Money sous 30 minutes." },
+  { q: "Mon compte PayPal doit-il être vérifié ?", a: "Recommandé pour les montants supérieurs à 100€. Pour les petits montants un compte basique suffit. Les comptes américains ou africains non vérifiés peuvent être refusés." },
+  { q: "Quels sont les montants minimum et maximum ?", a: "Vente (PayPal → FCFA) : minimum 20€, maximum 500€. Achat (FCFA → PayPal) : minimum 10 000 FCFA, maximum 500 000 FCFA par transaction." },
+  { q: "PayPal Europe uniquement — qu'est-ce que ça signifie ?", a: "Nous travaillons avec des comptes PayPal européens (France, Belgique, Italie, Espagne…). Les comptes américains, camerounais ou d'autres régions ne sont pas éligibles." },
+];
 
 export default function PaypalPage() {
   const { addItem } = useCart();
@@ -302,6 +310,7 @@ export default function PaypalPage() {
           <p key={s} style={{ color: "var(--text-secondary)" }}>✅ {s}</p>
         ))}
       </div>
+      <FAQ items={PAGE_FAQ} />
     </div>
   );
 }
