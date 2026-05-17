@@ -286,7 +286,8 @@ export default function UBAPage() {
                       value={buyPhone}
                       maxLength={9}
                       onChange={e => {
-                        const v = e.target.value.replace(/\D/g, "").slice(0, 9);
+                        const r = e.target.value.replace(/\D/g, "");
+                        const v = (r.startsWith("237") && r.length > 9 ? r.slice(3) : r).slice(0, 9);
                         setBuyPhone(v);
                         setBuyErrors(p => ({ ...p, buyPhone: "" }));
                       }}
@@ -407,7 +408,8 @@ export default function UBAPage() {
                   maxLength={9}
                   inputMode="numeric"
                   onChange={e => {
-                    const v = e.target.value.replace(/\D/g, "").slice(0, 9);
+                    const r = e.target.value.replace(/\D/g, "");
+                    const v = (r.startsWith("237") && r.length > 9 ? r.slice(3) : r).slice(0, 9);
                     setPhone(v);
                     setErrors(p => ({ ...p, phone: "" }));
                     if (v.length === 9) refAmount.current?.focus();

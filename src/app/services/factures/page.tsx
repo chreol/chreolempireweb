@@ -368,7 +368,11 @@ export default function FacturesPage() {
                     type="tel"
                     placeholder="6XXXXXXXX"
                     value={srcPhone}
-                    onChange={e => { setSrcPhone(e.target.value.replace(/\D/g, "").slice(0, 9)); setMomoErrors(p => ({ ...p, srcPhone: "" })); }}
+                    onChange={e => {
+                      const r = e.target.value.replace(/\D/g, "");
+                      setSrcPhone((r.startsWith("237") && r.length > 9 ? r.slice(3) : r).slice(0, 9));
+                      setMomoErrors(p => ({ ...p, srcPhone: "" }));
+                    }}
                     className="flex-1 py-3 pr-4 bg-transparent text-white text-sm outline-none"
                   />
                 </div>
@@ -408,7 +412,11 @@ export default function FacturesPage() {
                     type="tel"
                     placeholder="6XXXXXXXX"
                     value={dstPhone}
-                    onChange={e => { setDstPhone(e.target.value.replace(/\D/g, "").slice(0, 9)); setMomoErrors(p => ({ ...p, dstPhone: "" })); }}
+                    onChange={e => {
+                      const r = e.target.value.replace(/\D/g, "");
+                      setDstPhone((r.startsWith("237") && r.length > 9 ? r.slice(3) : r).slice(0, 9));
+                      setMomoErrors(p => ({ ...p, dstPhone: "" }));
+                    }}
                     className="flex-1 py-3 pr-4 bg-transparent text-white text-sm outline-none"
                   />
                 </div>

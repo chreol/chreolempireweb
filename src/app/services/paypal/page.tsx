@@ -282,7 +282,11 @@ export default function PaypalPage() {
               <div className="flex items-center rounded-2xl overflow-hidden" style={errors.momoPhone ? inputErr : inputBase}>
                 <span className="px-3 text-sm font-bold shrink-0" style={{ color: "var(--text-muted)" }}>+237</span>
                 <input type="tel" placeholder="6XXXXXXXX" value={momoPhone}
-                  onChange={e => { setMomoPhone(e.target.value.replace(/\D/g, "").slice(0, 9)); setErrors(p => ({ ...p, momoPhone: "" })); }}
+                  onChange={e => {
+                    const r = e.target.value.replace(/\D/g, "");
+                    setMomoPhone((r.startsWith("237") && r.length > 9 ? r.slice(3) : r).slice(0, 9));
+                    setErrors(p => ({ ...p, momoPhone: "" }));
+                  }}
                   className="flex-1 py-3 pr-4 bg-transparent text-white text-sm outline-none"
                 />
               </div>

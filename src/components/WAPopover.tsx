@@ -1,21 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { track } from "@vercel/analytics";
 import { CONTACT, IMAGES } from "@/lib/services";
 
 interface WAPopoverProps {
-  prefill?: string;             // Static plain-text prefill for Requête
-  prefillPrenom?: string;       // Pre-fill Prénom field
-  getMsg?: () => string;        // Dynamic message getter — called on open, overrides prefill
-  onBeforeOpen?: () => boolean; // Validation callback — return false to cancel
+  prefill?: string;
+  prefillPrenom?: string;
+  getMsg?: () => string;
+  onBeforeOpen?: () => boolean;
   title?: string;
   className?: string;
   style?: React.CSSProperties;
   children: React.ReactNode;
-  align?: "left" | "right" | "center";
-  dropDown?: boolean;           // popover below button (default: above)
+  align?: "left" | "right" | "center"; // kept for API compatibility
+  dropDown?: boolean;                   // kept for API compatibility
 }
 
 export default function WAPopover({
@@ -27,12 +27,20 @@ export default function WAPopover({
   className,
   style,
   children,
-  align = "center",
-  dropDown = false,
 }: WAPopoverProps) {
   const [open, setOpen]       = useState(false);
   const [prenom, setPrenom]   = useState(prefillPrenom ?? "");
   const [requete, setRequete] = useState(prefill ?? "");
+
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [open]);
 
   function handleTrigger() {
     if (onBeforeOpen && !onBeforeOpen()) return;
@@ -53,9 +61,13 @@ export default function WAPopover({
     setRequete(prefill ?? "");
   }
 
-  const alignCls = align === "left" ? "left-0" : align === "right" ? "right-0" : "left-1/2 -translate-x-1/2";
-  const posCls   = dropDown ? "top-full mt-3" : "bottom-full mb-3";
-  const isBlock  = className?.includes("w-full");
+  function handleClose() {
+    setOpen(false);
+    setPrenom(prefillPrenom ?? "");
+    setRequete(prefill ?? "");
+  }
+
+  const isBlock = className?.includes("w-full");
 
   return (
     <div className={`relative ${isBlock ? "w-full" : "inline-block"}`}>
@@ -64,45 +76,83 @@ export default function WAPopover({
       </button>
 
       {open && (
-        <>
-          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+        <div
+          className="fixed inset-0 z-[999] flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(6px)" }}
+          onClick={handleClose}
+        >
           <div
-            className={`absolute ${posCls} ${alignCls} z-50 flex flex-col gap-3 rounded-2xl p-4`}
+            className="relative w-full max-w-sm flex flex-col gap-4 rounded-3xl p-6"
             style={{
-              width: "min(288px, calc(100vw - 2rem))",
               background: "var(--bg-elevated)",
               border: "1px solid var(--border)",
-              boxShadow: "0 8px 32px rgba(0,0,0,0.7)",
+              boxShadow: "0 24px 64px rgba(0,0,0,0.8)",
             }}
+            onClick={e => e.stopPropagation()}
           >
-            <div className="flex items-center gap-2">
-              <Image src={IMAGES.whatsapp} alt="" width={14} height={14} unoptimized className="shrink-0 opacity-80" />
-              <p className="font-black text-white text-sm leading-tight">{title}</p>
+            {/* Close button */}
+            <button
+              type="button"
+              onClick={handleClose}
+              className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center text-sm font-black transition-opacity hover:opacity-70"
+              style={{ background: "var(--bg-card)", color: "var(--text-muted)" }}
+              aria-label="Fermer"
+            >
+              ✕
+            </button>
+
+            {/* Header */}
+            <div className="flex items-center gap-3 pr-8">
+              <div className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0" style={{ background: "#25D36620" }}>
+                <Image src={IMAGES.whatsapp} alt="" width={22} height={22} unoptimized />
+              </div>
+              <div>
+                <p className="font-black text-white text-base leading-tight">{title}</p>
+                <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>Réponse en moins de 15 min</p>
+              </div>
             </div>
-            <input
-              type="text"
-              placeholder="Votre prénom *"
-              value={prenom}
-              onChange={e => setPrenom(e.target.value)}
-              autoFocus
-              maxLength={50}
-              className="w-full px-3 py-2.5 rounded-xl text-white text-sm outline-none"
-              style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
-            />
-            <textarea
-              placeholder="Votre requête… *"
-              value={requete}
-              onChange={e => setRequete(e.target.value)}
-              rows={prefill || getMsg ? 5 : 3}
-              className="w-full px-3 py-2.5 rounded-xl text-white text-sm outline-none resize-none"
-              style={{ background: "var(--bg-card)", border: "1px solid var(--border)", fontSize: "12px" }}
-            />
-            <div className="flex gap-2">
+
+            <div className="h-px" style={{ background: "var(--border)" }} />
+
+            {/* Prénom */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-black uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
+                Votre prénom *
+              </label>
+              <input
+                type="text"
+                placeholder="Jean-Paul, Aminata…"
+                value={prenom}
+                onChange={e => setPrenom(e.target.value)}
+                autoFocus
+                maxLength={50}
+                className="w-full px-4 py-3 rounded-2xl text-white text-sm outline-none"
+                style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
+              />
+            </div>
+
+            {/* Requête */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-black uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
+                Votre demande *
+              </label>
+              <textarea
+                placeholder="Décrivez votre commande…"
+                value={requete}
+                onChange={e => setRequete(e.target.value)}
+                rows={prefill || getMsg ? 5 : 3}
+                className="w-full px-4 py-3 rounded-2xl text-white text-sm outline-none resize-none"
+                style={{ background: "var(--bg-card)", border: "1px solid var(--border)", fontSize: "13px", lineHeight: "1.5" }}
+              />
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-3 pt-1">
               <button
                 type="button"
-                onClick={() => setOpen(false)}
-                className="flex-1 py-2 rounded-xl text-xs font-bold transition-opacity hover:opacity-70"
-                style={{ background: "var(--bg-card)", color: "var(--text-muted)" }}
+                onClick={handleClose}
+                className="flex-1 py-3 rounded-2xl text-sm font-bold transition-opacity hover:opacity-70"
+                style={{ background: "var(--bg-card)", color: "var(--text-secondary)" }}
               >
                 Annuler
               </button>
@@ -110,14 +160,15 @@ export default function WAPopover({
                 type="button"
                 onClick={handleSend}
                 disabled={!prenom.trim() || !requete.trim()}
-                className="flex-1 py-2 rounded-xl text-xs font-black text-white flex items-center justify-center gap-1 disabled:opacity-40 transition-opacity hover:opacity-85"
-                style={{ background: "#25D366" }}
+                className="flex-2 px-6 py-3 rounded-2xl text-sm font-black text-white flex items-center justify-center gap-2 disabled:opacity-40 transition-opacity hover:opacity-85"
+                style={{ background: "#25D366", flex: 2 }}
               >
+                <Image src={IMAGES.whatsapp} alt="" width={16} height={16} unoptimized className="shrink-0" />
                 Envoyer →
               </button>
             </div>
           </div>
-        </>
+        </div>
       )}
     </div>
   );
