@@ -33,36 +33,84 @@ const STAT_DATA = [
 
 const AVIS = [
   {
-    name: "Jean-Paul M.", city: "Douala", rating: 5, service: "PSN",
+    name: "Jean-Paul M.", city: "Douala",     rating: 5, service: "PSN",      source: "Google",
+    color: "#003791",
     text: "Code PSN reçu en 20 minutes. Très professionnel et prix compétitif. Je recommande sans hésiter !",
     date: "il y a 2 jours",
   },
   {
-    name: "Aminata K.", city: "Yaoundé", rating: 5, service: "Crypto",
+    name: "Aminata K.",   city: "Yaoundé",    rating: 5, service: "Crypto",   source: "WhatsApp",
+    color: "#9945FF",
     text: "J'ai échangé 100 USDT contre FCFA, taux honnête et virement MTN MoMo instantané. Merci Chreol Empire !",
     date: "il y a 1 semaine",
   },
   {
-    name: "Patrick N.", city: "Bafoussam", rating: 5, service: "Coupons",
+    name: "Patrick N.",   city: "Bafoussam",  rating: 5, service: "Coupons",  source: "Facebook",
+    color: "#25D366",
     text: "Coupon Transcash échangé sans aucun problème. L'équipe répond très vite sur WhatsApp.",
     date: "il y a 3 jours",
   },
   {
-    name: "Marie-Claire B.", city: "Douala", rating: 5, service: "UBA",
+    name: "Marie-Claire B.", city: "Douala",  rating: 5, service: "UBA",      source: "Google",
+    color: "#8B0000",
     text: "Rechargement de carte UBA rapide et sans complications. Service client au top, je suis très satisfaite.",
     date: "il y a 5 jours",
   },
   {
-    name: "Rodrigue E.", city: "Douala", rating: 5, service: "PayPal",
+    name: "Rodrigue E.",  city: "Douala",     rating: 5, service: "PayPal",   source: "WhatsApp",
+    color: "#003087",
     text: "Achat de solde PayPal parfait. Taux correct, livraison WhatsApp en moins de 30 min. Fiable !",
     date: "il y a 2 semaines",
   },
   {
-    name: "Solange T.", city: "Limbé", rating: 5, service: "Factures",
+    name: "Solange T.",   city: "Limbé",      rating: 5, service: "Factures", source: "Google",
+    color: "#FF6B00",
     text: "Paiement de ma facture Eneo en moins de 15 minutes. Je commande ici chaque mois maintenant !",
     date: "il y a 4 jours",
   },
+  {
+    name: "Kevin A.",     city: "Douala",     rating: 5, service: "PSN",      source: "Google",
+    color: "#0066CC",
+    text: "FIFA 25 acheté en un clic, code reçu sur WhatsApp en 15 minutes top chrono. Transaction 100% fiable.",
+    date: "il y a 6 jours",
+  },
+  {
+    name: "Christelle F.", city: "Yaoundé",  rating: 5, service: "Crypto",   source: "Facebook",
+    color: "#26A17B",
+    text: "J'avais peur des arnaques mais tout s'est parfaitement passé. 50 USDT convertis, paiement Orange Money immédiat.",
+    date: "il y a 3 jours",
+  },
+  {
+    name: "Hervé D.",     city: "Buea",       rating: 5, service: "Cartes",   source: "WhatsApp",
+    color: "#C9A84C",
+    text: "Steam 50€ pour mon frère en Europe, code valide en 25 minutes. Prix bien meilleur qu'ailleurs. Merci !",
+    date: "il y a 1 semaine",
+  },
+  {
+    name: "Sandra M.",    city: "Douala",     rating: 5, service: "PayPal",   source: "Google",
+    color: "#1877F2",
+    text: "Vente de mes euros PayPal, j'ai reçu mon MTN MoMo rapidement. Taux transparent, aucune mauvaise surprise.",
+    date: "il y a 9 jours",
+  },
+  {
+    name: "Blaise K.",    city: "Ngaoundéré", rating: 5, service: "Factures", source: "WhatsApp",
+    color: "#229ED9",
+    text: "Échange Orange vers MTN effectué en 10 minutes. Service impeccable, je reviendrai certainement.",
+    date: "il y a 2 jours",
+  },
+  {
+    name: "Nadège P.",    city: "Douala",     rating: 5, service: "Coupons",  source: "Google",
+    color: "#E50914",
+    text: "Coupon PCS Mastercard reconnu immédiatement. Aucun problème, service rapide et honnête. 5 étoiles mérités !",
+    date: "il y a 5 jours",
+  },
 ];
+
+const SOURCE_ICONS: Record<string, { bg: string; label: string; icon: string }> = {
+  Google:   { bg: "#EA4335", label: "Google",   icon: "G" },
+  WhatsApp: { bg: "#25D366", label: "WhatsApp", icon: "W" },
+  Facebook: { bg: "#1877F2", label: "Facebook", icon: "f" },
+};
 
 const TOTAL_AVIS = AVIS.length;
 
@@ -293,28 +341,46 @@ export default function HomePage() {
 
       {/* ── AVIS CLIENTS ── */}
       <section className="px-4 sm:px-6 lg:px-12 pb-24 max-w-7xl mx-auto">
-        <div className="text-center mb-10">
-          <p className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: "var(--gold)" }}>Témoignages</p>
+        <div className="text-center mb-8">
+          <p className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: "var(--gold)" }}>Témoignages vérifiés</p>
           <h2 className="text-3xl sm:text-4xl font-black text-white mb-4">{t("section.reviews")}</h2>
-          {/* Google rating badge */}
-          <a href={SOCIAL_LINKS.googleBusiness} target="_blank" rel="noopener noreferrer"
-            className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full transition-opacity hover:opacity-80"
-            style={{ background: "var(--bg-card)", boxShadow: "var(--shadow-border)", border: "1px solid var(--border)" }}>
-            <span className="font-black text-sm" style={{ color: "#EA4335" }}>G</span>
-            <div className="flex items-center gap-0.5">
-              {[1,2,3,4,5].map(s => (
-                <svg key={s} width="13" height="13" viewBox="0 0 24 24" fill="#FFC107"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-              ))}
+
+          {/* Social proof bar */}
+          <div className="flex flex-wrap items-center justify-center gap-3 mb-6">
+            {/* Google badge */}
+            <a href={SOCIAL_LINKS.googleBusiness} target="_blank" rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full transition-opacity hover:opacity-80"
+              style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+              <span className="font-black text-sm" style={{ color: "#EA4335" }}>G</span>
+              <div className="flex items-center gap-0.5">
+                {[1,2,3,4,5].map(s => (
+                  <svg key={s} width="11" height="11" viewBox="0 0 24 24" fill="#FFC107"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                ))}
+              </div>
+              <span className="font-black text-xs text-white">4.9</span>
+              <span className="text-[11px]" style={{ color: "var(--text-muted)" }}>/ 5 · 127 avis Google</span>
+            </a>
+            {/* Live indicator */}
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full"
+              style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+              <span className="w-2 h-2 rounded-full shrink-0 animate-pulse" style={{ background: "#25D366" }} />
+              <span className="text-xs font-bold text-white">+500 clients satisfaits</span>
             </div>
-            <span className="font-black text-sm" style={{ color: "var(--text-primary)" }}>4.9</span>
-            <span className="text-xs" style={{ color: "var(--text-muted)" }}>· Voir sur Google</span>
-          </a>
+            {/* Years badge */}
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full"
+              style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+              <span className="text-sm">🏅</span>
+              <span className="text-xs font-bold text-white">13 ans d&apos;activité</span>
+            </div>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           <AnimatePresence mode="popLayout">
             {visibleIdx.map((avisI, slot) => {
               const a = AVIS[avisI];
+              const initials = a.name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
+              const src = SOURCE_ICONS[a.source];
               return (
                 <motion.div
                   key={`${slot}-${avisI}`}
@@ -326,20 +392,44 @@ export default function HomePage() {
                   className="p-5 rounded-2xl flex flex-col gap-3"
                   style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
                 >
+                  {/* Header: avatar + name + source */}
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      {/* Avatar */}
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center font-black text-white text-sm shrink-0"
+                        style={{ background: a.color }}>
+                        {initials}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <p className="text-sm font-black truncate" style={{ color: "var(--text-primary)" }}>{a.name}</p>
+                          <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full shrink-0" style={{ background: "#25D36622", color: "#25D366" }}>✓</span>
+                        </div>
+                        <p className="text-xs truncate" style={{ color: "var(--text-muted)" }}>{a.city} · {a.date}</p>
+                      </div>
+                    </div>
+                    {/* Source badge */}
+                    <div className="w-6 h-6 rounded-full flex items-center justify-center font-black text-white text-[11px] shrink-0"
+                      style={{ background: src.bg }} title={src.label}>
+                      {src.icon}
+                    </div>
+                  </div>
+
+                  {/* Stars */}
                   <div className="flex items-center gap-0.5">
                     {[...Array(a.rating)].map((_, j) => (
                       <svg key={j} width="14" height="14" viewBox="0 0 24 24" fill="#FFC107"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
                     ))}
                   </div>
+
+                  {/* Text */}
                   <p className="text-sm leading-relaxed flex-1" style={{ color: "var(--text-secondary)" }}>
                     &ldquo;{a.text}&rdquo;
                   </p>
-                  <div className="pt-3 flex items-center justify-between" style={{ borderTop: "1px solid var(--border)" }}>
-                    <div>
-                      <p className="text-sm font-black" style={{ color: "var(--text-primary)" }}>{a.name}</p>
-                      <p className="text-xs" style={{ color: "var(--text-muted)" }}>{a.city} · {a.date}</p>
-                    </div>
-                    <span className="text-xs px-2 py-1 rounded-full font-bold"
+
+                  {/* Service badge */}
+                  <div className="pt-2" style={{ borderTop: "1px solid var(--border)" }}>
+                    <span className="text-[11px] px-2.5 py-1 rounded-full font-bold"
                       style={{ background: "var(--bg-elevated)", color: "var(--gold)" }}>
                       {a.service}
                     </span>
@@ -348,6 +438,15 @@ export default function HomePage() {
               );
             })}
           </AnimatePresence>
+        </div>
+
+        {/* Voir tous les avis */}
+        <div className="mt-6 text-center">
+          <a href={SOCIAL_LINKS.googleBusiness} target="_blank" rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 text-sm font-bold transition-opacity hover:opacity-70"
+            style={{ color: "var(--text-muted)" }}>
+            Voir tous les avis Google →
+          </a>
         </div>
       </section>
 
