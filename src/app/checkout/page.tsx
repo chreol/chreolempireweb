@@ -2,8 +2,31 @@
 
 import { useSearchParams, useRouter } from "next/navigation";
 import { useState, useEffect, useCallback, Suspense } from "react";
+import Image from "next/image";
 import Link from "next/link";
-import { CONTACT } from "@/lib/services";
+import { CONTACT, IMAGES } from "@/lib/services";
+
+// Product → image mapping (keyed on URL param `product`)
+const PRODUCT_IMAGE: Record<string, string> = {
+  psn:        IMAGES.psn,
+  itunes:     IMAGES.itunes,
+  robux:      IMAGES.robux,
+  roblox:     IMAGES.roblox,
+  steam:      IMAGES.steam,
+  nintendo:   IMAGES.nintendo,
+  google:     IMAGES.google,
+  razer:      IMAGES.razer,
+  crypto:     IMAGES.crypto,
+  usdt:       IMAGES.crypto,
+  btc:        IMAGES.crypto,
+  paypal:     IMAGES.paypal,
+  "paypal-sell": IMAGES.paypal2,
+  coupons:    IMAGES.coupons,
+  pcs:        IMAGES.pcs,
+  transcash:  IMAGES.transcash,
+  uba:        IMAGES.uba,
+  factures:   IMAGES.factures,
+};
 
 // ── Cameroonian prefix → operator detection ───────────────────────────────
 type Operator = "orange" | "mtn";
@@ -31,9 +54,9 @@ type PayState = "idle" | "submitting" | "waiting_pin" | "success" | "error";
 const PIN_TIMEOUT_SECS = 75;
 
 // ── Operator config ───────────────────────────────────────────────────────
-const OPERATORS: { id: Operator; name: string; color: string; ussd: string; pinLength: number }[] = [
-  { id: "orange", name: "Orange Money", color: "#FF6600", ussd: "#150*50#",  pinLength: 4 },
-  { id: "mtn",    name: "MTN MoMo",     color: "#FFC107", ussd: "*126*1#",   pinLength: 5 },
+const OPERATORS: { id: Operator; name: string; color: string; ussd: string; pinLength: number; image: string }[] = [
+  { id: "orange", name: "Orange Money", color: "#FF6600", ussd: "#150*50#", pinLength: 4, image: IMAGES.orange },
+  { id: "mtn",    name: "MTN MoMo",     color: "#FFC107", ussd: "*126*1#",  pinLength: 5, image: IMAGES.mtn },
 ];
 
 // ── Main checkout inner component ─────────────────────────────────────────
@@ -143,13 +166,19 @@ function CheckoutInner() {
 
     return (
       <div className="max-w-md mx-auto px-4 py-16 flex flex-col items-center text-center">
-        {/* Animated phone icon */}
-        <div className="relative mb-6">
-          <div className="w-20 h-20 rounded-full flex items-center justify-center text-4xl"
-            style={{ background: opConfig?.color ?? "var(--gold)", opacity: 0.15, position: "absolute", inset: 0 }} />
-          <div className="w-20 h-20 rounded-full flex items-center justify-center text-4xl relative"
-            style={{ border: `3px solid ${opConfig?.color ?? "var(--gold)"}` }}>
-            📱
+        {/* Operator logo with glow ring */}
+        <div className="relative mb-6 w-20 h-20">
+          <div className="absolute inset-0 rounded-full"
+            style={{ background: opConfig?.color ?? "var(--gold)", opacity: 0.15 }} />
+          <div className="w-20 h-20 rounded-full overflow-hidden relative"
+            style={{ border: `3px solid ${opConfig?.color ?? "var(--gold)"}`, padding: 3 }}>
+            <div className="w-full h-full rounded-full overflow-hidden relative">
+              {opConfig ? (
+                <Image src={opConfig.image} alt={opConfig.name} fill style={{ objectFit: "cover" }} unoptimized />
+              ) : (
+                <span className="flex items-center justify-center w-full h-full text-3xl">📱</span>
+              )}
+            </div>
           </div>
         </div>
 
@@ -218,15 +247,28 @@ function CheckoutInner() {
       </button>
 
       {/* Order recap */}
-      <div className="rounded-2xl p-5 mb-6"
+      <div className="rounded-2xl p-5 mb-6 flex items-center gap-4"
         style={{ background: "var(--bg-elevated)", border: "1px solid var(--border-strong)" }}>
-        <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color: "var(--text-muted)" }}>
-          Votre commande
-        </p>
-        <p className="text-lg font-black text-white mb-0.5">{label}</p>
-        <p className="text-3xl font-black" style={{ color: "var(--gold)" }}>
-          {amount.toLocaleString("fr-FR")} <span className="text-base">FCFA</span>
-        </p>
+        {PRODUCT_IMAGE[product] && (
+          <div className="shrink-0 w-16 h-16 rounded-xl overflow-hidden relative">
+            <Image
+              src={PRODUCT_IMAGE[product]}
+              alt={label}
+              fill
+              style={{ objectFit: "cover" }}
+              unoptimized
+            />
+          </div>
+        )}
+        <div className="flex-1 min-w-0">
+          <p className="text-xs font-bold uppercase tracking-wider mb-0.5" style={{ color: "var(--text-muted)" }}>
+            Votre commande
+          </p>
+          <p className="text-sm font-black text-white truncate mb-0.5">{label}</p>
+          <p className="text-2xl font-black" style={{ color: "var(--gold)" }}>
+            {amount.toLocaleString("fr-FR")} <span className="text-sm font-bold">FCFA</span>
+          </p>
+        </div>
       </div>
 
       <h1 className="text-xl font-black text-white mb-6">Payer avec Mobile Money</h1>
@@ -238,10 +280,14 @@ function CheckoutInner() {
         </label>
         <div className="flex items-center gap-3 px-4 py-3 rounded-2xl"
           style={{ background: "var(--bg-elevated)", border: `1px solid ${operator ? (opConfig?.color ?? "var(--border)") : "var(--border)"}`, transition: "border-color 0.2s" }}>
-          {/* Flag / operator badge */}
-          <span className="text-lg shrink-0">
-            {operator === "orange" ? "🟠" : operator === "mtn" ? "🟡" : "🏳️"}
-          </span>
+          {/* Operator logo */}
+          <div className="shrink-0 w-6 h-6 rounded-full overflow-hidden relative">
+            {opConfig ? (
+              <Image src={opConfig.image} alt={opConfig.name} fill style={{ objectFit: "cover" }} unoptimized />
+            ) : (
+              <span className="text-lg">🏳️</span>
+            )}
+          </div>
           <span className="text-sm font-bold shrink-0" style={{ color: "var(--text-muted)" }}>+237</span>
           <input
             type="tel"
@@ -292,13 +338,15 @@ function CheckoutInner() {
                 background: operator === op.id ? `${op.color}22` : "var(--bg-elevated)",
                 border: `2px solid ${operator === op.id ? op.color : "var(--border)"}`,
               }}>
-              <span className="text-2xl">{op.id === "orange" ? "🟠" : "🟡"}</span>
-              <div className="text-left">
+              <div className="shrink-0 w-10 h-10 rounded-xl overflow-hidden relative">
+                <Image src={op.image} alt={op.name} fill style={{ objectFit: "cover" }} unoptimized />
+              </div>
+              <div className="text-left flex-1 min-w-0">
                 <p className="text-xs font-black text-white">{op.name}</p>
-                <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>{op.id === "orange" ? "67x / 69x" : "67x / 68x"}</p>
+                <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>{op.id === "orange" ? "69x / 655–659" : "67x / 68x / 650–654"}</p>
               </div>
               {operator === op.id && (
-                <span className="ml-auto text-sm" style={{ color: op.color }}>✓</span>
+                <span className="shrink-0 text-sm font-black" style={{ color: op.color }}>✓</span>
               )}
             </button>
           ))}
@@ -348,11 +396,25 @@ function CheckoutInner() {
       </div>
 
       {/* Trust */}
-      <div className="mt-8 pt-6 flex items-center justify-center gap-4 flex-wrap"
+      <div className="mt-8 pt-6 flex flex-col items-center gap-4"
         style={{ borderTop: "1px solid var(--border)" }}>
-        {["🔒 Paiement sécurisé", "⚡ Livraison 15–30 min", "✅ Codes garantis"].map(b => (
-          <span key={b} className="text-xs" style={{ color: "var(--text-muted)" }}>{b}</span>
-        ))}
+        <div className="flex items-center gap-2">
+          {[IMAGES.orange, IMAGES.mtn].map((src, i) => (
+            <div key={i} className="w-8 h-8 rounded-full overflow-hidden relative"
+              style={{ border: "1px solid var(--border)" }}>
+              <Image src={src} alt="" fill style={{ objectFit: "cover" }} unoptimized />
+            </div>
+          ))}
+          <div className="w-8 h-8 rounded-full overflow-hidden relative flex items-center justify-center"
+            style={{ background: "#25D366" }}>
+            <Image src={IMAGES.whatsapp} alt="WhatsApp" width={18} height={18} unoptimized />
+          </div>
+        </div>
+        <div className="flex items-center gap-4 flex-wrap justify-center">
+          {["🔒 Paiement sécurisé", "⚡ Livraison 15–30 min", "✅ Codes garantis"].map(b => (
+            <span key={b} className="text-xs" style={{ color: "var(--text-muted)" }}>{b}</span>
+          ))}
+        </div>
       </div>
     </div>
   );
