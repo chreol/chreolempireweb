@@ -62,6 +62,8 @@ async function insertOrder(body: CampayWebhookBody, serviceId: string, clientPho
 
   const operatorLabel = body.operator?.toLowerCase().includes("orange") ? "Orange Money" : "MTN MoMo";
 
+  const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
   const res = await fetch(`${url}/rest/v1/orders`, {
     method: "POST",
     headers: {
@@ -71,6 +73,7 @@ async function insertOrder(body: CampayWebhookBody, serviceId: string, clientPho
       Prefer: "return=minimal",
     },
     body: JSON.stringify({
+      id,
       type: "achat",
       summary: `${serviceId} — ${body.amount} XAF via ${operatorLabel} (${clientPhone})${productCode ? ` — ${productCode}` : ""}`,
       total: parseInt(body.amount, 10),
