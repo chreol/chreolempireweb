@@ -8,6 +8,7 @@ import { ToastProvider } from "@/components/Toast";
 import Providers from "@/components/Providers";
 import Navbar from "@/components/Navbar";
 import RateTicker from "@/components/RateTicker";
+import PromoBanner from "@/components/PromoBanner";
 import WASupport from "@/components/WASupport";
 import WAPopover from "@/components/WAPopover";
 import FloatingCalc from "@/components/FloatingCalc";
@@ -119,6 +120,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <HistoryProvider>
         <CartProvider>
           <RateTicker />
+          <PromoBanner />
           <Navbar />
           <main className="flex-1">{children}</main>
           <FloatingCalc />

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import { track } from "@vercel/analytics";
 import { PROMOS, type Promo } from "@/lib/promos";
 import { CONTACT } from "@/lib/services";
 
@@ -129,15 +130,30 @@ function PromoCard({ promo }: { promo: Promo }) {
 
         {/* CTA */}
         {!expired && !isSoldOut ? (
-          <a
-            href={`https://wa.me/${CONTACT.whatsapp}?text=${encodeURIComponent(promo.whatsappPrefill)}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-black text-sm text-white transition-opacity hover:opacity-85"
-            style={{ background: "#25D366" }}
-          >
-            💬 Profiter de l&apos;offre
-          </a>
+          <div className="flex flex-col gap-2">
+            <a
+              href={`https://wa.me/${CONTACT.whatsapp}?text=${encodeURIComponent(promo.whatsappPrefill)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => track("promo_click", { id: promo.id, service: promo.service })}
+              className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-black text-sm text-white transition-opacity hover:opacity-85"
+              style={{ background: "#25D366" }}
+            >
+              💬 Profiter de l&apos;offre
+            </a>
+            <button
+              onClick={() => {
+                const shareText = `🔥 Offre flash Chreol Empire : ${promo.title} à ${promo.promoPrice.toLocaleString("fr-FR")} ${promo.currency} !\n👉 https://chreolempire.com/promo`;
+                const url = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
+                track("promo_share", { id: promo.id });
+                window.open(url, "_blank");
+              }}
+              className="flex items-center justify-center gap-2 w-full py-2 rounded-xl text-xs font-bold transition-opacity hover:opacity-75"
+              style={{ background: "var(--bg-elevated)", color: "var(--text-secondary)", border: "1px solid var(--border)" }}
+            >
+              ↗ Partager cette offre
+            </button>
+          </div>
         ) : (
           <Link href={`/services/${promo.service}`}
             className="flex items-center justify-center w-full py-3 rounded-xl font-black text-sm transition-opacity hover:opacity-75"
@@ -152,6 +168,10 @@ function PromoCard({ promo }: { promo: Promo }) {
 
 // ── Page ──────────────────────────────────────────────────────────────────
 export default function PromoPage() {
+  useEffect(() => {
+    track("promo_page_view", { active_count: PROMOS.filter(p => p.expiresAt && new Date(p.expiresAt) > new Date()).length });
+  }, []);
+
   const activePromos = PROMOS.filter(p => {
     const expired = p.expiresAt ? new Date(p.expiresAt) < new Date() : false;
     const soldOut = p.remaining !== null && p.remaining === 0;
