@@ -75,23 +75,23 @@ async function insertOrder(body: CampayWebhookBody, serviceId: string, clientPho
 }
 
 async function sendEmailNotification(body: CampayWebhookBody, serviceId: string, clientPhone: string, productCode: string) {
-  const resendKey = process.env.RESEND_API_KEY;
-  if (!resendKey) return;
+  const brevoKey = process.env.BREVO_API_KEY;
+  if (!brevoKey) return;
 
   const operatorLabel = body.operator?.toLowerCase().includes("orange") ? "Orange Money" : "MTN MoMo";
-  const fromEmail = process.env.RESEND_FROM_EMAIL ?? "Chreol Empire <onboarding@resend.dev>";
+  const senderEmail = process.env.BREVO_SENDER_EMAIL ?? "chreolempire00@gmail.com";
 
-  await fetch("https://api.resend.com/emails", {
+  await fetch("https://api.brevo.com/v3/smtp/email", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${resendKey}`,
+      "api-key": brevoKey,
     },
     body: JSON.stringify({
-      from: fromEmail,
-      to: ["chreolempire00@gmail.com"],
+      sender: { name: "Chreol Empire", email: senderEmail },
+      to: [{ email: "chreolempire00@gmail.com" }],
       subject: `✅ Nouveau paiement — ${body.amount} XAF (${serviceId})`,
-      html: `
+      htmlContent: `
         <div style="font-family:sans-serif;max-width:500px;margin:0 auto;padding:24px">
           <h2 style="color:#B8860B;margin-bottom:16px">✅ Paiement reçu — Chreol Empire</h2>
           <table style="width:100%;border-collapse:collapse">
@@ -104,7 +104,7 @@ async function sendEmailNotification(body: CampayWebhookBody, serviceId: string,
             <tr><td style="padding:8px 0;color:#666">Référence opérateur</td><td style="font-size:12px">${body.operator_reference}</td></tr>
           </table>
           <p style="margin-top:24px;padding:12px;background:#fff3cd;border-radius:8px;font-size:14px">
-            ⚠️ Penser à livrer le produit au client via WhatsApp : <strong>${clientPhone}</strong>
+            ⚠️ Livrer le produit au client via WhatsApp : <strong>${clientPhone}</strong>
           </p>
         </div>
       `,
