@@ -108,7 +108,7 @@ async function sendEmailNotification(body: CampayWebhookBody, serviceId: string,
     method: "POST",
     headers: { "Content-Type": "application/json", "api-key": brevoKey },
     body: JSON.stringify({
-      sender: { name: "Chreol Empire", email: senderEmail },
+      sender: { id: parseInt(process.env.BREVO_SENDER_ID ?? "1", 10) },
       to: [{ email: "chreolempire00@gmail.com" }],
       subject: `✅ Nouveau paiement — ${body.amount} XAF (${serviceId})`,
       htmlContent: `
