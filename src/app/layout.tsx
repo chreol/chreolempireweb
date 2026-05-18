@@ -135,7 +135,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     Chreol<span style={{ color: "var(--gold)" }}>Empire</span>
                   </p>
                   <p className="text-[11px] font-black mb-1" style={{ color: "var(--text-secondary)" }}>
-                    le premium des services digitaux Camerounais
+                    Le monde digital, à portée de Mobile Money.
                   </p>
                   <p className="text-xs font-bold mb-2" style={{ color: "var(--gold)" }}>
                     Cartes cadeaux &amp; crypto · 0% commission
