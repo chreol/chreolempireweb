@@ -52,40 +52,46 @@ export default function CartPage() {
 
     setLoading(true);
     try {
-      const { data: order, error } = await supabase
+      const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const operatorLabel = payMethod === "mtn" ? "MTN MoMo" : "Orange Money";
+
+      const { error: dbError } = await supabase
         .from("orders")
         .insert({
-          summary, total,
-          payment_method: payMethod,
+          id,
+          type: "achat",
+          summary,
+          total,
+          item_count: items.length,
+          payment_method: operatorLabel,
           status: "pending",
           payment_status: "pending",
           client_name: name || "Client web",
           client_email: email,
-        })
-        .select("id")
-        .single();
+          client_city: "Douala",
+        });
 
-      if (error || !order) throw new Error(error?.message ?? "Erreur lors de la création de la commande");
+      if (dbError) throw new Error(dbError.message ?? "Erreur création commande");
 
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/initiate-payment`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "apikey": process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-          },
-          body: JSON.stringify({ order_id: order.id, phone: `237${rawPhone}` }),
-        },
-      );
+      const res = await fetch("/api/campay-collect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          phone: rawPhone,
+          operator: payMethod as "orange" | "mtn",
+          amount: total,
+          label: summary.slice(0, 100),
+          externalReference: `cart|${rawPhone}|${id}`,
+        }),
+      });
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Erreur Campay");
 
-      setDone(order.id);
+      setDone(id);
       clearCart();
-    } catch (err: any) {
-      alert(err.message ?? "Erreur inattendue");
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "Erreur inattendue");
     } finally {
       setLoading(false);
     }

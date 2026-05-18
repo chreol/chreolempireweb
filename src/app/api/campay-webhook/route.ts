@@ -55,23 +55,42 @@ function hexToBytes(hex: string): Uint8Array<ArrayBuffer> {
   return bytes;
 }
 
-async function insertOrder(body: CampayWebhookBody, serviceId: string, clientPhone: string, productCode: string) {
+async function upsertOrder(body: CampayWebhookBody, serviceId: string, clientPhone: string, productCode: string) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key) return;
 
   const operatorLabel = body.operator?.toLowerCase().includes("orange") ? "Orange Money" : "MTN MoMo";
+  const patch = {
+    status: "done",
+    payment_reference: body.reference,
+    payment_status: "auto",
+    payment_auto: true,
+    details: {
+      serviceId,
+      clientPhone,
+      productCode: productCode || null,
+      operator_reference: body.operator_reference,
+      campay_reference: body.reference,
+    },
+  };
 
+  // Si vient du panier : productCode = orderId existant → UPDATE
+  if (serviceId === "cart" && productCode) {
+    const res = await fetch(`${url}/rest/v1/orders?id=eq.${encodeURIComponent(productCode)}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", apikey: key, Authorization: `Bearer ${key}` },
+      body: JSON.stringify(patch),
+    });
+    console.log(`[campay-webhook] Supabase PATCH (cart) → ${res.status}`);
+    return;
+  }
+
+  // Sinon (checkout direct) : INSERT nouvel ordre
   const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-
   const res = await fetch(`${url}/rest/v1/orders`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      apikey: key,
-      Authorization: `Bearer ${key}`,
-      Prefer: "return=minimal",
-    },
+    headers: { "Content-Type": "application/json", apikey: key, Authorization: `Bearer ${key}`, Prefer: "return=minimal" },
     body: JSON.stringify({
       id,
       type: "achat",
@@ -79,19 +98,9 @@ async function insertOrder(body: CampayWebhookBody, serviceId: string, clientPho
       total: parseInt(body.amount, 10),
       payment_method: operatorLabel,
       item_count: 1,
-      status: "done",
-      payment_reference: body.reference,
-      payment_status: "auto",
-      payment_auto: true,
       client_name: clientPhone,
       client_city: "Douala",
-      details: {
-        serviceId,
-        clientPhone,
-        productCode: productCode || null,
-        operator_reference: body.operator_reference,
-        campay_reference: body.reference,
-      },
+      ...patch,
     }),
   });
   console.log(`[campay-webhook] Supabase INSERT → ${res.status}`);
@@ -183,7 +192,7 @@ export async function POST(request: Request): Promise<Response> {
   console.log(`[campay-webhook] SUCCESS → service=${serviceId} | phone=${clientPhone} | product=${productCode ?? "N/A"}`);
 
   await Promise.allSettled([
-    insertOrder(body, serviceId, clientPhone, productCode ?? ""),
+    upsertOrder(body, serviceId, clientPhone, productCode ?? ""),
     sendEmailNotification(body, serviceId, clientPhone, productCode ?? ""),
   ]);
 
