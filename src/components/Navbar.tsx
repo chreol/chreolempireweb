@@ -44,7 +44,7 @@ export default function Navbar() {
     {searchOpen && <GlobalSearch onClose={() => setSearchOpen(false)} />}
     <header
       style={{ background: "var(--bg-secondary)", borderBottom: "1px solid var(--border)" }}
-      className="sticky top-0 z-50"
+      className=""
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 h-16 flex items-center justify-between gap-4">
         {/* Logo */}

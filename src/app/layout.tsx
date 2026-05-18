@@ -119,9 +119,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ToastProvider>
         <HistoryProvider>
         <CartProvider>
-          <RateTicker />
-          <PromoBanner />
-          <Navbar />
+          <div className="sticky top-0 z-50">
+            <RateTicker />
+            <PromoBanner />
+            <Navbar />
+          </div>
           <main className="flex-1">{children}</main>
           <FloatingCalc />
 
