@@ -22,30 +22,35 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: "Champs requis manquants" }, { status: 422 });
   }
 
-  // TODO: call the real Campay collect endpoint
-  // const campayRes = await fetch("https://demo.campay.net/api/collect/", {
-  //   method: "POST",
-  //   headers: {
-  //     "Content-Type": "application/json",
-  //     Authorization: `Token ${process.env.CAMPAY_API_TOKEN}`,
-  //   },
-  //   body: JSON.stringify({
-  //     amount: String(amount),
-  //     currency: "XAF",
-  //     from: phone,
-  //     description: label,
-  //     external_reference: externalReference,
-  //   }),
-  // });
-  // const data = await campayRes.json();
-  // return Response.json(data, { status: campayRes.status });
+  const token = process.env.CAMPAY_API_TOKEN;
+  if (!token) {
+    console.error("[campay-collect] CAMPAY_API_TOKEN manquant");
+    return Response.json({ error: "Paiement automatique non configuré" }, { status: 503 });
+  }
 
-  // ── Mock response (remove once CAMPAY_API_TOKEN is set) ──────────────────
-  console.log(`[campay-collect] MOCK — ${operator} ${phone} | ${amount} XAF | ${label} | ref=${externalReference}`);
-  return Response.json({
-    reference: `MOCK-${Date.now()}`,
-    status: "PENDING",
-    message: "Demande de paiement envoyée",
-    ussd_code: operator === "orange" ? "#150*50#" : "*126*1#",
-  });
+  const baseUrl = process.env.CAMPAY_BASE_URL ?? "https://campay.net";
+
+  try {
+    const campayRes = await fetch(`${baseUrl}/api/collect/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+      body: JSON.stringify({
+        amount: String(amount),
+        currency: "XAF",
+        from: phone,
+        description: label,
+        external_reference: externalReference,
+      }),
+    });
+
+    const data = await campayRes.json();
+    console.log(`[campay-collect] ${campayRes.status} — ${operator} ${phone} | ${amount} XAF | ref=${externalReference}`, data);
+    return Response.json(data, { status: campayRes.status });
+  } catch (err) {
+    console.error("[campay-collect] Erreur réseau Campay:", err);
+    return Response.json({ error: "Erreur connexion Campay" }, { status: 502 });
+  }
 }
