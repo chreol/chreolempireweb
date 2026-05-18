@@ -87,7 +87,7 @@ async function upsertOrder(body: CampayWebhookBody, serviceId: string, clientPho
   }
 
   // Sinon (checkout direct) : INSERT nouvel ordre
-  const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const id = `${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
   const res = await fetch(`${url}/rest/v1/orders`, {
     method: "POST",
     headers: { "Content-Type": "application/json", apikey: key, Authorization: `Bearer ${key}`, Prefer: "return=minimal" },

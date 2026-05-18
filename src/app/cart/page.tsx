@@ -52,7 +52,7 @@ export default function CartPage() {
 
     setLoading(true);
     try {
-      const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const id = `${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
       const operatorLabel = payMethod === "mtn" ? "MTN MoMo" : "Orange Money";
 
       const { error: dbError } = await supabase
