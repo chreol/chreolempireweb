@@ -78,12 +78,13 @@ export default function RateTicker() {
       {/* Scrolling track */}
       <div className="flex-1 overflow-hidden">
         <div ref={trackRef} className="inline-flex whitespace-nowrap gap-0">
-          {/* Duplicate text for seamless loop */}
-          {[0, 1].map(k => (
-            <span key={k} className="text-[10.5px] font-semibold tracking-wide tabular-nums px-6" style={{ color: "var(--gold)", opacity: 0.9 }}>
-              {text}
-            </span>
-          ))}
+          {/* Two identical spans — required for seamless CSS loop (translateX -50%) */}
+          <span className="text-[10.5px] font-semibold tracking-wide tabular-nums px-6" style={{ color: "var(--gold)", opacity: 0.9 }}>
+            {text}
+          </span>
+          <span aria-hidden="true" className="text-[10.5px] font-semibold tracking-wide tabular-nums px-6" style={{ color: "var(--gold)", opacity: 0.9 }}>
+            {text}
+          </span>
         </div>
       </div>
 

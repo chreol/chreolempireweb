@@ -130,6 +130,16 @@ const FAQ_ITEMS = [
   { q: "Le taux affiché est-il garanti ?", a: "Le taux est garanti au moment de la confirmation de votre commande. Pour les cryptos et PayPal, le taux appliqué est celui en vigueur lors de notre échange WhatsApp." },
 ];
 
+const FAQ_SCHEMA = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: FAQ_ITEMS.map(f => ({
+    "@type": "Question",
+    name: f.q,
+    acceptedAnswer: { "@type": "Answer", text: f.a },
+  })),
+};
+
 export default function CommentCaMarchePage() {
   return (
     <div className="overflow-x-hidden">
@@ -274,6 +284,8 @@ export default function CommentCaMarchePage() {
           </div>
         </div>
       </div>
+
+      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(FAQ_SCHEMA) }} />
     </div>
   );
 }
