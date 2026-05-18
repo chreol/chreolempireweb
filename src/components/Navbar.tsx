@@ -15,6 +15,7 @@ import GlobalSearch from "./GlobalSearch";
 const NAV_KEYS = [
   { href: "/",           key: "nav.home" },
   { href: "/services",   key: "nav.services" },
+  { href: "/promo",      key: "nav.promo", highlight: true },
   { href: "/paiement",   key: "nav.payment" },
   { href: "/historique", key: "nav.history" },
   { href: "/a-propos",   key: "nav.about" },
@@ -64,8 +65,9 @@ export default function Navbar() {
               href={l.href}
               className="px-3 py-1.5 rounded-full text-sm font-semibold transition-colors"
               style={{
-                color: pathname === l.href ? "var(--bg-primary)" : "var(--text-secondary)",
+                color: pathname === l.href ? "var(--bg-primary)" : ("highlight" in l && l.highlight && pathname !== l.href) ? "#F87171" : "var(--text-secondary)",
                 background: pathname === l.href ? "var(--gold)" : "transparent",
+                fontWeight: "highlight" in l && l.highlight ? 800 : undefined,
               }}
             >
               {t(l.key)}

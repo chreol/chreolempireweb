@@ -6,6 +6,7 @@ export const T: TranslationMap = {
   // ── Navbar ──
   "nav.home":     { fr: "Accueil",    en: "Home" },
   "nav.services": { fr: "Services",   en: "Services" },
+  "nav.promo":    { fr: "🔥 Promos",  en: "🔥 Deals" },
   "nav.payment":  { fr: "Paiement",   en: "Payment" },
   "nav.history":  { fr: "Historique", en: "History" },
   "nav.about":    { fr: "À propos",   en: "About" },
