@@ -9,61 +9,85 @@ import WAPopover from "@/components/WAPopover";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 
-const PAY_METHODS = [
-  { id: "mtn",      label: "MTN MoMo",    image: IMAGES.mtn,      campay: true  },
-  { id: "orange",   label: "Orange Money", image: IMAGES.orange,   campay: true  },
-  { id: "whatsapp", label: "Via WhatsApp", image: IMAGES.whatsapp, campay: false },
-] as const;
-type PayId = (typeof PAY_METHODS)[number]["id"];
+const OPERATORS = [
+  {
+    id:         "orange" as const,
+    label:      "Orange Money",
+    color:      "#FF6600",
+    merchant:   "692251299",
+    merchantName: "Ets Tagny",
+    // montant sera injecté dynamiquement
+    ussdFn:     (amount: number) => `#150*14*518554*692251299*${amount}#`,
+    pin:        4,
+    image:      IMAGES.orange,
+    type:       "Transfert UV",
+  },
+  {
+    id:         "mtn" as const,
+    label:      "MTN MoMo",
+    color:      "#FFC107",
+    merchant:   "672416141",
+    merchantName: "ETS Content",
+    ussdFn:     (amount: number) => `*126*14*672416141*${amount}#`,
+    pin:        5,
+    image:      IMAGES.mtn,
+    type:       "Flotte",
+  },
+];
+type OpId = "orange" | "mtn";
 
 export default function CartPage() {
   const { items, total, removeItem, adjustQty, clearCart } = useCart();
   const { t } = useLanguage();
-  const [name, setName]               = useState("");
-  const [email, setEmail]             = useState("");
-  const [phone, setPhone]             = useState("");
-  const [payMethod, setPayMethod]     = useState<PayId>("whatsapp");
-  const [campayPhone, setCampayPhone] = useState("");
-  const [loading, setLoading]         = useState(false);
-  const [done, setDone]               = useState<string | null>(null);
-  const [referral, setReferral]       = useState("");
-  const [emailError, setEmailError]   = useState("");
+  const [name, setName]             = useState("");
+  const [email, setEmail]           = useState("");
+  const [phone, setPhone]           = useState("");
+  const [loading, setLoading]       = useState(false);
+  const [done, setDone]             = useState<string | null>(null);
+  const [referral, setReferral]     = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [payStep, setPayStep]       = useState<null | "choose" | "ussd">(null);
+  const [selectedOp, setSelectedOp] = useState<OpId | null>(null);
 
-  const isSell    = items.length > 0 && items.every(i => i.type === "sell");
-  const canCampay = !isSell && (payMethod === "mtn" || payMethod === "orange");
-  const summary   = items.map(i => `${i.cardName} ×${i.qty} (${i.amount})`).join(", ");
+  const isSell = items.length > 0 && items.every(i => i.type === "sell");
+  const summary = items.map(i => `${i.cardName} ×${i.qty} (${i.amount})`).join(", ");
+  const opConfig = OPERATORS.find(o => o.id === selectedOp);
 
-  function buildMsgPlain() {
+  function buildMsgPlain(opLabel?: string) {
     const lines = items.map(i => {
       if (i.details) {
         return `• ${i.cardName}\n  ${i.details}\n  Montant : ${(i.price * i.qty).toLocaleString("fr-FR")} FCFA`;
       }
       return `• ${i.cardName} — ${i.amount} × ${i.qty} = ${(i.price * i.qty).toLocaleString("fr-FR")} FCFA`;
     }).join("\n\n");
-    const payLabel = isSell
-      ? "Vente / Échange"
-      : payMethod === "mtn" ? "MTN MoMo" : payMethod === "orange" ? "Orange Money" : "WhatsApp";
-    return `Je souhaite :\n${lines}\n\nTotal : ${total.toLocaleString("fr-FR")} FCFA\nType : ${payLabel}\n\nTél : ${phone}${referral ? `\nCode parrainage : ${referral.toUpperCase()}` : ""}`;
+    const payLabel = isSell ? "Vente / Échange" : (opLabel ?? "Via WhatsApp");
+    return `Je souhaite :\n${lines}\n\nTotal : ${total.toLocaleString("fr-FR")} FCFA\nPaiement : ${payLabel}\n\nTél : ${phone}${referral ? `\nCode parrainage : ${referral.toUpperCase()}` : ""}`;
   }
 
-  async function handleWhatsappOrder() {
+  function handleOrderClick() {
     if (!email) {
       setEmailError("Email requis pour recevoir la confirmation de commande");
       return;
     }
     setEmailError("");
+    setSelectedOp(null);
+    setPayStep("choose");
+  }
+
+  async function handleConfirmOrder() {
+    if (!selectedOp) return;
     setLoading(true);
 
+    const opLabel = opConfig?.label ?? "Via WhatsApp";
     const orderId = `${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
 
-    // Fire-and-forget: save to Supabase
     void supabase.from("orders").insert({
       id: orderId,
       type: "achat",
       summary,
       total,
       item_count: items.length,
-      payment_method: "Via WhatsApp",
+      payment_method: opLabel,
       status: "pending",
       payment_status: "whatsapp",
       client_name: name || "Client web",
@@ -73,7 +97,6 @@ export default function CartPage() {
       if (error) console.error("[cart-wa] insert:", error.message);
     });
 
-    // Fire-and-forget: envoyer admin + client emails
     void fetch("/api/notify-order", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -82,7 +105,7 @@ export default function CartPage() {
         clientName: name || "Client",
         clientEmail: email,
         clientPhone: phone.replace(/\D/g, "") || "000000000",
-        paymentMethod: "Via WhatsApp",
+        paymentMethod: opLabel,
         sourceUrl: `${window.location.origin}/cart`,
         items: items.map(i => ({
           name: i.cardName,
@@ -95,65 +118,12 @@ export default function CartPage() {
       }),
     }).catch(err => console.error("[cart-wa] notify:", err));
 
-    // Ouvrir WhatsApp
-    const waUrl = `https://wa.me/${CONTACT.whatsapp}?text=${encodeURIComponent(buildMsgPlain())}`;
+    const waUrl = `https://wa.me/${CONTACT.whatsapp}?text=${encodeURIComponent(buildMsgPlain(opLabel))}`;
     window.open(waUrl, "_blank", "noopener,noreferrer");
 
     clearCart();
     setDone(orderId);
     setLoading(false);
-  }
-
-  async function handleCampayOrder() {
-    const rawPhone = campayPhone.replace(/\s/g, "").replace(/^0/, "");
-    if (rawPhone.length !== 9) { alert("Numéro invalide — entrez 9 chiffres sans l'indicatif"); return; }
-    if (!email)                { alert("Email requis pour recevoir la confirmation"); return; }
-
-    setLoading(true);
-    try {
-      const id = `${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
-      const operatorLabel = payMethod === "mtn" ? "MTN MoMo" : "Orange Money";
-
-      const { error: dbError } = await supabase
-        .from("orders")
-        .insert({
-          id,
-          type: "achat",
-          summary,
-          total,
-          item_count: items.length,
-          payment_method: operatorLabel,
-          status: "pending",
-          payment_status: "pending",
-          client_name: name || "Client web",
-          client_email: email,
-          client_city: "Douala",
-        });
-
-      if (dbError) throw new Error(dbError.message ?? "Erreur création commande");
-
-      const res = await fetch("/api/campay-collect", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          phone: rawPhone,
-          operator: payMethod as "orange" | "mtn",
-          amount: total,
-          label: summary.slice(0, 100),
-          externalReference: `cart|${rawPhone}|${id}`,
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Erreur Campay");
-
-      setDone(id);
-      clearCart();
-    } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : "Erreur inattendue");
-    } finally {
-      setLoading(false);
-    }
   }
 
   /* ── Empty state ── */
@@ -306,42 +276,6 @@ export default function CartPage() {
             </div>
           </div>
 
-          {/* Mode de paiement — achat seulement */}
-          {!isSell && (
-            <div>
-              <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "var(--text-muted)" }}>
-                {t("cart.pay_method")}
-              </p>
-              <div className="grid grid-cols-3 gap-2">
-                {PAY_METHODS.map(m => (
-                  <button
-                    key={m.id}
-                    onClick={() => setPayMethod(m.id)}
-                    className="p-3 rounded-2xl text-center transition-all flex flex-col items-center gap-2"
-                    style={{
-                      background: payMethod === m.id ? "var(--bg-elevated)" : "var(--bg-card)",
-                      border: `2px solid ${payMethod === m.id ? "var(--gold)" : "var(--border)"}`,
-                    }}
-                  >
-                    {m.image ? (
-                      <div className="relative w-10 h-10 rounded-xl overflow-hidden">
-                        <Image src={m.image} alt={m.label} fill style={{ objectFit: "cover" }} className="outline outline-1 -outline-offset-1 outline-white/10" unoptimized />
-                      </div>
-                    ) : (
-                      <span className="text-2xl">💬</span>
-                    )}
-                    <span
-                      className="text-[10px] font-bold leading-tight text-center"
-                      style={{ color: payMethod === m.id ? "var(--gold)" : "var(--text-secondary)" }}
-                    >
-                      {m.label}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
           {/* Info vente */}
           {isSell && (
             <div
@@ -357,47 +291,122 @@ export default function CartPage() {
             </div>
           )}
 
-          {/* Section Campay automatique */}
-          {canCampay && (
-            <div
-              className="rounded-2xl p-4"
-              style={{ background: "#0D1525", border: "1px solid #3B82F633" }}
-            >
-              <p className="text-sm font-bold mb-1" style={{ color: "#93C5FD" }}>
-                {t("cart.campay.title")}
+          {/* ── Étape 1 : choix opérateur ── */}
+          {!isSell && payStep === "choose" && (
+            <div className="rounded-2xl p-5" style={{ background: "var(--bg-elevated)", border: "1px solid var(--border-strong)" }}>
+              <p className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: "var(--text-muted)" }}>
+                💳 Choisissez votre opérateur de paiement
               </p>
-              <p className="text-xs mb-3" style={{ color: "#6B7280" }}>
-                Entrez votre numéro {payMethod === "mtn" ? "MTN" : "Orange"} (9 chiffres). Vous recevrez une demande directement sur votre téléphone.
-              </p>
-              <div className="flex items-center gap-2">
-                <span className="px-3 py-3 rounded-xl text-sm font-bold shrink-0" style={{ background: "#1A2040", color: "#93C5FD" }}>
-                  +237
-                </span>
-                <input
-                  type="tel"
-                  placeholder="6XXXXXXXX"
-                  value={campayPhone}
-                  onChange={e => setCampayPhone(e.target.value.replace(/\D/g, ""))}
-                  maxLength={9}
-                  className="flex-1 px-3 py-3 rounded-xl text-white text-sm outline-none"
-                  style={{ background: "#1A2040", border: "1px solid #3B82F644" }}
-                />
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                {OPERATORS.map(op => (
+                  <button
+                    key={op.id}
+                    onClick={() => { setSelectedOp(op.id); setPayStep("ussd"); }}
+                    className="p-4 rounded-2xl flex flex-col items-center gap-3 transition-all hover:scale-[1.02] active:scale-[0.97]"
+                    style={{
+                      background: selectedOp === op.id ? "var(--bg-card)" : "var(--bg-card)",
+                      border: `2px solid ${op.color}44`,
+                    }}
+                  >
+                    <div className="relative w-12 h-12 rounded-xl overflow-hidden">
+                      <Image src={op.image} alt={op.label} fill style={{ objectFit: "cover" }} unoptimized />
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xs font-black" style={{ color: op.color }}>{op.label}</p>
+                      <p className="text-[10px] mt-0.5" style={{ color: "var(--text-muted)" }}>{op.type}</p>
+                    </div>
+                  </button>
+                ))}
               </div>
+              <button
+                onClick={() => setPayStep(null)}
+                className="w-full text-xs py-2 rounded-xl transition-opacity hover:opacity-70"
+                style={{ color: "var(--text-muted)" }}
+              >
+                ← Annuler
+              </button>
+            </div>
+          )}
+
+          {/* ── Étape 2 : instructions USSD ── */}
+          {!isSell && payStep === "ussd" && opConfig && (
+            <div className="rounded-2xl p-5" style={{ background: "var(--bg-elevated)", border: `2px solid ${opConfig.color}55` }}>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="relative w-10 h-10 rounded-xl overflow-hidden shrink-0">
+                  <Image src={opConfig.image} alt={opConfig.label} fill style={{ objectFit: "cover" }} unoptimized />
+                </div>
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
+                    💳 Instructions de Paiement
+                  </p>
+                  <p className="text-sm font-black" style={{ color: opConfig.color }}>{opConfig.label} — {opConfig.type}</p>
+                </div>
+              </div>
+
+              {/* Étapes numérotées */}
+              <div className="flex flex-col gap-3 mb-4">
+                <div className="flex items-start gap-3">
+                  <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black shrink-0 mt-0.5" style={{ background: opConfig.color, color: "#000" }}>1</span>
+                  <div>
+                    <p className="text-xs font-bold text-white">Code Marchand</p>
+                    <p className="text-sm font-black tabular-nums mt-0.5" style={{ color: opConfig.color }}>{opConfig.merchant}</p>
+                    <p className="text-[11px]" style={{ color: "var(--text-muted)" }}>Nom : {opConfig.merchantName}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black shrink-0 mt-0.5" style={{ background: opConfig.color, color: "#000" }}>2</span>
+                  <div className="flex-1">
+                    <p className="text-xs font-bold text-white mb-1">Composez directement</p>
+                    <div className="rounded-xl px-3 py-2 font-mono text-sm font-black break-all" style={{ background: "#0A0A0A", color: opConfig.color, border: `1px solid ${opConfig.color}33` }}>
+                      {opConfig.ussdFn(total)}
+                    </div>
+                    <p className="text-[11px] mt-1" style={{ color: "var(--text-muted)" }}>
+                      Remplacez <strong style={{ color: "var(--text-secondary)" }}>{total}</strong> par <strong style={{ color: opConfig.color }}>{total.toLocaleString("fr-FR")}</strong> FCFA si demandé
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black shrink-0 mt-0.5" style={{ background: opConfig.color, color: "#000" }}>3</span>
+                  <div>
+                    <p className="text-xs font-bold text-white">Montant à régler</p>
+                    <p className="text-xl font-black tabular-nums mt-0.5" style={{ color: opConfig.color }}>
+                      {total.toLocaleString("fr-FR")} FCFA
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black shrink-0 mt-0.5" style={{ background: "#EF4444", color: "#fff" }}>!</span>
+                  <p className="text-xs pt-1" style={{ color: "#FCA5A5" }}>
+                    Une fois payé, envoyez la <strong>capture d&apos;écran</strong> de confirmation sur WhatsApp pour déclencher l&apos;envoi de votre commande.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={handleConfirmOrder}
+                disabled={loading}
+                className="flex items-center justify-center gap-2 w-full py-4 rounded-full font-black text-white text-sm transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96] disabled:opacity-50 mb-2"
+                style={{ background: "#25D366" }}
+              >
+                {loading ? t("cart.loading") : (
+                  <><Image src={IMAGES.whatsapp} alt="" width={20} height={20} unoptimized className="shrink-0" /> J&apos;ai payé — Continuer sur WhatsApp</>
+                )}
+              </button>
+              <button
+                onClick={() => setPayStep("choose")}
+                className="w-full text-xs py-2 rounded-xl transition-opacity hover:opacity-70"
+                style={{ color: "var(--text-muted)" }}
+              >
+                ← Changer d&apos;opérateur
+              </button>
             </div>
           )}
 
           {/* Boutons d'action */}
           <div className="flex flex-col gap-3">
-            {canCampay && (
-              <button
-                onClick={handleCampayOrder}
-                disabled={loading}
-                className="w-full py-4 rounded-full font-black text-black text-sm transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96] disabled:opacity-50"
-                style={{ background: "var(--gold)" }}
-              >
-                {loading ? t("cart.loading") : t("cart.pay_now")}
-              </button>
-            )}
             {isSell ? (
               <WAPopover
                 getMsg={buildMsgPlain}
@@ -407,9 +416,9 @@ export default function CartPage() {
               >
                 {t("cart.wa.sell")}
               </WAPopover>
-            ) : (
+            ) : payStep === null && (
               <button
-                onClick={handleWhatsappOrder}
+                onClick={handleOrderClick}
                 disabled={loading}
                 className="flex items-center justify-center gap-2 w-full py-4 rounded-full font-black text-white text-sm transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96] disabled:opacity-50"
                 style={{ background: "#25D366" }}
