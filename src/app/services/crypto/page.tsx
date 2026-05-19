@@ -124,7 +124,7 @@ export default function CryptoPage() {
       <div className="flex items-center gap-2 text-xs mb-6" style={{ color: "var(--text-muted)" }}>
         <a href="/services" className="hover:text-white transition-colors">Services</a>
         <span>›</span>
-        <span style={{ color: "var(--gold)" }}>Crypto & Échange MoMo</span>
+        <span style={{ color: "var(--gold)" }}>Crypto & coins</span>
       </div>
 
       <h1 className="text-3xl font-black text-white mb-1">{t("p.crypto.title")}</h1>

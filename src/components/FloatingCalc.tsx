@@ -46,7 +46,7 @@ export default function FloatingCalc() {
   const toLabel   = current.to   === "EUR" ? "€" : current.to   === "USD" ? "$" : "FCFA";
 
   return (
-    <div ref={ref} className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-2">
+    <div ref={ref} className="fixed sm:bottom-6 bottom-24 right-6 z-50 flex flex-col items-end gap-2">
       {/* Panel */}
       {open && (
         <div
