@@ -5,6 +5,7 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { UBA_CARDS, UBA_RECHARGE_FEES, IMAGES } from "@/lib/services";
 import WAPopover from "@/components/WAPopover";
+import USSDOrderFlow from "@/components/USSDOrderFlow";
 import { useCart } from "@/contexts/CartContext";
 import { useHistory } from "@/contexts/HistoryContext";
 import { useToast } from "@/components/Toast";
@@ -462,16 +463,17 @@ export default function UBAPage() {
             >
               🛒 Ajouter au panier
             </button>
-            <WAPopover
-              onBeforeOpen={handleRechargeBeforeOpen}
+            <USSDOrderFlow
+              total={total}
               getMsg={buildRechargeMsgPlain}
+              onBeforeOpen={handleRechargeBeforeOpen}
               prefillPrenom={fullName}
               className="w-full py-3 rounded-full font-black text-white text-sm flex items-center justify-center gap-2 transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
               style={{ background: "#25D366" }}
             >
               <Image src={IMAGES.whatsapp} alt="" width={20} height={20} unoptimized className="shrink-0" />
               Commander directement via WhatsApp
-            </WAPopover>
+            </USSDOrderFlow>
           </motion.div>
         )}
       </AnimatePresence>

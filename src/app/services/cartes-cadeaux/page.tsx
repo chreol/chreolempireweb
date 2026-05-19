@@ -4,9 +4,8 @@ import { useState } from "react";
 import Image from "next/image";
 import { useCart } from "@/contexts/CartContext";
 import { GIFT_CARDS, IMAGES } from "@/lib/services";
-import WAPopover from "@/components/WAPopover";
+import USSDOrderFlow from "@/components/USSDOrderFlow";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import FAQ from "@/components/FAQ";
 
@@ -49,7 +48,6 @@ const CUSTOM_RATE = 750;
 export default function CartesCadeauxPage() {
   const { addItem } = useCart();
   const { t: tl } = useLanguage();
-  const router = useRouter();
   const [tab, setTab] = useState<TabKey>("standard");
   const [cardId, setCardId] = useState<string | null>(null);
   const [amountLabel, setAmountLabel] = useState<string | null>(null);
@@ -229,40 +227,22 @@ export default function CartesCadeauxPage() {
               </p>
 
               <div className="flex flex-col gap-2">
-                <button
-                  onClick={() => {
-                    const finalPrice = customPrice ?? amount?.price ?? 0;
-                    const finalLabel = customPrice ? `${customVal}€ personnalisé` : amountLabel ?? "";
-                    const params = new URLSearchParams({
-                      service: "cartes-cadeaux",
-                      label: `${card?.name ?? ""} ${finalLabel} [${region}]`,
-                      amount: String(finalPrice),
-                      product: card?.id ?? "",
-                    });
-                    router.push(`/checkout?${params.toString()}`);
-                  }}
-                  className="w-full py-3 rounded-full font-black text-sm transition-all"
-                  style={{ background: "var(--gold)", color: "#0A0A0A" }}
+                <USSDOrderFlow
+                  total={customPrice ?? amount?.price ?? 0}
+                  getMsg={buildMsgPlain}
+                  className="w-full py-3 rounded-full font-black text-sm text-white flex items-center justify-center gap-2 transition-all hover:opacity-85"
+                  style={{ background: "#25D366" }}
                 >
-                  💳 Payer en ligne
+                  <Image src={IMAGES.whatsapp} alt="" width={18} height={18} unoptimized className="shrink-0" />
+                  Commander via WhatsApp
+                </USSDOrderFlow>
+                <button
+                  onClick={handleAddToCart}
+                  className="w-full py-2.5 rounded-full font-black text-xs transition-all"
+                  style={{ background: added ? "#10B981" : "var(--bg-elevated)", color: added ? "white" : "var(--text-secondary)", border: "1px solid var(--border)" }}
+                >
+                  {added ? "✅ Ajouté !" : "🛒 Panier"}
                 </button>
-                <div className="flex gap-2">
-                  <button
-                    onClick={handleAddToCart}
-                    className="flex-1 py-2.5 rounded-full font-black text-xs transition-all"
-                    style={{ background: added ? "#10B981" : "var(--bg-elevated)", color: added ? "white" : "var(--text-secondary)", border: "1px solid var(--border)" }}
-                  >
-                    {added ? "✅ Ajouté !" : "🛒 Panier"}
-                  </button>
-                  <WAPopover
-                    getMsg={buildMsgPlain}
-                    className="flex-1 py-2.5 rounded-full font-black text-xs text-white flex items-center justify-center gap-1.5 transition-opacity hover:opacity-85"
-                    style={{ background: "#25D366" }}
-                  >
-                    <Image src={IMAGES.whatsapp} alt="" width={14} height={14} unoptimized className="shrink-0" />
-                    WhatsApp
-                  </WAPopover>
-                </div>
               </div>
             </div>
           )}

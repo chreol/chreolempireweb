@@ -5,6 +5,7 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { PAYPAL_RATES, PAYPAL_LIMITS, MOMO_OPERATORS, IMAGES } from "@/lib/services";
 import WAPopover from "@/components/WAPopover";
+import USSDOrderFlow from "@/components/USSDOrderFlow";
 import { useCart } from "@/contexts/CartContext";
 import { useHistory } from "@/contexts/HistoryContext";
 import { useToast } from "@/components/Toast";
@@ -284,15 +285,27 @@ export default function PaypalPage() {
         >
           🛒 Ajouter au panier
         </button>
-        <WAPopover
-          onBeforeOpen={() => { const ok = validate(); if (!ok) showToast("Corrigez les erreurs", "error"); return ok; }}
-          getMsg={buildMsgPlain}
-          className="w-full py-3 rounded-full font-black text-white text-sm flex items-center justify-center gap-2 transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
-          style={{ background: "#25D366" }}
-        >
-          <Image src={IMAGES.whatsapp} alt="" width={20} height={20} unoptimized className="shrink-0" />
-          {direction === "sell" ? "Commander directement via WhatsApp" : "Commander via WhatsApp"}
-        </WAPopover>
+        {direction === "sell" ? (
+          <WAPopover
+            onBeforeOpen={() => { const ok = validate(); if (!ok) showToast("Corrigez les erreurs", "error"); return ok; }}
+            getMsg={buildMsgPlain}
+            className="w-full py-3 rounded-full font-black text-white text-sm flex items-center justify-center gap-2 transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
+            style={{ background: "#25D366" }}
+          >
+            <Image src={IMAGES.whatsapp} alt="" width={20} height={20} unoptimized className="shrink-0" />
+            Commander directement via WhatsApp
+          </WAPopover>
+        ) : (
+          <USSDOrderFlow
+            total={buyFcfa}
+            getMsg={buildMsgPlain}
+            className="w-full py-3 rounded-full font-black text-white text-sm flex items-center justify-center gap-2 transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
+            style={{ background: "#25D366" }}
+          >
+            <Image src={IMAGES.whatsapp} alt="" width={20} height={20} unoptimized className="shrink-0" />
+            Commander via WhatsApp
+          </USSDOrderFlow>
+        )}
       </div>
 
       <div className="mt-6 rounded-2xl p-4 text-xs flex flex-col gap-1.5" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>

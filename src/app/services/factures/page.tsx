@@ -5,6 +5,7 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { FACTURE_BILLERS, FACTURE_COMMISSION, MOMO_OPERATORS, IMAGES } from "@/lib/services";
 import WAPopover from "@/components/WAPopover";
+import USSDOrderFlow from "@/components/USSDOrderFlow";
 import { useHistory } from "@/contexts/HistoryContext";
 import { useToast } from "@/components/Toast";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -314,15 +315,16 @@ export default function FacturesPage() {
                 )}
               </div>
 
-              <WAPopover
-                onBeforeOpen={handleFactureBeforeOpen}
+              <USSDOrderFlow
+                total={totalFacture}
                 getMsg={buildFactureMsgPlain}
+                onBeforeOpen={handleFactureBeforeOpen}
                 className="flex-1 py-4 rounded-full font-black text-white text-sm flex items-center justify-center gap-2 transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
                 style={{ background: "#25D366" }}
               >
                 <Image src={IMAGES.whatsapp} alt="" width={18} height={18} unoptimized className="shrink-0" />
                 Commander
-              </WAPopover>
+              </USSDOrderFlow>
             </div>
           </motion.div>
         ) : (
@@ -441,15 +443,16 @@ export default function FacturesPage() {
               </motion.div>
             )}
 
-            <WAPopover
-              onBeforeOpen={handleMomoBeforeOpen}
+            <USSDOrderFlow
+              total={numMomoAmt}
               getMsg={buildMomoMsgPlain}
+              onBeforeOpen={handleMomoBeforeOpen}
               className="w-full py-4 rounded-full font-black text-white text-sm flex items-center justify-center gap-2 transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
               style={{ background: "#25D366" }}
             >
               <Image src={IMAGES.whatsapp} alt="" width={20} height={20} unoptimized className="shrink-0" />
-              Initier l'échange via WhatsApp
-            </WAPopover>
+              Initier l&apos;échange via WhatsApp
+            </USSDOrderFlow>
           </motion.div>
         )}
       </AnimatePresence>

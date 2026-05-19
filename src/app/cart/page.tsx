@@ -395,13 +395,22 @@ export default function CartPage() {
                   <><Image src={IMAGES.whatsapp} alt="" width={20} height={20} unoptimized className="shrink-0" /> J&apos;ai payé — Continuer sur WhatsApp</>
                 )}
               </button>
-              <button
-                onClick={() => setPayStep("choose")}
-                className="w-full text-xs py-2 rounded-xl transition-opacity hover:opacity-70"
-                style={{ color: "var(--text-muted)" }}
-              >
-                ← Changer d&apos;opérateur
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setPayStep("choose")}
+                  className="flex-1 text-xs py-2 rounded-xl transition-opacity hover:opacity-70"
+                  style={{ color: "var(--text-muted)" }}
+                >
+                  ← Changer
+                </button>
+                <button
+                  onClick={() => setPayStep(null)}
+                  className="flex-1 text-xs py-2 rounded-xl font-bold transition-opacity hover:opacity-70"
+                  style={{ color: "#EF4444", background: "#EF444415" }}
+                >
+                  ✕ Annuler
+                </button>
+              </div>
             </div>
           )}
 
