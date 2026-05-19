@@ -12,11 +12,13 @@ export interface NotifyPayload {
   orderId: string;
   clientName: string;
   clientEmail: string;
-  clientPhone: string;   // digits only, with or without 237 prefix
-  paymentMethod: string; // "MTN MoMo" | "Orange Money" | "Via WhatsApp" | etc.
+  clientPhone: string;       // digits only, with or without 237 prefix
+  paymentMethod: string;     // "MTN MoMo" | "Orange Money" | "Via WhatsApp" | etc.
   items: NotifyItem[];
-  total: number;
-  sourceUrl?: string;    // page d'origine (ex: /cart, /services/uba)
+  total: number;             // montant final (items + commission inclus)
+  commission?: number;       // frais séparés affichés en ligne dédiée
+  commissionLabel?: string;  // ex: "Frais de service UBA", défaut: "Frais de service"
+  sourceUrl?: string;        // page d'origine (ex: /cart, /services/uba)
   campayReference?: string;
 }
 
@@ -118,7 +120,7 @@ function buildAdminEmail(p: NotifyPayload): string {
       <p style="margin:0 0 10px;font-size:10px;color:#9CA3AF;font-weight:900;letter-spacing:1.5px">INFORMATIONS CLIENT</p>
       <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #E5E7EB;border-radius:8px;overflow:hidden;margin-bottom:24px">
         <tr style="background:#F9FAFB">
-          <td style="padding:10px 14px;font-size:12px;color:#6B7280;width:38%;border-bottom:1px solid #F3F4F6">Nom</td>
+          <td style="padding:10px 14px;font-size:12px;color:#6B7280;width:38%;border-bottom:1px solid #F3F4F6">Nom &amp; Prénom</td>
           <td style="padding:10px 14px;font-size:13px;font-weight:700;color:#1F2937;border-bottom:1px solid #F3F4F6">${esc(p.clientName)}</td>
         </tr>
         <tr>
@@ -151,8 +153,17 @@ function buildAdminEmail(p: NotifyPayload): string {
         </tbody>
       </table>
 
-      <!-- Total -->
+      <!-- Total avec commission optionnelle -->
       <table width="100%" cellpadding="0" cellspacing="0" style="background:#FFFBEB;border:2px solid #FCD34D;border-radius:10px;margin-bottom:24px">
+        ${p.commission ? `
+        <tr>
+          <td style="padding:12px 20px;font-size:13px;color:#92400E;border-bottom:1px dashed #FCD34D">Montant articles</td>
+          <td style="padding:12px 20px;font-size:13px;font-weight:700;color:#B45309;text-align:right;white-space:nowrap;border-bottom:1px dashed #FCD34D">${(p.total - p.commission).toLocaleString("fr-FR")} FCFA</td>
+        </tr>
+        <tr>
+          <td style="padding:12px 20px;font-size:13px;color:#92400E;border-bottom:1px dashed #FCD34D">${esc(p.commissionLabel ?? "Frais de service")}</td>
+          <td style="padding:12px 20px;font-size:13px;font-weight:700;color:#EF4444;text-align:right;white-space:nowrap;border-bottom:1px dashed #FCD34D">+ ${p.commission.toLocaleString("fr-FR")} FCFA</td>
+        </tr>` : ""}
         <tr>
           <td style="padding:18px 20px;font-size:14px;font-weight:900;color:#78350F">
             MONTANT À PERCEVOIR DU CLIENT
@@ -163,7 +174,16 @@ function buildAdminEmail(p: NotifyPayload): string {
         </tr>
       </table>
 
-      ${p.campayReference ? `<p style="font-size:12px;color:#9CA3AF;margin-bottom:20px">Réf. Campay : <code>${esc(p.campayReference)}</code></p>` : ""}
+      ${p.campayReference ? `<p style="font-size:12px;color:#9CA3AF;margin-bottom:16px">Réf. Campay : <code>${esc(p.campayReference)}</code></p>` : ""}
+
+      <!-- Source URL -->
+      ${p.sourceUrl ? `
+      <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px">
+        <tr><td style="background:#F3F4F6;border-radius:8px;padding:10px 14px">
+          <p style="margin:0;font-size:11px;color:#9CA3AF;font-weight:700;letter-spacing:1px">SOURCE DE LA COMMANDE</p>
+          <a href="${esc(p.sourceUrl)}" style="font-size:13px;color:#B45309;text-decoration:none;font-weight:700">${esc(p.sourceUrl)}</a>
+        </td></tr>
+      </table>` : ""}
 
       <!-- WA Button -->
       <table width="100%" cellpadding="0" cellspacing="0">
@@ -257,6 +277,15 @@ function buildClientEmail(p: NotifyPayload): string {
           <td style="padding:12px 20px;font-size:13px;color:#92400E;border-bottom:1px dashed #FCD34D">Mode de paiement sélectionné</td>
           <td style="padding:12px 20px;font-size:13px;font-weight:900;color:${pColor};text-align:right;border-bottom:1px dashed #FCD34D">${esc(p.paymentMethod)}</td>
         </tr>
+        ${p.commission ? `
+        <tr>
+          <td style="padding:10px 20px;font-size:13px;color:#92400E;border-bottom:1px dashed #FCD34D">Montant articles</td>
+          <td style="padding:10px 20px;font-size:13px;font-weight:700;color:#B45309;text-align:right;border-bottom:1px dashed #FCD34D">${(p.total - p.commission).toLocaleString("fr-FR")} FCFA</td>
+        </tr>
+        <tr>
+          <td style="padding:10px 20px;font-size:13px;color:#92400E;border-bottom:1px dashed #FCD34D">${esc(p.commissionLabel ?? "Frais de service")}</td>
+          <td style="padding:10px 20px;font-size:13px;font-weight:700;color:#EF4444;text-align:right;border-bottom:1px dashed #FCD34D">+ ${p.commission.toLocaleString("fr-FR")} FCFA</td>
+        </tr>` : ""}
         <tr>
           <td style="padding:16px 20px;font-size:15px;font-weight:900;color:#78350F">TOTAL À RÉGLER</td>
           <td style="padding:16px 20px;font-size:26px;font-weight:900;color:#B45309;text-align:right;white-space:nowrap">${p.total.toLocaleString("fr-FR")} FCFA</td>
