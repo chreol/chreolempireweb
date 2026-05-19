@@ -325,6 +325,58 @@ function buildClientEmail(p: NotifyPayload): string {
 </body></html>`;
 }
 
+// ── Telegram notification ─────────────────────────────────────────────────────
+
+function buildTelegramMsg(p: NotifyPayload): string {
+  const ref    = p.orderId.slice(-8).toUpperCase();
+  const waNum  = toWaNumber(p.clientPhone);
+  const pIcon  = p.paymentMethod.toLowerCase().includes("mtn")    ? "🟡"
+               : p.paymentMethod.toLowerCase().includes("orange") ? "🟠"
+               : "💬";
+
+  const itemLines = p.items.map(item => {
+    const sub  = (item.price * item.qty).toLocaleString("fr-FR");
+    const line = `• <b>${esc(item.name)}</b> ×${item.qty} = ${sub} FCFA`;
+    return item.details ? `${line}\n  <i>${esc(item.details)}</i>` : line;
+  }).join("\n");
+
+  return [
+    `🛍️ <b>NOUVELLE COMMANDE #${ref}</b>`,
+    ``,
+    `👤 <b>${esc(p.clientName)}</b>`,
+    `📧 ${esc(p.clientEmail)}`,
+    `📱 +${waNum}`,
+    `${pIcon} <b>${esc(p.paymentMethod)}</b>`,
+    ``,
+    `📦 <b>Commande :</b>`,
+    itemLines,
+    ``,
+    `💰 <b>TOTAL : ${p.total.toLocaleString("fr-FR")} FCFA</b>`,
+    p.campayReference ? `\n🔑 Réf. Campay : <code>${esc(p.campayReference)}</code>` : "",
+    ``,
+    `<a href="https://wa.me/${waNum}">💬 Ouvrir WhatsApp client</a>`,
+  ].filter(l => l !== undefined).join("\n");
+}
+
+async function sendTelegram(p: NotifyPayload): Promise<number> {
+  const token  = process.env.TELEGRAM_BOT_TOKEN;
+  const chatId = process.env.TELEGRAM_CHAT_ID;
+  if (!token || !chatId) return 0;
+
+  const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      chat_id: chatId,
+      text: buildTelegramMsg(p),
+      parse_mode: "HTML",
+      disable_web_page_preview: true,
+    }),
+    signal: AbortSignal.timeout(6000),
+  });
+  return res.status;
+}
+
 // ── Route handler ─────────────────────────────────────────────────────────────
 
 export async function POST(request: Request): Promise<Response> {
@@ -348,7 +400,7 @@ export async function POST(request: Request): Promise<Response> {
   const adminMail = process.env.ADMIN_EMAIL ?? "chreolempire00@gmail.com";
   const ref       = p.orderId.slice(-8).toUpperCase();
 
-  const [adminResult, clientResult] = await Promise.allSettled([
+  const [adminResult, clientResult, telegramResult] = await Promise.allSettled([
     fetch("https://api.brevo.com/v3/smtp/email", {
       method: "POST",
       headers: { "Content-Type": "application/json", "api-key": brevoKey },
@@ -369,12 +421,14 @@ export async function POST(request: Request): Promise<Response> {
         htmlContent: buildClientEmail(p),
       }),
     }),
+    sendTelegram(p),
   ]);
 
-  const adminStatus  = adminResult.status  === "fulfilled" ? adminResult.value.status  : 500;
-  const clientStatus = clientResult.status === "fulfilled" ? clientResult.value.status : 500;
+  const adminStatus    = adminResult.status    === "fulfilled" ? adminResult.value.status    : 500;
+  const clientStatus   = clientResult.status   === "fulfilled" ? clientResult.value.status   : 500;
+  const telegramStatus = telegramResult.status === "fulfilled" ? telegramResult.value        : 500;
 
-  console.log(`[notify-order] ref=${ref} admin=${adminStatus} client=${clientStatus}`);
+  console.log(`[notify-order] ref=${ref} admin=${adminStatus} client=${clientStatus} telegram=${telegramStatus}`);
 
-  return Response.json({ ok: true, ref, admin: adminStatus, client: clientStatus });
+  return Response.json({ ok: true, ref, admin: adminStatus, client: clientStatus, telegram: telegramStatus });
 }
