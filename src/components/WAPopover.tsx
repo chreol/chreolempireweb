@@ -14,8 +14,10 @@ interface WAPopoverProps {
   className?: string;
   style?: React.CSSProperties;
   children: React.ReactNode;
-  align?: "left" | "right" | "center"; // kept for API compatibility
-  dropDown?: boolean;                   // kept for API compatibility
+  /** @deprecated no-op */
+  align?: "left" | "right" | "center";
+  /** @deprecated no-op */
+  dropDown?: boolean;
 }
 
 export default function WAPopover({
@@ -27,6 +29,8 @@ export default function WAPopover({
   className,
   style,
   children,
+  align: _align,
+  dropDown: _dropDown,
 }: WAPopoverProps) {
   const [open, setOpen]       = useState(false);
   const [prenom, setPrenom]   = useState(prefillPrenom ?? "");
@@ -55,7 +59,7 @@ export default function WAPopover({
     if (!p || !r) return;
     track("whatsapp_open", { context: title });
     const msg = encodeURIComponent(`Bonjour Chreol Empire, je m'appelle ${p}.\n\n${r}`);
-    window.open(`https://wa.me/${CONTACT.whatsapp}?text=${msg}`, "_blank");
+    window.open(`https://wa.me/${CONTACT.whatsapp}?text=${msg}`, "_blank", "noopener,noreferrer");
     setOpen(false);
     setPrenom(prefillPrenom ?? "");
     setRequete(prefill ?? "");

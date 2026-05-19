@@ -27,6 +27,10 @@ const HistoryContext = createContext<HistoryContextValue>({
 
 const STORAGE_KEY = "chreol_history";
 
+function save(data: HistoryEntry[]) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch {}
+}
+
 export function HistoryProvider({ children }: { children: React.ReactNode }) {
   const [entries, setEntries] = useState<HistoryEntry[]>([]);
 
@@ -37,27 +41,23 @@ export function HistoryProvider({ children }: { children: React.ReactNode }) {
     } catch {}
   }, []);
 
-  const persist = useCallback((data: HistoryEntry[]) => {
-    setEntries(data);
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch {}
-  }, []);
-
   const addEntry = useCallback((entry: Omit<HistoryEntry, "id" | "date">) => {
     const newEntry: HistoryEntry = {
       ...entry,
-      id: Math.random().toString(36).slice(2).toUpperCase(),
+      id: crypto.randomUUID().slice(0, 8).toUpperCase(),
       date: new Date().toISOString(),
     };
     setEntries(prev => {
       const next = [newEntry, ...prev].slice(0, 50);
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch {}
+      save(next);
       return next;
     });
   }, []);
 
   const clearHistory = useCallback(() => {
-    persist([]);
-  }, [persist]);
+    setEntries([]);
+    save([]);
+  }, []);
 
   return (
     <HistoryContext.Provider value={{ entries, addEntry, clearHistory }}>

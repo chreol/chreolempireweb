@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback, Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { CONTACT, IMAGES } from "@/lib/services";
+import { detectOperator, isValidPhone, type Operator } from "@/lib/phone";
 
 // Product → image mapping (keyed on URL param `product`)
 const PRODUCT_IMAGE: Record<string, string> = {
@@ -27,26 +28,6 @@ const PRODUCT_IMAGE: Record<string, string> = {
   uba:        IMAGES.uba,
   factures:   IMAGES.factures,
 };
-
-// ── Cameroonian prefix → operator detection ───────────────────────────────
-type Operator = "orange" | "mtn";
-
-function detectOperator(phone: string): Operator | null {
-  if (phone.length < 2) return null;
-  const p2 = phone.slice(0, 2);
-  if (p2 === "69") return "orange";
-  if (p2 === "67" || p2 === "68") return "mtn";
-  if (phone.length >= 3) {
-    const p3 = phone.slice(0, 3);
-    if (["655", "656", "657", "658", "659"].includes(p3)) return "orange";
-    if (["650", "651", "652", "653", "654"].includes(p3)) return "mtn";
-  }
-  return null;
-}
-
-function isValidPhone(phone: string, operator: Operator | null): boolean {
-  return phone.length === 9 && operator !== null;
-}
 
 // ── State machine ─────────────────────────────────────────────────────────
 type PayState = "idle" | "submitting" | "waiting_pin" | "success" | "error";
@@ -101,6 +82,25 @@ function CheckoutInner() {
     return () => clearInterval(interval);
   }, [state]);
 
+  // Poll Campay status every 4s while waiting for PIN confirmation
+  useEffect(() => {
+    if (state !== "waiting_pin" || !reference) return;
+    const poll = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/campay-status?ref=${encodeURIComponent(reference)}`);
+        if (!res.ok) return;
+        const data = await res.json() as { status?: string };
+        if (data.status === "SUCCESSFUL") {
+          setState("success");
+        } else if (data.status === "FAILED") {
+          setState("error");
+          setErrorMsg("Paiement refusé par l'opérateur. Réessayez ou continuez via WhatsApp.");
+        }
+      } catch { /* ignore network errors, countdown handles timeout */ }
+    }, 4000);
+    return () => clearInterval(poll);
+  }, [state, reference]);
+
   function buildWhatsAppMsg() {
     const op = operator === "orange" ? "Orange Money" : "MTN MoMo";
     return encodeURIComponent(
@@ -110,11 +110,11 @@ function CheckoutInner() {
   }
 
   const handleSubmit = useCallback(async () => {
-    if (!isValidPhone(phone, operator) || amount <= 0) return;
+    if (!isValidPhone(phone) && operator !== null || amount <= 0) return;
     setState("submitting");
     setErrorMsg("");
 
-    const externalRef = `${product}|${phone}|${Date.now()}`;
+    const externalRef = `${product}|${phone}|${crypto.randomUUID().slice(0, 8)}`;
 
     try {
       const res = await fetch("/api/campay-collect", {
@@ -136,7 +136,7 @@ function CheckoutInner() {
   }, [phone, operator, amount, label, product]);
 
   const opConfig = OPERATORS.find(o => o.id === operator);
-  const phoneValid = isValidPhone(phone, operator);
+  const phoneValid = isValidPhone(phone) && operator !== null;
 
   // ── Screens ───────────────────────────────────────────────────────────────
 

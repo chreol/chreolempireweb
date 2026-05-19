@@ -19,13 +19,10 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>("fr");
 
   useEffect(() => {
-    // French is the primary language for the Cameroonian market.
-    // Always default to "fr" — only honor an explicit stored "fr", never "en".
     const stored = localStorage.getItem("lang") as Lang | null;
-    const resolved: Lang = stored === "fr" ? "fr" : "fr";
+    const resolved: Lang = stored === "en" ? "en" : "fr";
     setLangState(resolved);
     document.documentElement.lang = resolved;
-    if (stored !== "fr") localStorage.setItem("lang", "fr");
   }, []);
 
   function setLang(l: Lang) {

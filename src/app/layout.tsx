@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
+import Link from "next/link";
 import "./globals.css";
 import { CartProvider } from "@/contexts/CartContext";
 import { HistoryProvider } from "@/contexts/HistoryContext";
@@ -162,12 +163,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <div>
                   <p className="font-bold text-sm mb-3" style={{ color: "var(--gold)" }}>SERVICES</p>
                   <div className="flex flex-col gap-2 text-sm" style={{ color: "var(--text-secondary)" }}>
-                    <a href="/services/cartes-cadeaux" className="hover:text-white transition-colors">🎮 Cartes Cadeaux</a>
-                    <a href="/services/crypto" className="hover:text-white transition-colors">₿ Crypto &amp; MoMo</a>
-                    <a href="/services/coupons" className="hover:text-white transition-colors">🎫 Coupons PCS / Transcash</a>
-                    <a href="/services/uba" className="hover:text-white transition-colors">💳 UBA Cameroun</a>
-                    <a href="/services/paypal" className="hover:text-white transition-colors">💸 PayPal Europe</a>
-                    <a href="/services/factures" className="hover:text-white transition-colors">🔄 Paiement Factures</a>
+                    <Link href="/services/cartes-cadeaux" className="hover:text-white transition-colors">🎮 Cartes Cadeaux</Link>
+                    <Link href="/services/crypto" className="hover:text-white transition-colors">₿ Crypto &amp; MoMo</Link>
+                    <Link href="/services/coupons" className="hover:text-white transition-colors">🎫 Coupons PCS / Transcash</Link>
+                    <Link href="/services/uba" className="hover:text-white transition-colors">💳 UBA Cameroun</Link>
+                    <Link href="/services/paypal" className="hover:text-white transition-colors">💸 PayPal Europe</Link>
+                    <Link href="/services/factures" className="hover:text-white transition-colors">🔄 Paiement Factures</Link>
                   </div>
                 </div>
 
@@ -175,15 +176,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <div>
                   <p className="font-bold text-sm mb-3" style={{ color: "var(--gold)" }}>INFORMATIONS</p>
                   <div className="flex flex-col gap-2 text-sm" style={{ color: "var(--text-secondary)" }}>
-                    <a href="/promo" className="hover:text-white transition-colors font-bold" style={{ color: "#F87171" }}>🔥 Offres spéciales</a>
-                    <a href="/blog" className="hover:text-white transition-colors">✍️ Blog & Guides</a>
-                    <a href="/comment-ca-marche" className="hover:text-white transition-colors">📖 Comment ça marche</a>
-                    <a href="/paiement" className="hover:text-white transition-colors">💰 Modes de paiement</a>
-                    <a href="/a-propos" className="hover:text-white transition-colors">ℹ️ À propos</a>
-                    <a href="/sitemap" className="hover:text-white transition-colors">🗺️ Plan du site</a>
-                    <a href="/cgu" className="hover:text-white transition-colors">📄 CGU</a>
-                    <a href="/confidentialite" className="hover:text-white transition-colors">🔒 Confidentialité</a>
-                    <a href="/mentions-legales" className="hover:text-white transition-colors">⚖️ Mentions légales</a>
+                    <Link href="/promo" className="hover:text-white transition-colors font-bold" style={{ color: "#F87171" }}>🔥 Offres spéciales</Link>
+                    <Link href="/blog" className="hover:text-white transition-colors">✍️ Blog &amp; Guides</Link>
+                    <Link href="/comment-ca-marche" className="hover:text-white transition-colors">📖 Comment ça marche</Link>
+                    <Link href="/paiement" className="hover:text-white transition-colors">💰 Modes de paiement</Link>
+                    <Link href="/a-propos" className="hover:text-white transition-colors">ℹ️ À propos</Link>
+                    <Link href="/sitemap" className="hover:text-white transition-colors">🗺️ Plan du site</Link>
+                    <Link href="/cgu" className="hover:text-white transition-colors">📄 CGU</Link>
+                    <Link href="/confidentialite" className="hover:text-white transition-colors">🔒 Confidentialité</Link>
+                    <Link href="/mentions-legales" className="hover:text-white transition-colors">⚖️ Mentions légales</Link>
                   </div>
                 </div>
 
@@ -242,11 +243,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     © 2012 – {new Date().getFullYear()} Chreol Empire. Tous droits réservés.
                   </p>
                   <div className="flex items-center gap-3 text-xs" style={{ color: "var(--text-muted)" }}>
-                    <a href="/cgu" className="hover:text-white transition-colors">CGU</a>
+                    <Link href="/cgu" className="hover:text-white transition-colors">CGU</Link>
                     <span>·</span>
-                    <a href="/confidentialite" className="hover:text-white transition-colors">Confidentialité</a>
+                    <Link href="/confidentialite" className="hover:text-white transition-colors">Confidentialité</Link>
                     <span>·</span>
-                    <a href="/mentions-legales" className="hover:text-white transition-colors">Mentions légales</a>
+                    <Link href="/mentions-legales" className="hover:text-white transition-colors">Mentions légales</Link>
                   </div>
                 </div>
               </div>

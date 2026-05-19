@@ -69,10 +69,9 @@ export default function RateTicker() {
       onMouseEnter={pause}
       onMouseLeave={resume}
     >
-      {/* LIVE badge */}
+      {/* TARIF badge */}
       <div className="flex items-center gap-1.5 shrink-0 px-3 border-r" style={{ borderColor: "#C9A84C22", height: "100%" }}>
-        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-        <span className="text-[9px] font-black tracking-widest text-emerald-500 whitespace-nowrap">LIVE</span>
+        <span className="text-[9px] font-black tracking-widest whitespace-nowrap" style={{ color: "var(--gold)" }}>TARIF</span>
       </div>
 
       {/* Scrolling track */}

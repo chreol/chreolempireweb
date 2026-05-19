@@ -1,11 +1,27 @@
 export const runtime = "edge";
 
+import { isValidPhone, isOperatorConsistent } from "@/lib/phone";
+
 const VALID_OPERATORS = new Set(["orange", "mtn"]);
 const AMOUNT_MIN = 100;
 const AMOUNT_MAX = 500_000;
-// Préfixes opérateurs camerounais valides (9 chiffres, sans indicatif)
-const ORANGE_PREFIXES = ["69", "655", "656", "657", "658", "659"];
-const MTN_PREFIXES    = ["67", "68", "650", "651", "652", "653", "654"];
+
+// In-memory rate limit: max 5 requests per IP per minute
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT_MAX = 5;
+const RATE_LIMIT_WINDOW_MS = 60_000;
+
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return true;
+  }
+  if (entry.count >= RATE_LIMIT_MAX) return false;
+  entry.count++;
+  return true;
+}
 
 interface CollectPayload {
   phone: string;
@@ -15,17 +31,12 @@ interface CollectPayload {
   externalReference: string;
 }
 
-function isValidPhone(phone: string): boolean {
-  return /^\d{9}$/.test(phone);
-}
-
-function isOperatorConsistent(phone: string, operator: string): boolean {
-  if (operator === "orange") return ORANGE_PREFIXES.some(p => phone.startsWith(p));
-  if (operator === "mtn")    return MTN_PREFIXES.some(p => phone.startsWith(p));
-  return false;
-}
-
 export async function POST(request: Request): Promise<Response> {
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  if (!checkRateLimit(ip)) {
+    return Response.json({ error: "Trop de requêtes — réessayez dans une minute" }, { status: 429 });
+  }
+
   let body: CollectPayload;
   try {
     body = (await request.json()) as CollectPayload;

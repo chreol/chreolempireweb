@@ -324,27 +324,38 @@ export default function HomePage() {
 
       {/* ── HOW IT WORKS ── */}
       <section className="px-4 sm:px-6 lg:px-12 pb-24 max-w-7xl mx-auto">
-        <div className="rounded-3xl p-8 sm:p-12" style={{ background: "var(--bg-card)", boxShadow: "var(--shadow-border)" }}>
-          <div className="text-center mb-10">
-            <p className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: "var(--gold)" }}>Processus</p>
-            <h2 className="text-3xl sm:text-4xl font-black text-white">{t("section.how")}</h2>
-          </div>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
-            {STEPS.map((s, i) => (
-              <div key={s.n} className="flex flex-col items-center text-center gap-4">
-                <div className="w-14 h-14 rounded-2xl flex items-center justify-center font-black text-2xl shrink-0"
-                  style={{ background: "var(--gold)", color: "#0A0A0A" }}>
-                  {s.n}
+        <div className="relative rounded-3xl p-8 sm:p-12 overflow-hidden" style={{ boxShadow: "var(--shadow-border)" }}>
+          <Image
+            src="/assets/comment_Ca_Marche.webp"
+            alt=""
+            fill
+            style={{ objectFit: "cover", objectPosition: "center" }}
+            unoptimized
+            className="pointer-events-none"
+          />
+          <div className="absolute inset-0" style={{ background: "rgba(10,10,10,0.82)" }} />
+          <div className="relative">
+            <div className="text-center mb-10">
+              <p className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: "var(--gold)" }}>Processus</p>
+              <h2 className="text-3xl sm:text-4xl font-black text-white">{t("section.how")}</h2>
+            </div>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+              {STEPS.map((s, i) => (
+                <div key={s.n} className="flex flex-col items-center text-center gap-4">
+                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center font-black text-2xl shrink-0"
+                    style={{ background: "var(--gold)", color: "#0A0A0A" }}>
+                    {s.n}
+                  </div>
+                  <div>
+                    <p className="font-black text-white text-base mb-1">{s.title}</p>
+                    <p className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>{s.desc}</p>
+                  </div>
+                  {i < STEPS.length - 1 && (
+                    <div className="hidden lg:block absolute" />
+                  )}
                 </div>
-                <div>
-                  <p className="font-black text-white text-base mb-1">{s.title}</p>
-                  <p className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>{s.desc}</p>
-                </div>
-                {i < STEPS.length - 1 && (
-                  <div className="hidden lg:block absolute" />
-                )}
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -450,12 +461,69 @@ export default function HomePage() {
           </AnimatePresence>
         </div>
 
-        {/* Voir tous les avis */}
-        <div className="mt-6 text-center">
-          <a href={SOCIAL_LINKS.googleBusiness} target="_blank" rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-sm font-bold transition-opacity hover:opacity-70"
-            style={{ color: "var(--text-muted)" }}>
-            Voir tous les avis Google →
+        {/* Voir tous les avis — 3 plateformes */}
+        <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {/* Google */}
+          <a href={SOCIAL_LINKS.googleReview} target="_blank" rel="noopener noreferrer"
+            className="group flex items-center gap-4 p-4 rounded-2xl transition-all hover:-translate-y-0.5 hover:shadow-lg"
+            style={{ background: "var(--bg-card)", border: "1px solid #EA433530" }}>
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center font-black text-white text-xl shrink-0"
+              style={{ background: "linear-gradient(135deg, #EA4335 0%, #FBBC04 50%, #34A853 100%)" }}>
+              G
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-black text-white text-sm">Google</p>
+              <div className="flex items-center gap-1 mt-0.5">
+                {[1,2,3,4,5].map(s => (
+                  <svg key={s} width="10" height="10" viewBox="0 0 24 24" fill="#FFC107"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                ))}
+                <span className="text-[11px] font-black text-white ml-1">4.9</span>
+                <span className="text-[10px]" style={{ color: "var(--text-muted)" }}>· 127 avis</span>
+              </div>
+            </div>
+            <span className="text-xs font-bold shrink-0 transition-colors group-hover:text-white" style={{ color: "var(--text-muted)" }}>→</span>
+          </a>
+
+          {/* BusinessList */}
+          <a href={SOCIAL_LINKS.businesslist} target="_blank" rel="noopener noreferrer"
+            className="group flex items-center gap-4 p-4 rounded-2xl transition-all hover:-translate-y-0.5 hover:shadow-lg"
+            style={{ background: "var(--bg-card)", border: "1px solid #2563EB30" }}>
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center font-black text-white text-xl shrink-0"
+              style={{ background: "linear-gradient(135deg, #1D4ED8 0%, #2563EB 100%)" }}>
+              B
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-black text-white text-sm">BusinessList</p>
+              <div className="flex items-center gap-1 mt-0.5">
+                {[1,2,3,4,5].map(s => (
+                  <svg key={s} width="10" height="10" viewBox="0 0 24 24" fill="#FFC107"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                ))}
+                <span className="text-[11px] font-black text-white ml-1">5.0</span>
+                <span className="text-[10px]" style={{ color: "var(--text-muted)" }}>· 48 avis</span>
+              </div>
+            </div>
+            <span className="text-xs font-bold shrink-0 transition-colors group-hover:text-white" style={{ color: "var(--text-muted)" }}>→</span>
+          </a>
+
+          {/* Trustpilot */}
+          <a href={SOCIAL_LINKS.trustpilot} target="_blank" rel="noopener noreferrer"
+            className="group flex items-center gap-4 p-4 rounded-2xl transition-all hover:-translate-y-0.5 hover:shadow-lg"
+            style={{ background: "var(--bg-card)", border: "1px solid #00B67A30" }}>
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center font-black text-white text-xl shrink-0"
+              style={{ background: "linear-gradient(135deg, #00B67A 0%, #007B52 100%)" }}>
+              ★
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-black text-white text-sm">Trustpilot</p>
+              <div className="flex items-center gap-1 mt-0.5">
+                {[1,2,3,4,5].map(s => (
+                  <svg key={s} width="10" height="10" viewBox="0 0 24 24" fill="#00B67A"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                ))}
+                <span className="text-[11px] font-black text-white ml-1">4.8</span>
+                <span className="text-[10px]" style={{ color: "var(--text-muted)" }}>· 35 avis</span>
+              </div>
+            </div>
+            <span className="text-xs font-bold shrink-0 transition-colors group-hover:text-white" style={{ color: "var(--text-muted)" }}>→</span>
           </a>
         </div>
       </section>

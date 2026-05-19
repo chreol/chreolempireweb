@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from "react";
 import { track } from "@vercel/analytics";
 
 export interface CartItem {
@@ -27,15 +27,18 @@ const Ctx = createContext<CartCtx | null>(null);
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
+  const initialized = useRef(false);
 
   useEffect(() => {
     try {
       const saved = localStorage.getItem("chreol_cart");
       if (saved) setItems(JSON.parse(saved));
     } catch { /* ignore */ }
+    initialized.current = true;
   }, []);
 
   useEffect(() => {
+    if (!initialized.current) return;
     localStorage.setItem("chreol_cart", JSON.stringify(items));
   }, [items]);
 
