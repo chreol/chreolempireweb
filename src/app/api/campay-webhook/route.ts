@@ -106,40 +106,56 @@ async function upsertOrder(body: CampayWebhookBody, serviceId: string, clientPho
   console.log(`[campay-webhook] Supabase INSERT → ${res.status}`);
 }
 
+async function fetchOrderForEmail(orderId: string): Promise<{ client_name?: string; client_email?: string; summary?: string } | null> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key || !orderId) return null;
+  try {
+    const res = await fetch(
+      `${url}/rest/v1/orders?id=eq.${encodeURIComponent(orderId)}&select=client_name,client_email,summary`,
+      { headers: { apikey: key, Authorization: `Bearer ${key}` }, signal: AbortSignal.timeout(4000) },
+    );
+    if (!res.ok) return null;
+    const rows = await res.json() as Array<{ client_name?: string; client_email?: string; summary?: string }>;
+    return rows[0] ?? null;
+  } catch {
+    return null;
+  }
+}
+
 async function sendEmailNotification(body: CampayWebhookBody, serviceId: string, clientPhone: string, productCode: string) {
-  const brevoKey = process.env.BREVO_API_KEY;
-  if (!brevoKey) return;
-
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://chreolempire.com";
   const operatorLabel = body.operator?.toLowerCase().includes("orange") ? "Orange Money" : "MTN MoMo";
-  const senderEmail = process.env.BREVO_SENDER_EMAIL ?? "chreolempire00@gmail.com";
+  const total = parseInt(body.amount, 10);
+  const orderId = serviceId === "cart" && productCode ? productCode : `${Date.now()}-${productCode}`;
 
-  const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+  // Pour les commandes panier, récupérer les infos client depuis Supabase
+  const orderDetails = serviceId === "cart" && productCode
+    ? await fetchOrderForEmail(productCode)
+    : null;
+
+  const clientName  = orderDetails?.client_name  ?? `Client +237${clientPhone}`;
+  const clientEmail = orderDetails?.client_email  ?? "";
+  const summary     = orderDetails?.summary       ?? `${serviceId}${productCode ? ` — ${productCode}` : ""}`;
+
+  const payload = {
+    orderId,
+    clientName,
+    clientEmail: clientEmail || "noreply@chreolempire.com",
+    clientPhone,
+    paymentMethod: operatorLabel,
+    items: [{ name: summary, qty: 1, price: total, amount: `${total.toLocaleString("fr-FR")} FCFA` }],
+    total,
+    campayReference: body.reference,
+  };
+
+  const notifyRes = await fetch(`${siteUrl}/api/notify-order`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", "api-key": brevoKey },
-    body: JSON.stringify({
-      sender: { id: parseInt(process.env.BREVO_SENDER_ID ?? "1", 10) },
-      to: [{ email: "chreolempire00@gmail.com" }],
-      subject: `✅ Nouveau paiement — ${body.amount} XAF (${serviceId})`,
-      htmlContent: `
-        <div style="font-family:sans-serif;max-width:500px;margin:0 auto;padding:24px">
-          <h2 style="color:#B8860B;margin-bottom:16px">✅ Paiement reçu — Chreol Empire</h2>
-          <table style="width:100%;border-collapse:collapse">
-            <tr><td style="padding:8px 0;color:#666">Montant</td><td style="font-weight:bold">${body.amount} XAF</td></tr>
-            <tr><td style="padding:8px 0;color:#666">Opérateur</td><td>${operatorLabel}</td></tr>
-            <tr><td style="padding:8px 0;color:#666">Téléphone client</td><td>${clientPhone}</td></tr>
-            <tr><td style="padding:8px 0;color:#666">Service</td><td>${serviceId}</td></tr>
-            <tr><td style="padding:8px 0;color:#666">Produit</td><td>${productCode || "—"}</td></tr>
-            <tr><td style="padding:8px 0;color:#666">Référence Campay</td><td style="font-size:12px">${body.reference}</td></tr>
-            <tr><td style="padding:8px 0;color:#666">Référence opérateur</td><td style="font-size:12px">${body.operator_reference}</td></tr>
-          </table>
-          <p style="margin-top:24px;padding:12px;background:#fff3cd;border-radius:8px;font-size:14px">
-            ⚠️ Livrer le produit au client via WhatsApp : <strong>${clientPhone}</strong>
-          </p>
-        </div>
-      `,
-    }),
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+    signal: AbortSignal.timeout(10000),
   });
-  console.log(`[campay-webhook] Brevo email → ${res.status}`);
+  console.log(`[campay-webhook] notify-order → ${notifyRes.status} (client=${clientEmail || "none"})`);
 }
 
 export async function POST(request: Request): Promise<Response> {

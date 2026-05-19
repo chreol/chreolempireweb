@@ -4,7 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { useCart } from "@/contexts/CartContext";
 import { supabase } from "@/lib/supabase";
-import { IMAGES } from "@/lib/services";
+import { IMAGES, CONTACT } from "@/lib/services";
 import WAPopover from "@/components/WAPopover";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -27,6 +27,7 @@ export default function CartPage() {
   const [loading, setLoading]         = useState(false);
   const [done, setDone]               = useState<string | null>(null);
   const [referral, setReferral]       = useState("");
+  const [emailError, setEmailError]   = useState("");
 
   const isSell    = items.length > 0 && items.every(i => i.type === "sell");
   const canCampay = !isSell && (payMethod === "mtn" || payMethod === "orange");
@@ -43,6 +44,63 @@ export default function CartPage() {
       ? "Vente / Échange"
       : payMethod === "mtn" ? "MTN MoMo" : payMethod === "orange" ? "Orange Money" : "WhatsApp";
     return `Je souhaite :\n${lines}\n\nTotal : ${total.toLocaleString("fr-FR")} FCFA\nType : ${payLabel}\n\nTél : ${phone}${referral ? `\nCode parrainage : ${referral.toUpperCase()}` : ""}`;
+  }
+
+  async function handleWhatsappOrder() {
+    if (!email) {
+      setEmailError("Email requis pour recevoir la confirmation de commande");
+      return;
+    }
+    setEmailError("");
+    setLoading(true);
+
+    const orderId = `${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
+
+    // Fire-and-forget: save to Supabase
+    void supabase.from("orders").insert({
+      id: orderId,
+      type: "achat",
+      summary,
+      total,
+      item_count: items.length,
+      payment_method: "Via WhatsApp",
+      status: "pending",
+      payment_status: "whatsapp",
+      client_name: name || "Client web",
+      client_email: email,
+      client_city: "Douala",
+    }).then(({ error }) => {
+      if (error) console.error("[cart-wa] insert:", error.message);
+    });
+
+    // Fire-and-forget: envoyer admin + client emails
+    void fetch("/api/notify-order", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        orderId,
+        clientName: name || "Client",
+        clientEmail: email,
+        clientPhone: phone.replace(/\D/g, "") || "000000000",
+        paymentMethod: "Via WhatsApp",
+        items: items.map(i => ({
+          name: i.cardName,
+          qty: i.qty,
+          price: i.price,
+          amount: i.amount,
+          details: i.details,
+        })),
+        total,
+      }),
+    }).catch(err => console.error("[cart-wa] notify:", err));
+
+    // Ouvrir WhatsApp
+    const waUrl = `https://wa.me/${CONTACT.whatsapp}?text=${encodeURIComponent(buildMsgPlain())}`;
+    window.open(waUrl, "_blank", "noopener,noreferrer");
+
+    clearCart();
+    setDone(orderId);
+    setLoading(false);
   }
 
   async function handleCampayOrder() {
@@ -222,7 +280,10 @@ export default function CartPage() {
             </p>
             <div className="flex flex-col gap-3">
               <input type="text"  placeholder={t("cart.name")}  value={name}  onChange={e => setName(e.target.value)}  className="w-full px-4 py-3 rounded-2xl text-white text-sm outline-none" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }} />
-              <input type="email" placeholder={t("cart.email")} value={email} onChange={e => setEmail(e.target.value)} className="w-full px-4 py-3 rounded-2xl text-white text-sm outline-none" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }} />
+              <div>
+                <input type="email" placeholder={t("cart.email")} value={email} onChange={e => { setEmail(e.target.value); if (e.target.value) setEmailError(""); }} className="w-full px-4 py-3 rounded-2xl text-white text-sm outline-none" style={{ background: "var(--bg-card)", border: `1px solid ${emailError ? "#EF4444" : "var(--border)"}` }} />
+                {emailError && <p className="text-xs mt-1 px-1" style={{ color: "#EF4444" }}>{emailError}</p>}
+              </div>
               <input type="tel"   placeholder={t("cart.phone")} value={phone} onChange={e => setPhone(e.target.value)} className="w-full px-4 py-3 rounded-2xl text-white text-sm outline-none" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }} />
               {/* Code parrainage */}
               <div className="relative">
@@ -336,18 +397,27 @@ export default function CartPage() {
                 {loading ? t("cart.loading") : t("cart.pay_now")}
               </button>
             )}
-            <WAPopover
-              getMsg={buildMsgPlain}
-              prefillPrenom={name}
-              className="flex items-center justify-center gap-2 w-full py-4 rounded-full font-black text-white text-sm transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
-              style={{ background: "#25D366" }}
-            >
-              {isSell ? (
-                <>{t("cart.wa.sell")}</>
-              ) : (
-                <><Image src={IMAGES.whatsapp} alt="" width={20} height={20} unoptimized className="shrink-0" /> {t("cart.wa.order")}</>
-              )}
-            </WAPopover>
+            {isSell ? (
+              <WAPopover
+                getMsg={buildMsgPlain}
+                prefillPrenom={name}
+                className="flex items-center justify-center gap-2 w-full py-4 rounded-full font-black text-white text-sm transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
+                style={{ background: "#25D366" }}
+              >
+                {t("cart.wa.sell")}
+              </WAPopover>
+            ) : (
+              <button
+                onClick={handleWhatsappOrder}
+                disabled={loading}
+                className="flex items-center justify-center gap-2 w-full py-4 rounded-full font-black text-white text-sm transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96] disabled:opacity-50"
+                style={{ background: "#25D366" }}
+              >
+                {loading ? t("cart.loading") : (
+                  <><Image src={IMAGES.whatsapp} alt="" width={20} height={20} unoptimized className="shrink-0" /> {t("cart.wa.order")}</>
+                )}
+              </button>
+            )}
           </div>
 
           {/* Info sécurité */}
