@@ -16,6 +16,7 @@ export interface NotifyPayload {
   paymentMethod: string; // "MTN MoMo" | "Orange Money" | "Via WhatsApp" | etc.
   items: NotifyItem[];
   total: number;
+  sourceUrl?: string;    // page d'origine (ex: /cart, /services/uba)
   campayReference?: string;
 }
 
@@ -352,8 +353,9 @@ function buildTelegramMsg(p: NotifyPayload): string {
     itemLines,
     ``,
     `💰 <b>TOTAL : ${p.total.toLocaleString("fr-FR")} FCFA</b>`,
-    p.campayReference ? `\n🔑 Réf. Campay : <code>${esc(p.campayReference)}</code>` : "",
+    p.campayReference ? `🔑 Réf. Campay : <code>${esc(p.campayReference)}</code>` : "",
     ``,
+    p.sourceUrl ? `🌐 <a href="${esc(p.sourceUrl)}">Voir la page source</a>` : "",
     `<a href="https://wa.me/${waNum}">💬 Ouvrir WhatsApp client</a>`,
   ].filter(l => l !== undefined).join("\n");
 }

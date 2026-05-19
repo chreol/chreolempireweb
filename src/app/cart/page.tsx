@@ -83,6 +83,7 @@ export default function CartPage() {
         clientEmail: email,
         clientPhone: phone.replace(/\D/g, "") || "000000000",
         paymentMethod: "Via WhatsApp",
+        sourceUrl: `${window.location.origin}/cart`,
         items: items.map(i => ({
           name: i.cardName,
           qty: i.qty,

@@ -123,6 +123,28 @@ async function fetchOrderForEmail(orderId: string): Promise<{ client_name?: stri
   }
 }
 
+const SERVICE_SOURCE: Record<string, string> = {
+  cart:        "/cart",
+  psn:         "/services/cartes-cadeaux",
+  itunes:      "/services/cartes-cadeaux",
+  robux:       "/services/cartes-cadeaux",
+  roblox:      "/services/cartes-cadeaux",
+  steam:       "/services/cartes-cadeaux",
+  nintendo:    "/services/cartes-cadeaux",
+  google:      "/services/cartes-cadeaux",
+  razer:       "/services/cartes-cadeaux",
+  crypto:      "/services/crypto",
+  usdt:        "/services/crypto",
+  btc:         "/services/crypto",
+  paypal:      "/services/paypal",
+  "paypal-sell": "/services/paypal",
+  coupons:     "/services/coupons",
+  pcs:         "/services/coupons",
+  transcash:   "/services/coupons",
+  uba:         "/services/uba",
+  factures:    "/services/factures",
+};
+
 async function sendEmailNotification(body: CampayWebhookBody, serviceId: string, clientPhone: string, productCode: string) {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://chreolempire.com";
   const operatorLabel = body.operator?.toLowerCase().includes("orange") ? "Orange Money" : "MTN MoMo";
@@ -138,12 +160,14 @@ async function sendEmailNotification(body: CampayWebhookBody, serviceId: string,
   const clientEmail = orderDetails?.client_email  ?? "";
   const summary     = orderDetails?.summary       ?? `${serviceId}${productCode ? ` — ${productCode}` : ""}`;
 
+  const sourcePath = SERVICE_SOURCE[serviceId] ?? "/checkout";
   const payload = {
     orderId,
     clientName,
     clientEmail: clientEmail || "noreply@chreolempire.com",
     clientPhone,
     paymentMethod: operatorLabel,
+    sourceUrl: `${siteUrl}${sourcePath}`,
     items: [{ name: summary, qty: 1, price: total, amount: `${total.toLocaleString("fr-FR")} FCFA` }],
     total,
     campayReference: body.reference,
