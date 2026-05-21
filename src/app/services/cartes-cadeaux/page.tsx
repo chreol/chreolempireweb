@@ -1,13 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
+import { track } from "@vercel/analytics";
 import { useCart } from "@/contexts/CartContext";
 import { GIFT_CARDS, IMAGES } from "@/lib/services";
 import USSDOrderFlow from "@/components/USSDOrderFlow";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 import FAQ from "@/components/FAQ";
+import RelatedServices from "@/components/RelatedServices";
 
 const PAGE_FAQ = [
   { q: "Où acheter des cartes cadeaux PSN en FCFA à Douala ?", a: "Chreol Empire est votre boutique locale à Douala (Vallée 3, Deido). Commandez vos cartes PSN, Steam, Nintendo, Roblox ou iTunes directement via WhatsApp — livraison du code en 15 minutes, paiement MTN MoMo ou Orange Money." },
@@ -46,6 +48,7 @@ const REGIONS = [
 const CUSTOM_RATE = 750;
 
 export default function CartesCadeauxPage() {
+  useEffect(() => { track("service_view", { service: "cartes-cadeaux" }); }, []);
   const { addItem } = useCart();
   const { t: tl } = useLanguage();
   const [tab, setTab] = useState<TabKey>("standard");
@@ -276,22 +279,7 @@ export default function CartesCadeauxPage() {
       </div>
       <FAQ items={PAGE_FAQ} />
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(PAGE_FAQ_SCHEMA) }} />
-      <div className="mt-8 rounded-2xl p-5" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
-        <p className="text-xs font-black uppercase tracking-widest mb-4" style={{ color: "var(--text-muted)" }}>Voir aussi</p>
-        <div className="flex flex-wrap gap-3">
-          {[
-            { href: "/services/crypto",   label: "₿ Crypto & MoMo" },
-            { href: "/services/paypal",   label: "💸 PayPal Europe" },
-            { href: "/services/coupons",  label: "🎫 Coupons PCS / Transcash" },
-          ].map(l => (
-            <a key={l.href} href={l.href}
-              className="px-4 py-2 rounded-xl text-sm font-bold transition-opacity hover:opacity-80"
-              style={{ background: "var(--bg-elevated)", color: "var(--gold)", border: "1px solid var(--border)" }}>
-              {l.label}
-            </a>
-          ))}
-        </div>
-      </div>
+      <RelatedServices current="cartes-cadeaux" />
     </div>
   );
 }

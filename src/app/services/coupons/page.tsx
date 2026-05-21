@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
+import { track } from "@vercel/analytics";
 import { motion } from "framer-motion";
 import { COUPON_RATES, MOMO_OPERATORS, IMAGES } from "@/lib/services";
 import WAPopover from "@/components/WAPopover";
+import RelatedServices from "@/components/RelatedServices";
 import { useCart } from "@/contexts/CartContext";
 import { useHistory } from "@/contexts/HistoryContext";
 import { useToast } from "@/components/Toast";
@@ -28,6 +30,7 @@ const PAGE_FAQ_SCHEMA = {
 type CouponType = keyof typeof COUPON_RATES;
 
 export default function CouponsPage() {
+  useEffect(() => { track("service_view", { service: "coupons" }); }, []);
   const { addItem } = useCart();
   const { addEntry } = useHistory();
   const { showToast } = useToast();
@@ -281,22 +284,7 @@ export default function CouponsPage() {
       </div>
       <FAQ items={PAGE_FAQ} />
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(PAGE_FAQ_SCHEMA) }} />
-      <div className="mt-8 rounded-2xl p-5" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
-        <p className="text-xs font-black uppercase tracking-widest mb-4" style={{ color: "var(--text-muted)" }}>Voir aussi</p>
-        <div className="flex flex-wrap gap-3">
-          {[
-            { href: "/services/paypal",          label: "💸 PayPal Europe" },
-            { href: "/services/crypto",           label: "₿ Crypto & MoMo" },
-            { href: "/services/cartes-cadeaux",   label: "🎮 Cartes Cadeaux" },
-          ].map(l => (
-            <a key={l.href} href={l.href}
-              className="px-4 py-2 rounded-xl text-sm font-bold transition-opacity hover:opacity-80"
-              style={{ background: "var(--bg-elevated)", color: "var(--gold)", border: "1px solid var(--border)" }}>
-              {l.label}
-            </a>
-          ))}
-        </div>
-      </div>
+      <RelatedServices current="coupons" />
     </div>
   );
 }

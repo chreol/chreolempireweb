@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { track } from "@vercel/analytics";
 import { useCart } from "@/contexts/CartContext";
 import { supabase } from "@/lib/supabase";
 import { IMAGES, CONTACT } from "@/lib/services";
@@ -79,6 +80,7 @@ export default function CartPage() {
     setLoading(true);
 
     const opLabel = opConfig?.label ?? "Via WhatsApp";
+    track("cart_checkout", { items: items.length, total, operator: opLabel });
     const orderId = `${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
 
     void supabase.from("orders").insert({
