@@ -71,10 +71,14 @@ export default function WAPopover({
     setRequete(prefill ?? "");
   }
 
-  const isBlock = className?.includes("w-full");
+  const wrapperCls = className?.includes("w-full")
+    ? "w-full"
+    : className?.includes("flex-1")
+    ? "flex-1"
+    : "inline-block";
 
   return (
-    <div className={`relative ${isBlock ? "w-full" : "inline-block"}`}>
+    <div className={`relative ${wrapperCls}`}>
       <button type="button" onClick={handleTrigger} className={className} style={style}>
         {children}
       </button>

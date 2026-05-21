@@ -106,8 +106,8 @@ const AVIS = [
   },
 ];
 
-const SOURCE_ICONS: Record<string, { bg: string; label: string; icon: string }> = {
-  Google:   { bg: "#EA4335", label: "Google",   icon: "G" },
+const SOURCE_ICONS: Record<string, { bg: string; label: string; icon: string; image?: string }> = {
+  Google:   { bg: "#EA4335", label: "Google",   icon: "G", image: IMAGES.googleAvis },
   WhatsApp: { bg: "#25D366", label: "WhatsApp", icon: "W" },
   Facebook: { bg: "#1877F2", label: "Facebook", icon: "f" },
 };
@@ -298,19 +298,18 @@ export default function HomePage() {
                 {SERVICE_STOCK[s.stockId]?.inStock !== false ? (
                   <WAPopover
                     prefill={`Bonjour, je voudrais commander : ${s.title}. Pouvez-vous m'aider ?`}
-                    className="flex-1 py-2.5 rounded-xl text-xs font-black text-white text-center flex items-center justify-center gap-1.5 transition-opacity hover:opacity-80"
+                    className="w-11 h-11 rounded-xl flex items-center justify-center transition-opacity hover:opacity-80 shrink-0"
                     style={{ background: "#25D366" }}
                   >
-                    <Image src={IMAGES.whatsapp} alt="" width={12} height={12} unoptimized className="shrink-0" />
-                    Commander
+                    <Image src={IMAGES.whatsapp} alt="Commander via WhatsApp" width={22} height={22} unoptimized />
                   </WAPopover>
                 ) : (
                   <WAPopover
                     prefill={`Bonjour, je souhaite être averti dès que le service "${s.title}" sera à nouveau disponible.`}
-                    className="flex-1 py-2.5 rounded-xl text-xs font-black text-center flex items-center justify-center gap-1 transition-opacity hover:opacity-80"
-                    style={{ background: "var(--bg-elevated)", color: "#FFC107", border: "1px solid #FFC10755" }}
+                    className="w-11 h-11 rounded-xl flex items-center justify-center text-base transition-opacity hover:opacity-80 shrink-0"
+                    style={{ background: "var(--bg-elevated)", border: "1px solid #FFC10755" }}
                   >
-                    🔔 M&apos;avertir
+                    🔔
                   </WAPopover>
                 )}
               </div>
@@ -372,7 +371,7 @@ export default function HomePage() {
             <a href={SOCIAL_LINKS.googleBusiness} target="_blank" rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full transition-opacity hover:opacity-80"
               style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
-              <span className="font-black text-sm" style={{ color: "#EA4335" }}>G</span>
+              <Image src={IMAGES.googleAvis} alt="Google" width={20} height={20} unoptimized className="shrink-0 rounded-sm" />
               <div className="flex items-center gap-0.5">
                 {[1,2,3,4,5].map(s => (
                   <svg key={s} width="11" height="11" viewBox="0 0 24 24" fill="#FFC107"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
@@ -430,9 +429,11 @@ export default function HomePage() {
                       </div>
                     </div>
                     {/* Source badge */}
-                    <div className="w-6 h-6 rounded-full flex items-center justify-center font-black text-white text-[11px] shrink-0"
-                      style={{ background: src.bg }} title={src.label}>
-                      {src.icon}
+                    <div className="w-6 h-6 rounded-full overflow-hidden flex items-center justify-center font-black text-white text-[11px] shrink-0"
+                      style={src.image ? {} : { background: src.bg }} title={src.label}>
+                      {src.image
+                        ? <Image src={src.image} alt={src.label} width={24} height={24} unoptimized className="w-full h-full object-cover" />
+                        : src.icon}
                     </div>
                   </div>
 
@@ -467,9 +468,8 @@ export default function HomePage() {
           <a href={SOCIAL_LINKS.googleReview} target="_blank" rel="noopener noreferrer"
             className="group flex items-center gap-4 p-4 rounded-2xl transition-all hover:-translate-y-0.5 hover:shadow-lg"
             style={{ background: "var(--bg-card)", border: "1px solid #EA433530" }}>
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center font-black text-white text-xl shrink-0"
-              style={{ background: "linear-gradient(135deg, #EA4335 0%, #FBBC04 50%, #34A853 100%)" }}>
-              G
+            <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0">
+              <Image src={IMAGES.googleAvis} alt="Google" width={48} height={48} unoptimized className="w-full h-full object-cover" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-black text-white text-sm">Google</p>

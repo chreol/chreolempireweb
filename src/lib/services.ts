@@ -51,8 +51,9 @@ export const IMAGES = {
   eneo:    "/assets/Eneo logo.webp",
   camwater:"/assets/Camwater logo.webp",
   startimes:"/assets/StarTimes logo.webp",
-  boutique: "/assets/boutique.webp",
-  banner:   "/assets/Baniere_ChreolEMpire_Cartes-Cadeaux.webp",
+  boutique:   "/assets/boutique.webp",
+  banner:     "/assets/Baniere_ChreolEMpire_Cartes-Cadeaux.webp",
+  googleAvis: "/assets/google-avis-client-grande.webp",
 };
 
 const STANDARD_AMOUNTS = [
