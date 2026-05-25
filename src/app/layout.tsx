@@ -47,16 +47,26 @@ export const metadata: Metadata = {
     siteName: "Chreol Empire",
     locale: "fr_FR",
     type: "website",
+    images: [{
+      url: "/assets/Baniere_ChreolEMpire_Cartes-Cadeaux.webp",
+      width: 1200,
+      height: 630,
+      alt: "Chreol Empire — Cartes Cadeaux & Crypto au Cameroun",
+    }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Chreol Empire — Cartes Cadeaux & Crypto au Cameroun",
     description: "Cartes cadeaux & crypto à Douala. 0% commission. MTN MoMo / Orange Money. Livraison 15-30 min.",
+    images: ["/assets/Baniere_ChreolEMpire_Cartes-Cadeaux.webp"],
   },
   robots: {
     index: true,
     follow: true,
     googleBot: { index: true, follow: true, "max-snippet": -1, "max-image-preview": "large" },
+  },
+  verification: {
+    google: "c3320b203dc6ddd6",
   },
 };
 

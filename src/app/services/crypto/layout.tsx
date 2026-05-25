@@ -4,9 +4,12 @@ export const metadata: Metadata = {
   title: { absolute: "Crypto USDT BTC FCFA Douala — 0% Commission | Chreol Empire" },
   description: "Échangez vos cryptomonnaies USDT, BTC, TRX, ETH, SOL contre FCFA à Douala. 0% commission, taux du marché en temps réel. Paiement MTN MoMo ou Orange Money. Livraison 15-30 min.",
   keywords: ["USDT FCFA", "BTC FCFA", "acheter crypto cameroun", "vendre crypto douala", "échange crypto MTN", "USDT contre CFA", "BTC orange money cameroun"],
+  alternates: { canonical: "https://chreolempire.com/services/crypto" },
   openGraph: {
     title: "Crypto & MoMo — USDT, BTC, TRX contre FCFA | Chreol Empire",
     description: "Achetez ou vendez vos cryptos contre FCFA. 0% commission. Paiement Mobile Money.",
+    url: "https://chreolempire.com/services/crypto",
+    images: [{ url: "/assets/Monnaie Crypto Chreol Empire en cfa mobile money.webp", width: 1200, height: 630, alt: "Échange Crypto USDT BTC FCFA Cameroun" }],
   },
 };
 
