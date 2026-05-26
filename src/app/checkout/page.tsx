@@ -63,6 +63,7 @@ function CheckoutInner() {
   const [step, setStep]             = useState<"choose" | "ussd">("choose");
   const [selectedOp, setSelectedOp] = useState<"orange" | "mtn" | null>(null);
   const [email, setEmail]           = useState("");
+  const [emailError, setEmailError] = useState(false);
   const orderIdRef                  = useRef(`CE-${Date.now()}`);
   const opConfig = OPERATORS.find(o => o.id === selectedOp);
 
@@ -110,30 +111,45 @@ function CheckoutInner() {
           <p className="text-sm mb-6" style={{ color: "var(--text-secondary)" }}>
             Choisissez votre opérateur pour recevoir le code USSD de paiement.
           </p>
-          {/* Email optionnel pour Google Avis */}
+          {/* Email requis pour Google Avis */}
           <div className="mb-5">
             <label className="block text-xs font-bold mb-1.5" style={{ color: "var(--text-secondary)" }}>
-              Email (optionnel — pour recevoir un avis Google)
+              Adresse email <span style={{ color: "#EF4444" }}>*</span>
             </label>
             <input
               type="email"
               value={email}
-              onChange={e => setEmail(e.target.value)}
+              onChange={e => { setEmail(e.target.value); setEmailError(false); }}
               placeholder="votre@email.com"
-              className="w-full rounded-xl px-4 py-2.5 text-sm outline-none"
+              className="w-full rounded-xl px-4 py-2.5 text-sm outline-none transition-all"
               style={{
                 background: "var(--bg-elevated)",
-                border: "1px solid var(--border)",
+                border: `1px solid ${emailError ? "#EF4444" : "var(--border)"}`,
                 color: "var(--text-primary)",
               }}
             />
+            {emailError && (
+              <p className="text-xs mt-1.5" style={{ color: "#EF4444" }}>
+                Veuillez saisir votre email pour continuer.
+              </p>
+            )}
+            <p className="text-[11px] mt-1.5" style={{ color: "var(--text-muted)" }}>
+              Utilisé uniquement pour vous inviter à laisser un avis Google après livraison.
+            </p>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             {OPERATORS.map(op => (
               <button
                 key={op.id}
-                onClick={() => { setSelectedOp(op.id); setStep("ussd"); }}
+                onClick={() => {
+                  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                    setEmailError(true);
+                    return;
+                  }
+                  setSelectedOp(op.id);
+                  setStep("ussd");
+                }}
                 className="p-5 rounded-2xl flex flex-col items-center gap-3 transition-all hover:scale-[1.02] active:scale-[0.97]"
                 style={{ background: "var(--bg-elevated)", border: `2px solid ${op.color}55` }}
               >
