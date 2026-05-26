@@ -1,9 +1,10 @@
 "use client";
 
 import { useSearchParams, useRouter } from "next/navigation";
-import { useState, Suspense } from "react";
+import { useState, Suspense, useRef } from "react";
 import Image from "next/image";
 import { CONTACT, IMAGES } from "@/lib/services";
+import GoogleReviewsOptIn from "@/components/GoogleReviewsOptIn";
 
 const PRODUCT_IMAGE: Record<string, string> = {
   psn:          IMAGES.psn,
@@ -61,6 +62,8 @@ function CheckoutInner() {
 
   const [step, setStep]             = useState<"choose" | "ussd">("choose");
   const [selectedOp, setSelectedOp] = useState<"orange" | "mtn" | null>(null);
+  const [email, setEmail]           = useState("");
+  const orderIdRef                  = useRef(`CE-${Date.now()}`);
   const opConfig = OPERATORS.find(o => o.id === selectedOp);
 
   function buildWAMsg() {
@@ -107,6 +110,25 @@ function CheckoutInner() {
           <p className="text-sm mb-6" style={{ color: "var(--text-secondary)" }}>
             Choisissez votre opérateur pour recevoir le code USSD de paiement.
           </p>
+          {/* Email optionnel pour Google Avis */}
+          <div className="mb-5">
+            <label className="block text-xs font-bold mb-1.5" style={{ color: "var(--text-secondary)" }}>
+              Email (optionnel — pour recevoir un avis Google)
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder="votre@email.com"
+              className="w-full rounded-xl px-4 py-2.5 text-sm outline-none"
+              style={{
+                background: "var(--bg-elevated)",
+                border: "1px solid var(--border)",
+                color: "var(--text-primary)",
+              }}
+            />
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             {OPERATORS.map(op => (
               <button
@@ -227,6 +249,15 @@ function CheckoutInner() {
             </button>
           </div>
         </div>
+      )}
+
+      {/* Google Customer Reviews opt-in — se déclenche à l'étape paiement */}
+      {step === "ussd" && (
+        <GoogleReviewsOptIn
+          orderId={orderIdRef.current}
+          email={email}
+          deliveryCountry="CM"
+        />
       )}
 
       {/* Trust */}
