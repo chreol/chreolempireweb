@@ -11,6 +11,7 @@ import Navbar from "@/components/Navbar";
 import RateTicker from "@/components/RateTicker";
 import PromoBanner from "@/components/PromoBanner";
 import WASupport from "@/components/WASupport";
+import GoogleMerchantWidget from "@/components/GoogleMerchantWidget";
 import WAPopover from "@/components/WAPopover";
 import FloatingCalc from "@/components/FloatingCalc";
 import MobileWACTA from "@/components/MobileWACTA";
@@ -140,6 +141,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <main className="flex-1 pb-[72px] sm:pb-0">{children}</main>
           <FloatingCalc />
           <MobileWACTA />
+          <GoogleMerchantWidget />
 
           {/* Footer */}
           <footer style={{ background: "var(--bg-secondary)", borderTop: "1px solid var(--border)" }} className="mt-16">
