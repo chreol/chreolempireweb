@@ -67,7 +67,7 @@ export default function CryptoPage() {
     if (!amount || numAmount <= 0) e.amount = "Montant requis";
     if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = "Adresse email valide requise";
     if (direction === "sell") {
-      if (!txid || txid.length < 20) e.txid = "Hash requis (min 20 caractères)";
+      if (txid && txid.length < 20) e.txid = "Hash invalide (min 20 caractères)";
       if (!beneficiary.trim()) e.beneficiary = "Nom requis";
       const mpD = momoPhone.replace(/\D/g, "").replace(/^237/, "");
       if (mpD.length < 9) e.momoPhone = "Numéro invalide (9 chiffres)";
@@ -79,17 +79,41 @@ export default function CryptoPage() {
   }
 
   function buildDetails() {
-    const op = MOMO_OPERATORS.find(o => o.id === momoOp)?.name ?? momoOp;
+    const op          = MOMO_OPERATORS.find(o => o.id === momoOp)?.name ?? momoOp;
+    const depositAddr = CRYPTO_WALLETS[cryptoId]?.[network] ?? "—";
     if (direction === "sell") {
-      return `Crypto : ${crypto.name} | Réseau : ${network} | Montant : ${amount} ${crypto.unit}\nTxID : ${txid}\nBénéficiaire : ${beneficiary} | ${op} +237 ${momoPhone}\nEmail : ${email}`;
+      return [
+        `Crypto : ${crypto.name} | Réseau : ${network} | Montant : ${amount} ${crypto.unit}`,
+        `Wallet Chreol Empire (${network}) : ${depositAddr}`,
+        txid ? `TxID : ${txid}` : `TxID : en attente`,
+        `Bénéficiaire : ${beneficiary} | ${op} +237 ${momoPhone}`,
+        `Email : ${email}`,
+      ].join("\n");
     }
     return `Crypto : ${crypto.name} | Réseau : ${network} | Je paie : ${numAmount.toLocaleString("fr-FR")} FCFA\nWallet : ${walletAddr}\nEmail : ${email}`;
   }
 
   function buildMsgPlain() {
-    const op = MOMO_OPERATORS.find(o => o.id === momoOp)?.name ?? momoOp;
+    const op          = MOMO_OPERATORS.find(o => o.id === momoOp)?.name ?? momoOp;
+    const depositAddr = CRYPTO_WALLETS[cryptoId]?.[network] ?? "—";
     if (direction === "sell") {
-      return `📤 VENTE CRYPTO\nCrypto : ${crypto.name} (${crypto.fullName})\nRéseau : ${network}\nMontant : ${amount} ${crypto.unit}\nÀ recevoir : ${fcfaReceived.toLocaleString("fr-FR")} FCFA\n\nTxID : ${txid}\n\n💰 Réception MoMo\nOpérateur : ${op}\nNuméro : +237 ${momoPhone}\nNom : ${beneficiary}\nEmail : ${email}`;
+      return [
+        `📤 VENTE CRYPTO`,
+        `Crypto : ${crypto.name} (${crypto.fullName})`,
+        `Réseau : ${network}`,
+        `Montant : ${amount} ${crypto.unit}`,
+        `À recevoir : ${fcfaReceived.toLocaleString("fr-FR")} FCFA`,
+        ``,
+        `📬 Envoyez à ce wallet (${network}) :`,
+        depositAddr,
+        txid ? `\n🔗 TxID : ${txid}` : `\n⏳ TxID : à fournir après envoi`,
+        ``,
+        `💰 Réception MoMo`,
+        `Opérateur : ${op}`,
+        `Numéro : +237 ${momoPhone}`,
+        `Nom : ${beneficiary}`,
+        `Email : ${email}`,
+      ].join("\n");
     }
     return `📥 ACHAT CRYPTO\nCrypto : ${crypto.name} (${crypto.fullName})\nRéseau : ${network}\nJe paie : ${numAmount.toLocaleString("fr-FR")} FCFA\nÀ recevoir : ${cryptoReceived.toFixed(6)} ${crypto.unit}\n\nWallet : ${walletAddr}\nEmail : ${email}`;
   }
@@ -292,9 +316,9 @@ export default function CryptoPage() {
                 </motion.div>
               )}
 
-              <Field label="TxID / Hash de la transaction" error={errors.txid}>
+              <Field label="TxID / Hash de la transaction (optionnel — à fournir après envoi)" error={errors.txid}>
                 <input
-                  type="text" placeholder="Collez votre hash de transaction ici…"
+                  type="text" placeholder="Collez votre hash de transaction ici… (peut être ajouté plus tard)"
                   value={txid}
                   onChange={e => { setTxid(e.target.value); setErrors(p => ({ ...p, txid: "" })); }}
                   className={inputCls} style={errors.txid ? inputErr : inputBase}
