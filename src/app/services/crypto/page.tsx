@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { track } from "@vercel/analytics";
 import { motion, AnimatePresence } from "framer-motion";
-import { CRYPTO_RATES, CRYPTO_NETWORKS, MOMO_OPERATORS, IMAGES } from "@/lib/services";
+import { CRYPTO_RATES, CRYPTO_NETWORKS, CRYPTO_WALLETS, MOMO_OPERATORS, IMAGES } from "@/lib/services";
 import WAPopover from "@/components/WAPopover";
 import USSDOrderFlow from "@/components/USSDOrderFlow";
 import RelatedServices from "@/components/RelatedServices";
@@ -44,6 +44,7 @@ export default function CryptoPage() {
   const [momoOp, setMomoOp]       = useState("orange");
   const [momoPhone, setMomoPhone] = useState("");
   const [walletAddr, setWalletAddr] = useState("");
+  const [email, setEmail]           = useState("");
   const [errors, setErrors]       = useState<Record<string, string>>({});
   const [howOpen, setHowOpen]     = useState(false);
 
@@ -64,6 +65,7 @@ export default function CryptoPage() {
   function validate() {
     const e: Record<string, string> = {};
     if (!amount || numAmount <= 0) e.amount = "Montant requis";
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = "Adresse email valide requise";
     if (direction === "sell") {
       if (!txid || txid.length < 20) e.txid = "Hash requis (min 20 caractères)";
       if (!beneficiary.trim()) e.beneficiary = "Nom requis";
@@ -79,17 +81,17 @@ export default function CryptoPage() {
   function buildDetails() {
     const op = MOMO_OPERATORS.find(o => o.id === momoOp)?.name ?? momoOp;
     if (direction === "sell") {
-      return `Crypto : ${crypto.name} | Réseau : ${network} | Montant : ${amount} ${crypto.unit}\nTxID : ${txid}\nBénéficiaire : ${beneficiary} | ${op} +237 ${momoPhone}`;
+      return `Crypto : ${crypto.name} | Réseau : ${network} | Montant : ${amount} ${crypto.unit}\nTxID : ${txid}\nBénéficiaire : ${beneficiary} | ${op} +237 ${momoPhone}\nEmail : ${email}`;
     }
-    return `Crypto : ${crypto.name} | Réseau : ${network} | Je paie : ${numAmount.toLocaleString("fr-FR")} FCFA\nWallet : ${walletAddr}`;
+    return `Crypto : ${crypto.name} | Réseau : ${network} | Je paie : ${numAmount.toLocaleString("fr-FR")} FCFA\nWallet : ${walletAddr}\nEmail : ${email}`;
   }
 
   function buildMsgPlain() {
     const op = MOMO_OPERATORS.find(o => o.id === momoOp)?.name ?? momoOp;
     if (direction === "sell") {
-      return `📤 VENTE CRYPTO\nCrypto : ${crypto.name} (${crypto.fullName})\nRéseau : ${network}\nMontant : ${amount} ${crypto.unit}\nÀ recevoir : ${fcfaReceived.toLocaleString("fr-FR")} FCFA\n\nTxID : ${txid}\n\n💰 Réception MoMo\nOpérateur : ${op}\nNuméro : +237 ${momoPhone}\nNom : ${beneficiary}`;
+      return `📤 VENTE CRYPTO\nCrypto : ${crypto.name} (${crypto.fullName})\nRéseau : ${network}\nMontant : ${amount} ${crypto.unit}\nÀ recevoir : ${fcfaReceived.toLocaleString("fr-FR")} FCFA\n\nTxID : ${txid}\n\n💰 Réception MoMo\nOpérateur : ${op}\nNuméro : +237 ${momoPhone}\nNom : ${beneficiary}\nEmail : ${email}`;
     }
-    return `📥 ACHAT CRYPTO\nCrypto : ${crypto.name} (${crypto.fullName})\nRéseau : ${network}\nJe paie : ${numAmount.toLocaleString("fr-FR")} FCFA\nÀ recevoir : ${cryptoReceived.toFixed(6)} ${crypto.unit}\n\nWallet : ${walletAddr}`;
+    return `📥 ACHAT CRYPTO\nCrypto : ${crypto.name} (${crypto.fullName})\nRéseau : ${network}\nJe paie : ${numAmount.toLocaleString("fr-FR")} FCFA\nÀ recevoir : ${cryptoReceived.toFixed(6)} ${crypto.unit}\n\nWallet : ${walletAddr}\nEmail : ${email}`;
   }
 
   function handleAddToCart() {
@@ -238,9 +240,58 @@ export default function CryptoPage() {
             </motion.div>
           )}
 
+          {/* Email — commun aux deux directions */}
+          <Field label="Adresse email" error={errors.email}>
+            <input
+              type="email"
+              placeholder="votre@email.com"
+              value={email}
+              onChange={e => { setEmail(e.target.value); setErrors(p => ({ ...p, email: "" })); }}
+              className={inputCls}
+              style={errors.email ? inputErr : inputBase}
+            />
+          </Field>
+
           {/* SELL — extra fields */}
           {direction === "sell" && (
             <>
+              {/* Wallet Chreol Empire à afficher */}
+              {CRYPTO_WALLETS[cryptoId]?.[network] && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.97 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="rounded-2xl p-4"
+                  style={{ background: "var(--gold)15", border: "1px solid var(--gold)44" }}
+                >
+                  <p className="text-xs font-black uppercase tracking-wider mb-2" style={{ color: "var(--gold)" }}>
+                    📤 Envoyez à cette adresse
+                  </p>
+                  <p className="text-[11px] mb-3" style={{ color: "var(--text-secondary)" }}>
+                    Réseau : <span className="font-bold text-white">{network}</span> — vérifiez le réseau avant d&apos;envoyer
+                  </p>
+                  <div
+                    className="flex items-center gap-2 px-3 py-2.5 rounded-xl"
+                    style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)" }}
+                  >
+                    <span className="flex-1 text-xs font-mono text-white break-all select-all">
+                      {CRYPTO_WALLETS[cryptoId][network]}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        navigator.clipboard
+                          .writeText(CRYPTO_WALLETS[cryptoId][network])
+                          .then(() => showToast("Adresse copiée !", "success"))
+                      }
+                      className="shrink-0 text-xs px-2 py-1 rounded-lg font-bold hover:bg-white/10 transition-colors"
+                      style={{ color: "var(--gold)" }}
+                    >
+                      📋 Copier
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+
               <Field label="TxID / Hash de la transaction" error={errors.txid}>
                 <input
                   type="text" placeholder="Collez votre hash de transaction ici…"

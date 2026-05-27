@@ -141,6 +141,41 @@ export const CRYPTO_NETWORKS: Record<string, string[]> = {
   bnb:  ["BEP20"],
 };
 
+export const CRYPTO_WALLETS: Record<string, Record<string, string>> = {
+  usdt: {
+    TRC20:    "TMiSeBpQQ7AeKzN34wvzC5uybXHFvcyfo6",
+    BEP20:    "0x7e0fE380958c8B6Eda7Df0d80b0829263256fE85",
+    ERC20:    "0x7e0fE380958c8B6Eda7Df0d80b0829263256fE85",
+  },
+  usdc: {
+    ERC20:    "0x7e0fE380958c8B6Eda7Df0d80b0829263256fE85",
+    BEP20:    "0x7e0fE380958c8B6Eda7Df0d80b0829263256fE85",
+    SPL:      "Egme6fgZ1rQHcNfpDaNNsGh3LBe2aoou4FtuS8MCd71d",
+  },
+  btc: {
+    Bitcoin:  "bc1q7qzvsrlyn96x6mwfs48hzqrcxfpsqusacj356k",
+  },
+  trx: {
+    TRC20:    "TMiSeBpQQ7AeKzN34wvzC5uybXHFvcyfo6",
+  },
+  sol: {
+    SPL:      "Egme6fgZ1rQHcNfpDaNNsGh3LBe2aoou4FtuS8MCd71d",
+  },
+  ltc: {
+    Litecoin: "ltc1q2tlsexsslwwswkh6yk2nsuy4eu8ancwn9x9lgh",
+  },
+  eth: {
+    ERC20:    "0x7e0fE380958c8B6Eda7Df0d80b0829263256fE85",
+    Arbitrum: "0x7e0fE380958c8B6Eda7Df0d80b0829263256fE85",
+  },
+  ada: {
+    Cardano:  "addr1q9mxu5zlhu3mlymfk84zxujj9arrn38gcx67nxnfm5dv43kdr5xh7gfcp3ehfjm9zjs4gwjjm9n5ln3cg0fn0v4gwm0s7uch3z",
+  },
+  bnb: {
+    BEP20:    "0x7e0fE380958c8B6Eda7Df0d80b0829263256fE85",
+  },
+};
+
 export const COUPON_RATES = {
   pcs:       { rate: 440, commission: 7,  formula: "(montant − 7%) × 440", codeLength: 8,  codeType: "alphanumérique" as const },
   transcash: { rate: 440, commission: 0,  formula: "montant × 440",         codeLength: 12, codeType: "numérique" as const },
