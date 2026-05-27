@@ -431,6 +431,12 @@ export async function POST(request: Request): Promise<Response> {
   const adminMail = process.env.ADMIN_EMAIL ?? "chreolempire00@gmail.com";
   const ref       = p.orderId.slice(-8).toUpperCase();
 
+  // Résoudre l'URL complète de la source à partir de l'origine de la requête
+  if (p.sourceUrl && p.sourceUrl.startsWith("/")) {
+    const origin = new URL(request.url).origin;
+    p = { ...p, sourceUrl: `${origin}${p.sourceUrl}` };
+  }
+
   const [adminResult, clientResult, telegramResult] = await Promise.allSettled([
     fetch("https://api.brevo.com/v3/smtp/email", {
       method: "POST",
