@@ -41,6 +41,9 @@ export default function FacturesPage() {
   const [tab, setTab]       = useState<Tab>("factures");
   const [cartDialog, setCartDialog] = useState(false);
 
+  /* --- Shared --- */
+  const [email, setEmail]     = useState("");
+
   /* --- Factures form --- */
   const [biller, setBiller]   = useState<string | null>(null);
   const [idType, setIdType]   = useState<IdType>("phone");
@@ -67,6 +70,7 @@ export default function FacturesPage() {
     if (idType === "phone" && idD.length < 9) e.identifier = "Numéro invalide (9 chiffres)";
     if (idType === "decoder" && idD.length < 14) e.identifier = "Numéro décodeur invalide (14 chiffres)";
     if (!amount || numFacAmt < 500) e.amount = "Montant minimum 500 FCFA";
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = "Email valide requis";
     setFacErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -79,13 +83,36 @@ export default function FacturesPage() {
   function handleFactureBeforeOpen() {
     const ok = validateFacture();
     if (!ok) { showToast("Corrigez les erreurs", "error"); return false; }
+    const billerName = FACTURE_BILLERS.find(b => b.id === biller)?.name ?? "";
     addEntry({
-      service: `Facture — ${FACTURE_BILLERS.find(b => b.id === biller)?.name}`,
+      service: `Facture — ${billerName}`,
       details: `${numFacAmt.toLocaleString("fr-FR")} FCFA + ${FACTURE_COMMISSION} FCFA commission`,
       amount: totalFacture,
       currency: "FCFA",
       status: "pending",
     });
+    fetch("/api/notify-order", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        orderId: `facture-${biller}-${Date.now()}`,
+        clientName: email.split("@")[0],
+        clientEmail: email,
+        clientPhone: idType === "phone" ? identifier : "",
+        paymentMethod: "Via WhatsApp",
+        items: [{
+          name: `Facture ${billerName}`,
+          qty: 1,
+          price: totalFacture,
+          amount: `${numFacAmt.toLocaleString("fr-FR")} FCFA`,
+          details: `Identifiant : ${identifier} (${idType === "phone" ? "téléphone" : "décodeur"})`,
+        }],
+        total: totalFacture,
+        commission: FACTURE_COMMISSION,
+        commissionLabel: "Commission service",
+        sourceUrl: window.location.pathname,
+      }),
+    }).catch(() => {});
     return true;
   }
 
@@ -100,6 +127,7 @@ export default function FacturesPage() {
     if (spD.length < 9) e.srcPhone = "Numéro source invalide (9 chiffres)";
     if (dpD.length < 9) e.dstPhone = "Numéro destination invalide (9 chiffres)";
     if (!momoAmt || numMomoAmt < 1000 || numMomoAmt > 500000) e.momoAmt = "Montant entre 1 000 et 500 000 FCFA";
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = "Email valide requis";
     setMomoErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -113,13 +141,35 @@ export default function FacturesPage() {
   function handleMomoBeforeOpen() {
     const ok = validateMomo();
     if (!ok) { showToast("Corrigez les erreurs", "error"); return false; }
+    const srcName = MOMO_OPERATORS.find(o => o.id === srcOp)?.name ?? srcOp;
+    const dstName = MOMO_OPERATORS.find(o => o.id === dstOp)?.name ?? dstOp;
     addEntry({
       service: "Échange MoMo",
-      details: `${MOMO_OPERATORS.find(o => o.id === srcOp)?.name} → ${MOMO_OPERATORS.find(o => o.id === dstOp)?.name}`,
+      details: `${srcName} → ${dstName}`,
       amount: numMomoAmt,
       currency: "FCFA",
       status: "pending",
     });
+    fetch("/api/notify-order", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        orderId: `momo-${srcOp}-${dstOp}-${Date.now()}`,
+        clientName: email.split("@")[0],
+        clientEmail: email,
+        clientPhone: srcPhone,
+        paymentMethod: srcName,
+        items: [{
+          name: `Échange MoMo ${srcName} → ${dstName}`,
+          qty: 1,
+          price: numMomoAmt,
+          amount: `${numMomoAmt.toLocaleString("fr-FR")} FCFA`,
+          details: `De : +237 ${srcPhone} (${srcName})\nVers : +237 ${dstPhone} (${dstName})`,
+        }],
+        total: numMomoAmt,
+        sourceUrl: window.location.pathname,
+      }),
+    }).catch(() => {});
     return true;
   }
 
@@ -236,6 +286,17 @@ export default function FacturesPage() {
                 onChange={e => { setAmount(e.target.value); setFacErrors(p => ({ ...p, amount: "" })); }}
                 className={inputCls}
                 style={facErrors.amount ? inputErr : inputBase}
+              />
+            </Field>
+
+            <Field label="Adresse email" error={facErrors.email}>
+              <input
+                type="email"
+                placeholder="votre@email.com"
+                value={email}
+                onChange={e => { setEmail(e.target.value); setFacErrors(p => ({ ...p, email: "" })); }}
+                className={inputCls}
+                style={facErrors.email ? inputErr : inputBase}
               />
             </Field>
 
@@ -427,6 +488,17 @@ export default function FacturesPage() {
                 onChange={e => { setMomoAmt(e.target.value); setMomoErrors(p => ({ ...p, momoAmt: "" })); }}
                 className={inputCls}
                 style={momoErrors.momoAmt ? inputErr : inputBase}
+              />
+            </Field>
+
+            <Field label="Adresse email" error={momoErrors.email}>
+              <input
+                type="email"
+                placeholder="votre@email.com"
+                value={email}
+                onChange={e => { setEmail(e.target.value); setMomoErrors(p => ({ ...p, email: "" })); }}
+                className={inputCls}
+                style={momoErrors.email ? inputErr : inputBase}
               />
             </Field>
 

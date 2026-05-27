@@ -42,6 +42,7 @@ export default function CouponsPage() {
   const [name, setName]         = useState("");
   const [momoOp, setMomoOp]     = useState("orange");
   const [phone, setPhone]       = useState("");
+  const [email, setEmail]       = useState("");
   const [errors, setErrors]     = useState<Record<string, string>>({});
   const [showCalc, setShowCalc] = useState(false);
 
@@ -57,6 +58,7 @@ export default function CouponsPage() {
     else if (numAmt < 20)       { e.amount = "Minimum 20€"; }
     if (!code.trim()) e.code = "Code requis";
     if (!name.trim()) e.name = "Nom requis";
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = "Email valide requis";
     const phoneD = phone.replace(/\D/g, "").replace(/^237/, "");
     if (phoneD.length < 9) e.phone = "Numéro invalide (9 chiffres)";
     setErrors(e);
@@ -73,6 +75,31 @@ export default function CouponsPage() {
     const op = MOMO_OPERATORS.find(o => o.id === momoOp)?.name ?? momoOp;
     const typeName = type === "pcs" ? "PCS Mastercard" : "Transcash";
     return `🎫 ÉCHANGE COUPON\nType : ${typeName}\nValeur : ${amount}€\nCode : ${code.trim()}\nCommission : ${rate.commission}%\nÀ recevoir : ${fcfaResult.toLocaleString("fr-FR")} FCFA\n\n💰 Réception MoMo\nOpérateur : ${op}\nNuméro : +237 ${phone}\nNom : ${name}`;
+  }
+
+  function sendNotification() {
+    const op = MOMO_OPERATORS.find(o => o.id === momoOp)?.name ?? momoOp;
+    const typeName = type === "pcs" ? "PCS Mastercard" : "Transcash";
+    fetch("/api/notify-order", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        orderId: `coupon-${type}-${Date.now()}`,
+        clientName: name,
+        clientEmail: email,
+        clientPhone: phone,
+        paymentMethod: op,
+        items: [{
+          name: `Échange ${typeName}`,
+          qty: 1,
+          price: fcfaResult,
+          amount: `${amount}€ → ${fcfaResult.toLocaleString("fr-FR")} FCFA`,
+          details: buildDetails(),
+        }],
+        total: fcfaResult,
+        sourceUrl: window.location.pathname,
+      }),
+    }).catch(() => {});
   }
 
   function handleAddToCart() {
@@ -222,6 +249,13 @@ export default function CouponsPage() {
           />
         </Field>
 
+        <Field label="Adresse email" error={errors.email}>
+          <input type="email" placeholder="votre@email.com" value={email}
+            onChange={e => { setEmail(e.target.value); setErrors(p => ({ ...p, email: "" })); }}
+            className={inputCls} style={errors.email ? inputErr : inputBase}
+          />
+        </Field>
+
         <Field label="Réception Mobile Money" error={errors.phone}>
           <div className="flex gap-2">
             <div className="flex flex-col gap-2 w-full">
@@ -260,7 +294,7 @@ export default function CouponsPage() {
           🛒 Ajouter au panier
         </button>
         <WAPopover
-          onBeforeOpen={() => { const ok = validate(); if (!ok) showToast("Corrigez les erreurs", "error"); return ok; }}
+          onBeforeOpen={() => { const ok = validate(); if (!ok) { showToast("Corrigez les erreurs", "error"); return false; } sendNotification(); return true; }}
           getMsg={buildMsgPlain}
           prefillPrenom={name}
           className="w-full py-3 rounded-full font-black text-white text-sm flex items-center justify-center gap-2 transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"

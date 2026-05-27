@@ -118,6 +118,32 @@ export default function CryptoPage() {
     return `📥 ACHAT CRYPTO\nCrypto : ${crypto.name} (${crypto.fullName})\nRéseau : ${network}\nJe paie : ${numAmount.toLocaleString("fr-FR")} FCFA\nÀ recevoir : ${cryptoReceived.toFixed(6)} ${crypto.unit}\n\nWallet : ${walletAddr}\nEmail : ${email}`;
   }
 
+  function sendNotification() {
+    const op = MOMO_OPERATORS.find(o => o.id === momoOp)?.name ?? momoOp;
+    fetch("/api/notify-order", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        orderId: `crypto-${cryptoId}-${Date.now()}`,
+        clientName: direction === "sell" ? beneficiary : email.split("@")[0],
+        clientEmail: email,
+        clientPhone: direction === "sell" ? momoPhone : "",
+        paymentMethod: direction === "sell" ? op : "Via WhatsApp",
+        items: [{
+          name: direction === "sell" ? `Vente ${crypto.name} (${network})` : `Achat ${crypto.name} (${network})`,
+          qty: 1,
+          price: direction === "sell" ? fcfaReceived : numAmount,
+          amount: direction === "sell"
+            ? `${amount} ${crypto.unit} → ${fcfaReceived.toLocaleString("fr-FR")} FCFA`
+            : `${numAmount.toLocaleString("fr-FR")} FCFA → ${cryptoReceived.toFixed(6)} ${crypto.unit}`,
+          details: buildDetails(),
+        }],
+        total: direction === "sell" ? fcfaReceived : numAmount,
+        sourceUrl: window.location.pathname,
+      }),
+    }).catch(() => {});
+  }
+
   function handleAddToCart() {
     if (!validate()) { showToast("Corrigez les erreurs avant d'ajouter au panier", "error"); return; }
     const op = MOMO_OPERATORS.find(o => o.id === momoOp)?.name ?? momoOp;
@@ -395,7 +421,7 @@ export default function CryptoPage() {
         </button>
         {direction === "sell" ? (
           <WAPopover
-            onBeforeOpen={() => { const ok = validate(); if (!ok) showToast("Corrigez les erreurs", "error"); return ok; }}
+            onBeforeOpen={() => { const ok = validate(); if (!ok) { showToast("Corrigez les erreurs", "error"); return false; } sendNotification(); return true; }}
             getMsg={buildMsgPlain}
             prefillPrenom={beneficiary}
             className="w-full py-3 rounded-full font-black text-white text-sm flex items-center justify-center gap-2 transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
@@ -408,6 +434,7 @@ export default function CryptoPage() {
           <USSDOrderFlow
             total={numAmount}
             getMsg={buildMsgPlain}
+            onBeforeOpen={() => { const ok = validate(); if (!ok) { showToast("Corrigez les erreurs", "error"); return false; } sendNotification(); return true; }}
             className="w-full py-3 rounded-full font-black text-white text-sm flex items-center justify-center gap-2 transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
             style={{ background: "#25D366" }}
           >

@@ -63,6 +63,7 @@ export default function UBAPage() {
   const [clientId, setClientId] = useState("");
   const [fullName, setFullName] = useState("");
   const [phone, setPhone]       = useState("");
+  const [email, setEmail]       = useState("");
   const [amount, setAmount]     = useState("");
   const [errors, setErrors]     = useState<Record<string, string>>({});
 
@@ -118,6 +119,7 @@ export default function UBAPage() {
     if (!clientId || clientId.length > 10)              e.clientId = "Client ID requis (max 10 chiffres)";
     const phD = phone.replace(/\D/g, "").replace(/^237/, "");
     if (phD.length < 9) e.phone = "Numéro invalide (9 chiffres)";
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = "Email valide requis";
     if (!amount || numAmount < 1500 || numAmount > 500000) e.amount = "Montant entre 1 500 et 500 000 FCFA";
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -150,6 +152,28 @@ export default function UBAPage() {
   function handleRechargeBeforeOpen() {
     const ok = validate();
     if (!ok) { showToast("Corrigez les erreurs", "error"); return false; }
+    fetch("/api/notify-order", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        orderId: `uba-recharge-${Date.now()}`,
+        clientName: fullName || email.split("@")[0],
+        clientEmail: email,
+        clientPhone: phone,
+        paymentMethod: "Via WhatsApp",
+        items: [{
+          name: "UBA Cameroun — Recharge",
+          qty: 1,
+          price: total,
+          amount: `${numAmount.toLocaleString("fr-FR")} FCFA + ${fee.toLocaleString("fr-FR")} FCFA frais`,
+          details: `Carte : ${card6}••••••${card4} | Client ID : ${clientId}${fullName ? ` | Nom : ${fullName}` : ""} | +237 ${phone}`,
+        }],
+        total,
+        commission: fee,
+        commissionLabel: "Frais de recharge UBA",
+        sourceUrl: window.location.pathname,
+      }),
+    }).catch(() => {});
     return true;
   }
 
@@ -404,6 +428,17 @@ export default function UBAPage() {
                   style={{ color: "var(--text-primary)" }}
                 />
               </div>
+            </Field>
+
+            <Field label="Adresse email" error={errors.email}>
+              <input
+                type="email"
+                placeholder="votre@email.com"
+                value={email}
+                onChange={e => { setEmail(e.target.value); setErrors(p => ({ ...p, email: "" })); }}
+                className={inputCls}
+                style={errors.email ? inputErr : inputBase}
+              />
             </Field>
 
             <Field label="Montant à recharger (1 500 – 500 000 FCFA)" error={errors.amount}>

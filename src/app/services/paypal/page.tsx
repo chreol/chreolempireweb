@@ -100,6 +100,32 @@ export default function PaypalPage() {
     return `💳 ACHAT PAYPAL\nCompte PayPal : ${paypalEmail}\nJe paie : ${buyFcfa.toLocaleString("fr-FR")} FCFA\nÀ recevoir : ${eurResult}€\nTaux : 1€ = ${buyRate} FCFA\n\n💰 Paiement MoMo\nOpérateur : ${op}\nNuméro : +237 ${momoPhone}`;
   }
 
+  function sendNotification() {
+    const op = MOMO_OPERATORS.find(o => o.id === momoOp)?.name ?? momoOp;
+    fetch("/api/notify-order", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        orderId: `paypal-${direction}-${Date.now()}`,
+        clientName: paypalEmail.split("@")[0],
+        clientEmail: paypalEmail,
+        clientPhone: momoPhone,
+        paymentMethod: op,
+        items: [{
+          name: direction === "sell" ? "Vente PayPal Europe" : "Achat PayPal Europe",
+          qty: 1,
+          price: direction === "sell" ? fcfaResult : buyFcfa,
+          amount: direction === "sell"
+            ? `${displayEur.toFixed(2)}€ → ${fcfaResult.toLocaleString("fr-FR")} FCFA`
+            : `${buyFcfa.toLocaleString("fr-FR")} FCFA → ${eurResult}€`,
+          details: buildDetails(),
+        }],
+        total: direction === "sell" ? fcfaResult : buyFcfa,
+        sourceUrl: window.location.pathname,
+      }),
+    }).catch(() => {});
+  }
+
   function handleAddToCart() {
     if (!validate()) { showToast("Corrigez les erreurs", "error"); return; }
     const op = MOMO_OPERATORS.find(o => o.id === momoOp)?.name ?? momoOp;
@@ -290,7 +316,7 @@ export default function PaypalPage() {
         </button>
         {direction === "sell" ? (
           <WAPopover
-            onBeforeOpen={() => { const ok = validate(); if (!ok) showToast("Corrigez les erreurs", "error"); return ok; }}
+            onBeforeOpen={() => { const ok = validate(); if (!ok) { showToast("Corrigez les erreurs", "error"); return false; } sendNotification(); return true; }}
             getMsg={buildMsgPlain}
             className="w-full py-3 rounded-full font-black text-white text-sm flex items-center justify-center gap-2 transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
             style={{ background: "#25D366" }}
@@ -302,6 +328,7 @@ export default function PaypalPage() {
           <USSDOrderFlow
             total={buyFcfa}
             getMsg={buildMsgPlain}
+            onBeforeOpen={() => { const ok = validate(); if (!ok) { showToast("Corrigez les erreurs", "error"); return false; } sendNotification(); return true; }}
             className="w-full py-3 rounded-full font-black text-white text-sm flex items-center justify-center gap-2 transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
             style={{ background: "#25D366" }}
           >
