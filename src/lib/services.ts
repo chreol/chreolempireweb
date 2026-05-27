@@ -130,7 +130,7 @@ export const CRYPTO_RATES = [
 ];
 
 export const CRYPTO_NETWORKS: Record<string, string[]> = {
-  usdt: ["TRC20", "BEP20", "ERC20"],
+  usdt: ["TRC20", "BEP20", "ERC20", "SPL", "Arbitrum"],
   usdc: ["ERC20", "BEP20", "SPL"],
   btc:  ["Bitcoin"],
   trx:  ["TRC20"],
@@ -146,6 +146,11 @@ export const CRYPTO_WALLETS: Record<string, Record<string, string>> = {
     TRC20:    "TMiSeBpQQ7AeKzN34wvzC5uybXHFvcyfo6",
     BEP20:    "0x7e0fE380958c8B6Eda7Df0d80b0829263256fE85",
     ERC20:    "0x7e0fE380958c8B6Eda7Df0d80b0829263256fE85",
+    SPL:      "Egme6fgZ1rQHcNfpDaNNsGh3LBe2aoou4FtuS8MCd71d",
+    Arbitrum: "0x7e0fE380958c8B6Eda7Df0d80b0829263256fE85",
+    Aptos:    "0xb30a843b80c8B6Eda7Df0d80b0829263256fE85c8b370be02c977ae30eac1",
+    Celo:     "0x640a90a213560756ea03a1cae5741b0b47495caa",
+    Polkadot: "14ipdSddWWmkN4pJdk56WFM6BT1Y1zmfiXvDVyxGqPnsKHXk",
   },
   usdc: {
     ERC20:    "0x7e0fE380958c8B6Eda7Df0d80b0829263256fE85",
