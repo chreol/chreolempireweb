@@ -13,7 +13,7 @@ export const SOCIAL_LINKS = {
   telegram:      "https://t.me/chreolempire",
   instagram:     "https://www.instagram.com/chreolempire",
   googleBusiness:"https://maps.app.goo.gl/y6ZUqprA579ykBc46",
-  googleReview:  "https://g.page/r/CQaaC7b5Jbg_EBM/review",
+  googleReview:  "https://g.page/r/CQaaC7b5Jbg_EAE/review",
   businesslist:  "https://www.businesslist.co.cm/company/138059/chreol-empire-services-digitaux",
   trustpilot:    "https://trustpilot.com/review/monelecam.fr",
 };

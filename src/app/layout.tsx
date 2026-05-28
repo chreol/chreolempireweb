@@ -208,6 +208,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     <span>✅ Codes authentiques garantis</span>
                     <span>⚡ Livraison express 15–30 min</span>
                     <span>🔒 Paiement sécurisé Mobile Money</span>
+                    <a
+                      href={SOCIAL_LINKS.googleReview}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 font-bold transition-colors hover:text-white"
+                      style={{ color: "#FCD34D" }}
+                    >
+                      ⭐ Laisser un avis Google
+                    </a>
                     <WASupport />
                   </div>
                 </div>

@@ -340,6 +340,17 @@ function buildClientEmail(p: NotifyPayload): string {
         </td></tr>
       </table>
 
+      <!-- Google Review -->
+      <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:20px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px">
+        <tr><td style="padding:16px;text-align:center">
+          <p style="margin:0 0 4px;font-size:13px;font-weight:900;color:#92400E">Votre avis compte énormément pour nous 🙏</p>
+          <p style="margin:0 0 12px;font-size:12px;color:#78350F">Si vous êtes satisfait, laissez-nous un avis Google — ça prend 30 secondes !</p>
+          <a href="https://g.page/r/CQaaC7b5Jbg_EAE/review" style="display:inline-block;background:#EA4335;color:#FFFFFF;text-decoration:none;padding:10px 24px;border-radius:8px;font-weight:900;font-size:13px">
+            ⭐ Laisser un avis Google
+          </a>
+        </td></tr>
+      </table>
+
       <!-- Footer -->
       <p style="margin:24px 0 0;text-align:center;font-size:11px;color:#9CA3AF">
         © ${year} Chreol Empire · Boutiques Deido, Vallée 3, Douala, Cameroun<br>
