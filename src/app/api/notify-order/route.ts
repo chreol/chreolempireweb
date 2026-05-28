@@ -1,5 +1,26 @@
 export const runtime = "edge";
 
+async function buildMarkDoneUrl(p: { orderId: string; clientEmail: string; clientName: string }): Promise<string> {
+  const secret = process.env.MARK_DONE_SECRET ?? process.env.BREVO_API_KEY ?? "chreolempire";
+  const enc    = new TextEncoder();
+  const key    = await crypto.subtle.importKey(
+    "raw", enc.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"],
+  );
+  const sig = await crypto.subtle.sign("HMAC", key, enc.encode(`${p.orderId}:${p.clientEmail}`));
+  const token = Array.from(new Uint8Array(sig))
+    .map(b => b.toString(16).padStart(2, "0"))
+    .join("")
+    .slice(0, 32);
+  const base = process.env.NEXT_PUBLIC_SITE_URL ?? "https://chreolempire.com";
+  const params = new URLSearchParams({
+    id:  p.orderId,
+    to:  p.clientEmail,
+    n:   p.clientName,
+    sig: token,
+  });
+  return `${base}/api/mark-done?${params}`;
+}
+
 export interface NotifyItem {
   name: string;
   qty: number;
@@ -67,7 +88,7 @@ function adminItemsHtml(items: NotifyItem[]): string {
     </tr>`).join("");
 }
 
-function buildAdminEmail(p: NotifyPayload): string {
+function buildAdminEmail(p: NotifyPayload, markDoneUrl: string): string {
   const ref    = p.orderId.slice(-8).toUpperCase();
   const date   = formatDate();
   const waNum  = toWaNumber(p.clientPhone);
@@ -186,11 +207,21 @@ function buildAdminEmail(p: NotifyPayload): string {
       </table>` : ""}
 
       <!-- WA Button -->
-      <table width="100%" cellpadding="0" cellspacing="0">
+      <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:12px">
         <tr><td style="text-align:center">
           <a href="${waUrl}" style="display:inline-block;background:#25D366;color:#FFFFFF;text-decoration:none;padding:16px 32px;border-radius:10px;font-weight:900;font-size:15px">
             💬 Ouvrir WhatsApp avec le client
           </a>
+        </td></tr>
+      </table>
+
+      <!-- Mark Done Button -->
+      <table width="100%" cellpadding="0" cellspacing="0">
+        <tr><td style="text-align:center">
+          <a href="${markDoneUrl}" style="display:inline-block;background:#059669;color:#FFFFFF;text-decoration:none;padding:14px 32px;border-radius:10px;font-weight:900;font-size:14px">
+            ✅ Marquer comme traité &amp; notifier le client
+          </a>
+          <p style="margin:6px 0 0;font-size:11px;color:#9CA3AF">Envoie automatiquement l'email de livraison au client</p>
         </td></tr>
       </table>
 
@@ -400,7 +431,7 @@ function buildTelegramMsg(p: NotifyPayload): string {
   ].filter(l => l !== undefined).join("\n");
 }
 
-async function sendTelegram(p: NotifyPayload): Promise<number> {
+async function sendTelegram(p: NotifyPayload, markDoneUrl: string): Promise<number> {
   const token  = process.env.TELEGRAM_BOT_TOKEN;
   const chatId = process.env.TELEGRAM_CHAT_ID;
   if (!token || !chatId) return 0;
@@ -413,6 +444,12 @@ async function sendTelegram(p: NotifyPayload): Promise<number> {
       text: buildTelegramMsg(p),
       parse_mode: "HTML",
       disable_web_page_preview: true,
+      reply_markup: {
+        inline_keyboard: [[
+          { text: "💬 WhatsApp client", url: `https://wa.me/${toWaNumber(p.clientPhone)}` },
+          { text: "✅ Marquer traité", url: markDoneUrl },
+        ]],
+      },
     }),
     signal: AbortSignal.timeout(6000),
   });
@@ -448,6 +485,8 @@ export async function POST(request: Request): Promise<Response> {
     p = { ...p, sourceUrl: `${origin}${p.sourceUrl}` };
   }
 
+  const markDoneUrl = await buildMarkDoneUrl(p);
+
   const [adminResult, clientResult, telegramResult] = await Promise.allSettled([
     fetch("https://api.brevo.com/v3/smtp/email", {
       method: "POST",
@@ -456,7 +495,7 @@ export async function POST(request: Request): Promise<Response> {
         sender: { id: senderId },
         to: [{ email: adminMail, name: "Chreol Empire Admin" }],
         subject: `🛍️ Commande #${ref} — ${p.total.toLocaleString("fr-FR")} FCFA via ${p.paymentMethod}`,
-        htmlContent: buildAdminEmail(p),
+        htmlContent: buildAdminEmail(p, markDoneUrl),
       }),
     }),
     fetch("https://api.brevo.com/v3/smtp/email", {
@@ -469,7 +508,7 @@ export async function POST(request: Request): Promise<Response> {
         htmlContent: buildClientEmail(p),
       }),
     }),
-    sendTelegram(p),
+    sendTelegram(p, markDoneUrl),
   ]);
 
   const adminStatus    = adminResult.status    === "fulfilled" ? adminResult.value.status    : 500;
