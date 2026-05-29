@@ -74,6 +74,23 @@ function CheckoutInner() {
     );
   }
 
+  function sendNotification(opLabel: string) {
+    fetch("/api/notify-order", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        orderId: orderIdRef.current,
+        clientName: email.split("@")[0],
+        clientEmail: email,
+        clientPhone: "",
+        paymentMethod: opLabel,
+        items: [{ name: label, qty: 1, price: amount, amount: `${amount.toLocaleString("fr-FR")} FCFA` }],
+        total: amount,
+        sourceUrl: window.location.pathname,
+      }),
+    }).catch(() => {});
+  }
+
   return (
     <div className="max-w-lg mx-auto px-4 py-8">
       {/* Back */}
@@ -149,6 +166,7 @@ function CheckoutInner() {
                   }
                   setSelectedOp(op.id);
                   setStep("ussd");
+                  sendNotification(op.label);
                 }}
                 className="p-5 rounded-2xl flex flex-col items-center gap-3 transition-all hover:scale-[1.02] active:scale-[0.97]"
                 style={{ background: "var(--bg-elevated)", border: `2px solid ${op.color}55` }}
