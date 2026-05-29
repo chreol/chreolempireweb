@@ -8,6 +8,7 @@ import { GIFT_CARDS, IMAGES } from "@/lib/services";
 import USSDOrderFlow from "@/components/USSDOrderFlow";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useToast } from "@/components/Toast";
 import FAQ from "@/components/FAQ";
 import RelatedServices from "@/components/RelatedServices";
 
@@ -51,12 +52,15 @@ export default function CartesCadeauxPage() {
   useEffect(() => { track("service_view", { service: "cartes-cadeaux" }); }, []);
   const { addItem } = useCart();
   const { t: tl } = useLanguage();
+  const { showToast } = useToast();
   const [tab, setTab] = useState<TabKey>("standard");
   const [cardId, setCardId] = useState<string | null>(null);
   const [amountLabel, setAmountLabel] = useState<string | null>(null);
   const [region, setRegion] = useState("EU");
   const [customVal, setCustomVal] = useState("");
   const [added, setAdded] = useState(false);
+  const [email, setEmail] = useState("");
+  const [emailError, setEmailError] = useState("");
 
   const cards = GIFT_CARDS.filter(c => c.tier === tab);
   const card = GIFT_CARDS.find(c => c.id === cardId);
@@ -66,7 +70,36 @@ export default function CartesCadeauxPage() {
   const canAdd = card && (amount || customPrice);
 
   function handleTabChange(t: TabKey) {
-    setTab(t); setCardId(null); setAmountLabel(null); setCustomVal("");
+    setTab(t); setCardId(null); setAmountLabel(null); setCustomVal(""); setEmail(""); setEmailError("");
+  }
+
+  function validateEmail() {
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setEmailError("Email valide requis pour la confirmation");
+      return false;
+    }
+    setEmailError("");
+    return true;
+  }
+
+  function sendNotification() {
+    if (!card) return;
+    const finalPrice = customPrice ?? amount?.price ?? 0;
+    const finalLabel = customPrice ? `${customVal}€ (personnalisé)` : amountLabel ?? "";
+    fetch("/api/notify-order", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        orderId: `carte-${card.id}-${Date.now()}`,
+        clientName: email.split("@")[0],
+        clientEmail: email,
+        clientPhone: "",
+        paymentMethod: "Via WhatsApp",
+        items: [{ name: `${card.name} [${region}]`, qty: 1, price: finalPrice, amount: `${finalLabel} — ${finalPrice.toLocaleString("fr-FR")} FCFA` }],
+        total: finalPrice,
+        sourceUrl: window.location.pathname,
+      }),
+    }).catch(() => {});
   }
 
   function handleAddToCart() {
@@ -229,10 +262,31 @@ export default function CartesCadeauxPage() {
                 {(customPrice ?? amount?.price ?? 0).toLocaleString("fr-FR")} FCFA
               </p>
 
+              {/* Email */}
+              <div className="mb-1">
+                <label className="block text-xs font-bold mb-1.5" style={{ color: "var(--text-muted)" }}>
+                  Email <span style={{ color: "var(--text-secondary)", fontWeight: 400 }}>(confirmation de commande)</span>
+                </label>
+                <input
+                  type="email"
+                  placeholder="votre@email.com"
+                  value={email}
+                  onChange={e => { setEmail(e.target.value); if (e.target.value) setEmailError(""); }}
+                  className="w-full px-4 py-3 rounded-2xl text-white text-sm outline-none"
+                  style={{ background: "var(--bg-card)", border: `1px solid ${emailError ? "#EF4444" : "var(--border)"}` }}
+                />
+                {emailError && <p className="text-xs mt-1 px-1" style={{ color: "#EF4444" }}>{emailError}</p>}
+              </div>
+
               <div className="flex flex-col gap-2">
                 <USSDOrderFlow
                   total={customPrice ?? amount?.price ?? 0}
                   getMsg={buildMsgPlain}
+                  onBeforeOpen={() => {
+                    if (!validateEmail()) { showToast("Entrez votre email pour la confirmation", "error"); return false; }
+                    sendNotification();
+                    return true;
+                  }}
                   className="w-full py-3 rounded-full font-black text-sm text-white flex items-center justify-center gap-2 transition-all hover:opacity-85"
                   style={{ background: "#25D366" }}
                 >
