@@ -109,14 +109,17 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   const name = body.name?.trim() || "";
-  const senderId = parseInt(process.env.BREVO_SENDER_ID ?? "1", 10);
+  const senderIdRaw = process.env.BREVO_SENDER_ID;
+  const sender = senderIdRaw
+    ? { id: parseInt(senderIdRaw, 10) }
+    : { name: "Chreol Empire", email: process.env.BREVO_SENDER_EMAIL ?? "chreolempire00@gmail.com" };
   const scheduledAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
 
   const res = await fetch("https://api.brevo.com/v3/smtp/email", {
     method: "POST",
     headers: { "Content-Type": "application/json", "api-key": brevoKey },
     body: JSON.stringify({
-      sender: { id: senderId },
+      sender,
       to: [{ email, name: name || "Client" }],
       subject: "⭐ Votre avis compte pour Chreol Empire 🙏",
       htmlContent: buildReviewEmail(name),

@@ -1,22 +1,32 @@
 export const runtime = "edge";
 
-async function buildMarkDoneUrl(p: { orderId: string; clientEmail: string; clientName: string }): Promise<string> {
-  const secret = process.env.MARK_DONE_SECRET ?? process.env.BREVO_API_KEY ?? "chreolempire";
-  const enc    = new TextEncoder();
-  const key    = await crypto.subtle.importKey(
+async function hmac32(secret: string, data: string): Promise<string> {
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey(
     "raw", enc.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"],
   );
-  const sig = await crypto.subtle.sign("HMAC", key, enc.encode(`${p.orderId}:${p.clientEmail}`));
-  const token = Array.from(new Uint8Array(sig))
+  const sig = await crypto.subtle.sign("HMAC", key, enc.encode(data));
+  return Array.from(new Uint8Array(sig))
     .map(b => b.toString(16).padStart(2, "0"))
     .join("")
     .slice(0, 32);
-  const base = process.env.NEXT_PUBLIC_SITE_URL ?? "https://chreolempire.com";
-  const params = new URLSearchParams({
+}
+
+async function buildMarkDoneUrl(
+  p: { orderId: string; clientEmail: string; clientName: string },
+  action: "done" | "cancel",
+): Promise<string> {
+  const secret  = process.env.MARK_DONE_SECRET ?? process.env.BREVO_API_KEY ?? "chreolempire";
+  const ts      = Math.floor(Date.now() / 1000).toString();
+  const token   = await hmac32(secret, `${p.orderId}:${p.clientEmail}:${ts}`);
+  const base    = process.env.NEXT_PUBLIC_SITE_URL ?? "https://chreolempire.com";
+  const params  = new URLSearchParams({
     id:  p.orderId,
     to:  p.clientEmail,
     n:   p.clientName,
+    ts,
     sig: token,
+    act: action,
   });
   return `${base}/api/mark-done?${params}`;
 }
@@ -88,7 +98,7 @@ function adminItemsHtml(items: NotifyItem[]): string {
     </tr>`).join("");
 }
 
-function buildAdminEmail(p: NotifyPayload, markDoneUrl: string): string {
+function buildAdminEmail(p: NotifyPayload, markDoneUrl: string, markCancelUrl: string): string {
   const ref    = p.orderId.slice(-8).toUpperCase();
   const date   = formatDate();
   const waNum  = toWaNumber(p.clientPhone);
@@ -215,13 +225,22 @@ function buildAdminEmail(p: NotifyPayload, markDoneUrl: string): string {
         </td></tr>
       </table>
 
-      <!-- Mark Done Button -->
+      <!-- Mark Done / Cancel Buttons -->
       <table width="100%" cellpadding="0" cellspacing="0">
-        <tr><td style="text-align:center">
-          <a href="${markDoneUrl}" style="display:inline-block;background:#059669;color:#FFFFFF;text-decoration:none;padding:14px 32px;border-radius:10px;font-weight:900;font-size:14px">
-            ✅ Marquer comme traité &amp; notifier le client
-          </a>
-          <p style="margin:6px 0 0;font-size:11px;color:#9CA3AF">Envoie automatiquement l'email de livraison au client</p>
+        <tr>
+          <td style="padding-right:6px;text-align:center">
+            <a href="${markDoneUrl}" style="display:inline-block;background:#059669;color:#FFFFFF;text-decoration:none;padding:14px 20px;border-radius:10px;font-weight:900;font-size:13px;width:100%;box-sizing:border-box">
+              ✅ Commande traitée
+            </a>
+          </td>
+          <td style="padding-left:6px;text-align:center">
+            <a href="${markCancelUrl}" style="display:inline-block;background:#DC2626;color:#FFFFFF;text-decoration:none;padding:14px 20px;border-radius:10px;font-weight:900;font-size:13px;width:100%;box-sizing:border-box">
+              ❌ Annuler (60 min)
+            </a>
+          </td>
+        </tr>
+        <tr><td colspan="2" style="text-align:center;padding-top:6px">
+          <p style="margin:0;font-size:11px;color:#9CA3AF">Le bouton Annuler expire 60 min après réception de cet email</p>
         </td></tr>
       </table>
 
@@ -431,7 +450,7 @@ function buildTelegramMsg(p: NotifyPayload): string {
   ].filter(l => l !== undefined).join("\n");
 }
 
-async function sendTelegram(p: NotifyPayload, markDoneUrl: string): Promise<number> {
+async function sendTelegram(p: NotifyPayload, markDoneUrl: string, markCancelUrl: string): Promise<number> {
   const token  = process.env.TELEGRAM_BOT_TOKEN;
   const chatId = process.env.TELEGRAM_CHAT_ID;
   if (!token || !chatId) return 0;
@@ -445,10 +464,15 @@ async function sendTelegram(p: NotifyPayload, markDoneUrl: string): Promise<numb
       parse_mode: "HTML",
       disable_web_page_preview: true,
       reply_markup: {
-        inline_keyboard: [[
-          { text: "💬 WhatsApp client", url: `https://wa.me/${toWaNumber(p.clientPhone)}` },
-          { text: "✅ Marquer traité", url: markDoneUrl },
-        ]],
+        inline_keyboard: [
+          [
+            { text: "💬 WhatsApp client", url: `https://wa.me/${toWaNumber(p.clientPhone)}` },
+            { text: "✅ Traité", url: markDoneUrl },
+          ],
+          [
+            { text: "❌ Annuler (60 min)", url: markCancelUrl },
+          ],
+        ],
       },
     }),
     signal: AbortSignal.timeout(6000),
@@ -475,7 +499,10 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: "Champs requis manquants" }, { status: 400 });
   }
 
-  const senderId  = parseInt(process.env.BREVO_SENDER_ID ?? "1", 10);
+  const senderIdRaw = process.env.BREVO_SENDER_ID;
+  const sender = senderIdRaw
+    ? { id: parseInt(senderIdRaw, 10) }
+    : { name: "Chreol Empire", email: process.env.BREVO_SENDER_EMAIL ?? "chreolempire00@gmail.com" };
   const adminMail = process.env.ADMIN_EMAIL ?? "chreolempire00@gmail.com";
   const ref       = p.orderId.slice(-8).toUpperCase();
 
@@ -485,30 +512,33 @@ export async function POST(request: Request): Promise<Response> {
     p = { ...p, sourceUrl: `${origin}${p.sourceUrl}` };
   }
 
-  const markDoneUrl = await buildMarkDoneUrl(p);
+  const [markDoneUrl, markCancelUrl] = await Promise.all([
+    buildMarkDoneUrl(p, "done"),
+    buildMarkDoneUrl(p, "cancel"),
+  ]);
 
   const [adminResult, clientResult, telegramResult] = await Promise.allSettled([
     fetch("https://api.brevo.com/v3/smtp/email", {
       method: "POST",
       headers: { "Content-Type": "application/json", "api-key": brevoKey },
       body: JSON.stringify({
-        sender: { id: senderId },
+        sender,
         to: [{ email: adminMail, name: "Chreol Empire Admin" }],
         subject: `🛍️ Commande #${ref} — ${p.total.toLocaleString("fr-FR")} FCFA via ${p.paymentMethod}`,
-        htmlContent: buildAdminEmail(p, markDoneUrl),
+        htmlContent: buildAdminEmail(p, markDoneUrl, markCancelUrl),
       }),
     }),
     fetch("https://api.brevo.com/v3/smtp/email", {
       method: "POST",
       headers: { "Content-Type": "application/json", "api-key": brevoKey },
       body: JSON.stringify({
-        sender: { id: senderId },
+        sender,
         to: [{ email: p.clientEmail, name: p.clientName }],
         subject: `✅ Commande confirmée #${ref} — Chreol Empire`,
         htmlContent: buildClientEmail(p),
       }),
     }),
-    sendTelegram(p, markDoneUrl),
+    sendTelegram(p, markDoneUrl, markCancelUrl),
   ]);
 
   const adminStatus    = adminResult.status    === "fulfilled" ? adminResult.value.status    : 500;
