@@ -39,6 +39,7 @@ export default function PaypalPage() {
   const [inputCurrency, setInputCurrency] = useState<"EUR" | "FCFA">("EUR");
   const [amount, setAmount]           = useState("");
   const [paypalEmail, setPaypalEmail] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
   const [momoOp, setMomoOp]           = useState("orange");
   const [momoPhone, setMomoPhone]     = useState("");
   const [errors, setErrors]           = useState<Record<string, string>>({});
@@ -48,6 +49,7 @@ export default function PaypalPage() {
   function switchDirection(d: "sell" | "buy") {
     setDirection(d); setAmount(""); setErrors({});
     setInputCurrency(d === "sell" ? "EUR" : "FCFA");
+    setContactEmail("");
   }
 
   const numAmount = parseFloat(amount) || 0;
@@ -80,6 +82,7 @@ export default function PaypalPage() {
       if (inFcfa < PAYPAL_LIMITS.buy.min) e.amount = `Minimum ${PAYPAL_LIMITS.buy.min.toLocaleString("fr-FR")} FCFA (≈ ${+(PAYPAL_LIMITS.buy.min / buyRate).toFixed(0)}€)`;
     }
     if (!paypalEmail.trim()) e.paypalEmail = "Email ou nom PayPal requis";
+    if (!contactEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) e.contactEmail = "Email de contact valide requis";
     const mpD = momoPhone.replace(/\D/g, "").replace(/^237/, "");
     if (mpD.length < 9) e.momoPhone = "Numéro invalide (9 chiffres)";
     setErrors(e);
@@ -107,8 +110,8 @@ export default function PaypalPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         orderId: `paypal-${direction}-${Date.now()}`,
-        clientName: paypalEmail.split("@")[0],
-        clientEmail: paypalEmail,
+        clientName: contactEmail.split("@")[0],
+        clientEmail: contactEmail,
         clientPhone: momoPhone,
         paymentMethod: op,
         items: [{
@@ -301,6 +304,17 @@ export default function PaypalPage() {
                 />
               </div>
             </div>
+          </Field>
+
+          <Field label="Votre email (pour confirmation de commande)" error={errors.contactEmail}>
+            <input
+              type="email"
+              placeholder="votre@email.com"
+              value={contactEmail}
+              onChange={e => { setContactEmail(e.target.value); setErrors(p => ({ ...p, contactEmail: "" })); }}
+              className={inputCls}
+              style={errors.contactEmail ? inputErr : inputBase}
+            />
           </Field>
         </motion.div>
       </AnimatePresence>
