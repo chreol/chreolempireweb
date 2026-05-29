@@ -13,6 +13,63 @@ export const metadata: Metadata = {
   },
 };
 
+const BREADCRUMB = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Accueil", "item": "https://chreolempire.com" },
+    { "@type": "ListItem", "position": 2, "name": "Services", "item": "https://chreolempire.com/services" },
+    { "@type": "ListItem", "position": 3, "name": "Cartes Cadeaux", "item": "https://chreolempire.com/services/cartes-cadeaux" },
+  ],
+};
+
+const PRODUCT_SCHEMA = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": "Cartes Cadeaux Gaming — Chreol Empire Cameroun",
+  "description": "Cartes cadeaux PSN, iTunes, Roblox, Steam, Nintendo livrées en 15-30 min à Douala",
+  "url": "https://chreolempire.com/services/cartes-cadeaux",
+  "itemListElement": [
+    {
+      "@type": "ListItem", "position": 1,
+      "item": {
+        "@type": "Product",
+        "name": "Carte Cadeau PSN PlayStation — Cameroun",
+        "description": "Carte cadeau PlayStation Store livrée par WhatsApp. Régions EU, FR, US, UK disponibles.",
+        "brand": { "@type": "Brand", "name": "PlayStation" },
+        "offers": { "@type": "Offer", "priceCurrency": "XAF", "price": "7500", "priceValidUntil": "2026-12-31", "availability": "https://schema.org/InStock", "seller": { "@type": "Organization", "name": "Chreol Empire" } },
+        "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.9", "reviewCount": "127" },
+      },
+    },
+    {
+      "@type": "ListItem", "position": 2,
+      "item": {
+        "@type": "Product",
+        "name": "Robux Roblox — Cameroun FCFA",
+        "description": "Achetez des Robux pour Roblox en FCFA via MTN MoMo ou Orange Money.",
+        "brand": { "@type": "Brand", "name": "Roblox" },
+        "offers": { "@type": "Offer", "priceCurrency": "XAF", "price": "4500", "availability": "https://schema.org/InStock", "seller": { "@type": "Organization", "name": "Chreol Empire" } },
+      },
+    },
+    {
+      "@type": "ListItem", "position": 3,
+      "item": {
+        "@type": "Product",
+        "name": "Carte Steam — Cameroun",
+        "description": "Carte cadeau Steam livrée par WhatsApp en 15-30 min à Douala.",
+        "brand": { "@type": "Brand", "name": "Steam" },
+        "offers": { "@type": "Offer", "priceCurrency": "XAF", "price": "7500", "availability": "https://schema.org/InStock", "seller": { "@type": "Organization", "name": "Chreol Empire" } },
+      },
+    },
+  ],
+};
+
 export default function Layout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
+  return (
+    <>
+      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(BREADCRUMB) }} />
+      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(PRODUCT_SCHEMA) }} />
+      {children}
+    </>
+  );
 }

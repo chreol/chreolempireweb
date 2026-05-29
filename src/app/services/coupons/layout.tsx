@@ -13,6 +13,36 @@ export const metadata: Metadata = {
   },
 };
 
+const BREADCRUMB = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Accueil", "item": "https://chreolempire.com" },
+    { "@type": "ListItem", "position": 2, "name": "Services", "item": "https://chreolempire.com/services" },
+    { "@type": "ListItem", "position": 3, "name": "Échange Coupons", "item": "https://chreolempire.com/services/coupons" },
+  ],
+};
+
+const SERVICE_SCHEMA = {
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "name": "Échange Coupons Transcash & PCS Mastercard en FCFA",
+  "description": "Échangez vos coupons Transcash ou PCS Mastercard contre du FCFA au taux de 440 FCFA/€ à Douala. Paiement MTN MoMo ou Orange Money en 15-30 min.",
+  "provider": { "@type": "LocalBusiness", "name": "Chreol Empire", "address": { "@type": "PostalAddress", "addressLocality": "Douala", "addressCountry": "CM" } },
+  "areaServed": { "@type": "Country", "name": "Cameroun" },
+  "offers": [
+    { "@type": "Offer", "name": "Échange coupon Transcash", "description": "Échangez votre coupon Transcash en FCFA. Taux : 440 FCFA/€. Minimum 20€.", "priceCurrency": "XAF" },
+    { "@type": "Offer", "name": "Échange coupon PCS Mastercard", "description": "Échangez votre coupon PCS Mastercard en FCFA. Taux : 440 FCFA/€ après 7% commission. Minimum 20€.", "priceCurrency": "XAF" },
+  ],
+  "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.9", "reviewCount": "127", "bestRating": "5" },
+};
+
 export default function Layout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
+  return (
+    <>
+      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(BREADCRUMB) }} />
+      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(SERVICE_SCHEMA) }} />
+      {children}
+    </>
+  );
 }

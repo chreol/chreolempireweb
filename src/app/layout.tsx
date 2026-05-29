@@ -122,6 +122,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Anti-flicker: apply saved theme before first paint */}
         <script dangerouslySetInnerHTML={{ __html: `try{var t=localStorage.getItem('theme');if(t==='light')document.documentElement.setAttribute('data-theme','light');}catch(e){}try{var l=localStorage.getItem('lang');if(l)document.documentElement.lang=l;}catch(e){}` }} />
         <link rel="preconnect" href="https://wa.me" />
+        <link rel="preconnect" href="https://api.brevo.com" />
+        <link rel="preconnect" href="https://api.telegram.org" />
+        <link rel="dns-prefetch" href="https://campay.net" />
+        <link rel="dns-prefetch" href="https://maps.app.goo.gl" />
         <script src="https://apis.google.com/js/platform.js?onload=renderOptIn" async defer />
         <script
           type="application/ld+json"
@@ -149,9 +153,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-8">
                 {/* Brand */}
                 <div>
-                  <p className="font-black text-xl mb-0.5">
-                    Chreol<span style={{ color: "var(--gold)" }}>Empire</span>
-                  </p>
+                  <Link href="/" className="inline-flex items-center gap-2 mb-2">
+                    <Image src="/logo.png" alt="Chreol Empire" width={36} height={36} unoptimized className="rounded-xl" />
+                    <p className="font-black text-xl">
+                      Chreol<span style={{ color: "var(--gold)" }}>Empire</span>
+                    </p>
+                  </Link>
                   <p className="text-[11px] font-black mb-1" style={{ color: "var(--text-secondary)" }}>
                     Le monde digital, à portée de Mobile Money.
                   </p>
@@ -262,7 +269,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 </div>
                 <div className="flex flex-col items-center sm:items-end gap-1">
                   <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                    © 2012 – {new Date().getFullYear()} Chreol Empire. Tous droits réservés.
+                    © 2026 Chreol Empire. Tous droits réservés.
                   </p>
                   <div className="flex items-center gap-3 text-xs" style={{ color: "var(--text-muted)" }}>
                     <Link href="/cgu" className="hover:text-white transition-colors">CGU</Link>

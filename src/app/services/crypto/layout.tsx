@@ -13,6 +13,36 @@ export const metadata: Metadata = {
   },
 };
 
+const BREADCRUMB = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Accueil", "item": "https://chreolempire.com" },
+    { "@type": "ListItem", "position": 2, "name": "Services", "item": "https://chreolempire.com/services" },
+    { "@type": "ListItem", "position": 3, "name": "Crypto & MoMo", "item": "https://chreolempire.com/services/crypto" },
+  ],
+};
+
+const SERVICE_SCHEMA = {
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "name": "Échange Crypto FCFA — USDT BTC TRX",
+  "description": "Achetez ou vendez vos cryptomonnaies (USDT, BTC, TRX) contre FCFA à Douala. 0% commission, paiement MTN MoMo ou Orange Money.",
+  "provider": { "@type": "LocalBusiness", "name": "Chreol Empire", "address": { "@type": "PostalAddress", "addressLocality": "Douala", "addressCountry": "CM" } },
+  "areaServed": { "@type": "Country", "name": "Cameroun" },
+  "offers": [
+    { "@type": "Offer", "name": "Achat USDT TRC20", "description": "Achetez de l'USDT TRC20 en FCFA. Taux : 700 FCFA/$", "priceCurrency": "XAF", "seller": { "@type": "Organization", "name": "Chreol Empire" } },
+    { "@type": "Offer", "name": "Vente USDT TRC20", "description": "Vendez votre USDT TRC20 contre FCFA. Taux : 580 FCFA/$", "priceCurrency": "XAF", "seller": { "@type": "Organization", "name": "Chreol Empire" } },
+  ],
+  "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.9", "reviewCount": "127", "bestRating": "5" },
+};
+
 export default function Layout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
+  return (
+    <>
+      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(BREADCRUMB) }} />
+      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(SERVICE_SCHEMA) }} />
+      {children}
+    </>
+  );
 }

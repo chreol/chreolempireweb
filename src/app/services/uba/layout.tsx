@@ -13,6 +13,62 @@ export const metadata: Metadata = {
   },
 };
 
+const BREADCRUMB = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Accueil", "item": "https://chreolempire.com" },
+    { "@type": "ListItem", "position": 2, "name": "Services", "item": "https://chreolempire.com/services" },
+    { "@type": "ListItem", "position": 3, "name": "Carte UBA Cameroun", "item": "https://chreolempire.com/services/uba" },
+  ],
+};
+
+const PRODUCT_SCHEMA = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": "Cartes UBA Cameroun — Chreol Empire",
+  "url": "https://chreolempire.com/services/uba",
+  "itemListElement": [
+    {
+      "@type": "ListItem", "position": 1,
+      "item": {
+        "@type": "Product",
+        "name": "Carte UBA Visa Prépayée Segment I — Cameroun",
+        "description": "Carte Visa UBA Cameroun Segment I. Plafond 2 500 000 FCFA/mois. Utilisable sur Amazon, Netflix, PayPal.",
+        "brand": { "@type": "Brand", "name": "UBA" },
+        "offers": { "@type": "Offer", "priceCurrency": "XAF", "price": "10500", "availability": "https://schema.org/InStock", "seller": { "@type": "Organization", "name": "Chreol Empire" } },
+        "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.9", "reviewCount": "127" },
+      },
+    },
+    {
+      "@type": "ListItem", "position": 2,
+      "item": {
+        "@type": "Product",
+        "name": "Carte UBA Visa Prépayée Segment II — Cameroun",
+        "description": "Carte Visa UBA Cameroun Segment II. Plafond 5 000 000 FCFA/mois.",
+        "brand": { "@type": "Brand", "name": "UBA" },
+        "offers": { "@type": "Offer", "priceCurrency": "XAF", "price": "17500", "availability": "https://schema.org/InStock", "seller": { "@type": "Organization", "name": "Chreol Empire" } },
+      },
+    },
+    {
+      "@type": "ListItem", "position": 3,
+      "item": {
+        "@type": "Product",
+        "name": "Carte UBA Visa Prépayée Segment III — Cameroun",
+        "description": "Carte Visa UBA Cameroun Segment III. Plafond 10 000 000 FCFA/mois.",
+        "brand": { "@type": "Brand", "name": "UBA" },
+        "offers": { "@type": "Offer", "priceCurrency": "XAF", "price": "25000", "availability": "https://schema.org/InStock", "seller": { "@type": "Organization", "name": "Chreol Empire" } },
+      },
+    },
+  ],
+};
+
 export default function Layout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
+  return (
+    <>
+      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(BREADCRUMB) }} />
+      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(PRODUCT_SCHEMA) }} />
+      {children}
+    </>
+  );
 }

@@ -13,6 +13,36 @@ export const metadata: Metadata = {
   },
 };
 
+const BREADCRUMB = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Accueil", "item": "https://chreolempire.com" },
+    { "@type": "ListItem", "position": 2, "name": "Services", "item": "https://chreolempire.com/services" },
+    { "@type": "ListItem", "position": 3, "name": "Paiement Factures", "item": "https://chreolempire.com/services/factures" },
+  ],
+};
+
+const SERVICE_SCHEMA = {
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "name": "Paiement Factures & Échange Mobile Money Cameroun",
+  "description": "Payez vos factures Canal+, Eneo, Camwater et StarTimes à Douala. Échangez entre MTN MoMo, Orange Money, Express Union et Yoomee sans frais. Commission fixe 200 FCFA par facture.",
+  "provider": { "@type": "LocalBusiness", "name": "Chreol Empire", "address": { "@type": "PostalAddress", "addressLocality": "Douala", "addressCountry": "CM" } },
+  "areaServed": { "@type": "Country", "name": "Cameroun" },
+  "offers": [
+    { "@type": "Offer", "name": "Paiement facture Canal+ / Eneo / Camwater", "description": "Commission fixe 200 FCFA par facture, quel que soit le montant.", "price": "200", "priceCurrency": "XAF" },
+    { "@type": "Offer", "name": "Échange Mobile Money MTN ↔ Orange", "description": "Échange sans frais entre opérateurs MoMo. Minimum 1 000 FCFA.", "price": "0", "priceCurrency": "XAF" },
+  ],
+  "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.9", "reviewCount": "127", "bestRating": "5" },
+};
+
 export default function Layout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
+  return (
+    <>
+      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(BREADCRUMB) }} />
+      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(SERVICE_SCHEMA) }} />
+      {children}
+    </>
+  );
 }
