@@ -118,7 +118,7 @@ const LOCAL_BUSINESS_JSON = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr" data-scroll-behavior="smooth" className={`${geist.variable} antialiased`} suppressHydrationWarning>
-      <head>
+      <head suppressHydrationWarning>
         {/* Anti-flicker: apply saved theme before first paint */}
         <script dangerouslySetInnerHTML={{ __html: `try{var t=localStorage.getItem('theme');if(t==='light')document.documentElement.setAttribute('data-theme','light');}catch(e){}try{var l=localStorage.getItem('lang');if(l)document.documentElement.lang=l;}catch(e){}` }} />
         <link rel="preconnect" href="https://wa.me" />
