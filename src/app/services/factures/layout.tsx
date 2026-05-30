@@ -30,11 +30,17 @@ const SERVICE_SCHEMA = {
   "description": "Payez vos factures Canal+, Eneo, Camwater et StarTimes à Douala. Échangez entre MTN MoMo, Orange Money, Express Union et Yoomee sans frais. Commission fixe 200 FCFA par facture.",
   "provider": { "@type": "LocalBusiness", "name": "Chreol Empire", "address": { "@type": "PostalAddress", "addressLocality": "Douala", "addressCountry": "CM" } },
   "areaServed": { "@type": "Country", "name": "Cameroun" },
-  "offers": [
-    { "@type": "Offer", "name": "Paiement facture Canal+ / Eneo / Camwater", "description": "Commission fixe 200 FCFA par facture, quel que soit le montant.", "price": "200", "priceCurrency": "XAF" },
-    { "@type": "Offer", "name": "Échange Mobile Money MTN ↔ Orange", "description": "Échange sans frais entre opérateurs MoMo. Minimum 1 000 FCFA.", "price": "0", "priceCurrency": "XAF" },
-  ],
+  "offers": {
+    "@type": "AggregateOffer",
+    "priceCurrency": "XAF",
+    "lowPrice": "0",
+    "highPrice": "200",
+    "offerCount": 2,
+    "availability": "https://schema.org/InStock",
+    "seller": { "@type": "Organization", "name": "Chreol Empire" },
+  },
   "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.9", "reviewCount": "127", "bestRating": "5" },
+  "review": { "@type": "Review", "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" }, "author": { "@type": "Person", "name": "Blanche E." }, "reviewBody": "Facture Canal+ payée en 10 minutes. Service rapide et sans problème.", "datePublished": "2026-04-12" },
 };
 
 export default function Layout({ children }: { children: React.ReactNode }) {

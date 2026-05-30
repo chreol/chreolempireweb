@@ -30,11 +30,17 @@ const SERVICE_SCHEMA = {
   "description": "Achetez ou vendez vos cryptomonnaies (USDT, BTC, TRX) contre FCFA à Douala. 0% commission, paiement MTN MoMo ou Orange Money.",
   "provider": { "@type": "LocalBusiness", "name": "Chreol Empire", "address": { "@type": "PostalAddress", "addressLocality": "Douala", "addressCountry": "CM" } },
   "areaServed": { "@type": "Country", "name": "Cameroun" },
-  "offers": [
-    { "@type": "Offer", "name": "Achat USDT TRC20", "description": "Achetez de l'USDT TRC20 en FCFA. Taux : 700 FCFA/$", "priceCurrency": "XAF", "seller": { "@type": "Organization", "name": "Chreol Empire" } },
-    { "@type": "Offer", "name": "Vente USDT TRC20", "description": "Vendez votre USDT TRC20 contre FCFA. Taux : 580 FCFA/$", "priceCurrency": "XAF", "seller": { "@type": "Organization", "name": "Chreol Empire" } },
-  ],
+  "offers": {
+    "@type": "AggregateOffer",
+    "priceCurrency": "XAF",
+    "lowPrice": "5800",
+    "highPrice": "700000",
+    "offerCount": 6,
+    "availability": "https://schema.org/InStock",
+    "seller": { "@type": "Organization", "name": "Chreol Empire" },
+  },
   "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.9", "reviewCount": "127", "bestRating": "5" },
+  "review": { "@type": "Review", "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" }, "author": { "@type": "Person", "name": "Franck N." }, "reviewBody": "USDT reçu en MoMo en 25 min. Taux honnête et service pro.", "datePublished": "2026-04-05" },
 };
 
 export default function Layout({ children }: { children: React.ReactNode }) {

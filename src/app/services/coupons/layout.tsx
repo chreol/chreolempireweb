@@ -30,11 +30,17 @@ const SERVICE_SCHEMA = {
   "description": "Échangez vos coupons Transcash ou PCS Mastercard contre du FCFA au taux de 440 FCFA/€ à Douala. Paiement MTN MoMo ou Orange Money en 15-30 min.",
   "provider": { "@type": "LocalBusiness", "name": "Chreol Empire", "address": { "@type": "PostalAddress", "addressLocality": "Douala", "addressCountry": "CM" } },
   "areaServed": { "@type": "Country", "name": "Cameroun" },
-  "offers": [
-    { "@type": "Offer", "name": "Échange coupon Transcash", "description": "Échangez votre coupon Transcash en FCFA. Taux : 440 FCFA/€. Minimum 20€.", "priceCurrency": "XAF" },
-    { "@type": "Offer", "name": "Échange coupon PCS Mastercard", "description": "Échangez votre coupon PCS Mastercard en FCFA. Taux : 440 FCFA/€ après 7% commission. Minimum 20€.", "priceCurrency": "XAF" },
-  ],
+  "offers": {
+    "@type": "AggregateOffer",
+    "priceCurrency": "XAF",
+    "lowPrice": "8800",
+    "highPrice": "440000",
+    "offerCount": 2,
+    "availability": "https://schema.org/InStock",
+    "seller": { "@type": "Organization", "name": "Chreol Empire" },
+  },
   "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.9", "reviewCount": "127", "bestRating": "5" },
+  "review": { "@type": "Review", "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" }, "author": { "@type": "Person", "name": "Serge A." }, "reviewBody": "Échange Transcash rapide, MoMo reçu en 15 min. Aucune arnaque.", "datePublished": "2026-03-20" },
 };
 
 export default function Layout({ children }: { children: React.ReactNode }) {
