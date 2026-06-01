@@ -286,9 +286,8 @@ export default function UBAPage() {
                     type="text"
                     placeholder="Votre nom complet (optionnel)"
                     value={buyName}
-                    autoFocus
                     onChange={e => setBuyName(e.target.value)}
-                    onKeyDown={e => e.key === "Enter" && refBuyPhone.current?.focus()}
+                    onKeyDown={e => e.key === "Enter" && refBuyPhone.current?.focus({ preventScroll: true })}
                     className={inputCls}
                     style={inputBase}
                   />
@@ -349,12 +348,11 @@ export default function UBAPage() {
                   placeholder="123456"
                   value={card6}
                   maxLength={6}
-                  autoFocus
                   inputMode="numeric"
                   onChange={e => {
                     setCard6(e.target.value);
                     setErrors(p => ({ ...p, card6: "" }));
-                    if (e.target.value.length >= 6) refCard4.current?.focus();
+                    if (e.target.value.length >= 6) refCard4.current?.focus({ preventScroll: true });
                   }}
                   className={inputCls}
                   style={errors.card6 ? inputErr : inputBase}
@@ -371,7 +369,7 @@ export default function UBAPage() {
                   onChange={e => {
                     setCard4(e.target.value);
                     setErrors(p => ({ ...p, card4: "" }));
-                    if (e.target.value.length >= 4) refClientId.current?.focus();
+                    if (e.target.value.length >= 4) refClientId.current?.focus({ preventScroll: true });
                   }}
                   className={inputCls}
                   style={errors.card4 ? inputErr : inputBase}
@@ -390,7 +388,7 @@ export default function UBAPage() {
                 onChange={e => {
                   setClientId(e.target.value);
                   setErrors(p => ({ ...p, clientId: "" }));
-                  if (e.target.value.length >= 3) refFullName.current?.focus();
+                  if (e.target.value.length >= 3) refFullName.current?.focus({ preventScroll: true });
                 }}
                 className={inputCls}
                 style={errors.clientId ? inputErr : inputBase}
@@ -404,7 +402,7 @@ export default function UBAPage() {
                 placeholder="Votre nom complet (optionnel)"
                 value={fullName}
                 onChange={e => setFullName(e.target.value)}
-                onKeyDown={e => e.key === "Enter" && refPhone.current?.focus()}
+                onKeyDown={e => e.key === "Enter" && refPhone.current?.focus({ preventScroll: true })}
                 className={inputCls}
                 style={inputBase}
               />

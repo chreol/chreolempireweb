@@ -15,16 +15,17 @@ async function hmac32(secret: string, data: string): Promise<string> {
 function buildCancelEmail(name: string, ref: string): string {
   const year = new Date().getFullYear();
   const displayName = name || "cher client";
+  const reorderUrl = "https://chreolempire-web.vercel.app/services";
 
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Commande annulée #${ref}</title></head>
+<title>Commande #${ref} — Un souci est survenu</title></head>
 <body style="margin:0;padding:0;background:#F3F4F6;font-family:Arial,Helvetica,sans-serif">
 <div style="max-width:580px;margin:0 auto;padding:20px 12px">
 
   <table width="100%" cellpadding="0" cellspacing="0">
-    <tr><td style="background:#0A0A0A;border-radius:12px 12px 0 0;padding:20px 32px;text-align:center">
-      <p style="margin:0;font-size:24px;font-weight:900">
+    <tr><td style="background:#0A0A0A;border-radius:12px 12px 0 0;padding:24px 32px;text-align:center">
+      <p style="margin:0;font-size:26px;font-weight:900">
         <span style="color:#DAA520">Chreol</span><span style="color:#FFFFFF">Empire</span>
       </p>
       <p style="margin:4px 0 0;font-size:11px;color:#6B7280">Le monde digital, à portée de Mobile Money</p>
@@ -32,34 +33,58 @@ function buildCancelEmail(name: string, ref: string): string {
   </table>
 
   <table width="100%" cellpadding="0" cellspacing="0">
-    <tr><td style="background:#FEE2E2;padding:16px 32px;border-left:4px solid #EF4444">
-      <p style="margin:0;font-weight:900;color:#991B1B;font-size:16px">❌ Commande annulée</p>
-      <p style="margin:4px 0 0;color:#B91C1C;font-size:13px">
-        Bonjour ${displayName}, votre commande <strong>#${ref}</strong> a malheureusement été annulée.
+    <tr><td style="background:linear-gradient(135deg,#7F1D1D,#991B1B);padding:24px 32px;text-align:center">
+      <p style="margin:0;font-size:36px">😔</p>
+      <p style="margin:8px 0 4px;font-weight:900;color:#FFFFFF;font-size:18px">Un souci est survenu</p>
+      <p style="margin:0;color:#FCA5A5;font-size:13px">Bonjour <strong>${displayName}</strong>, votre commande <strong>#${ref}</strong> n'a pas pu être traitée.</p>
+      <p style="margin:12px 0 0;display:inline-block;background:rgba(239,68,68,0.3);border:1px solid rgba(239,68,68,0.5);color:#FECACA;font-size:11px;font-weight:900;padding:5px 16px;border-radius:20px;letter-spacing:1px">
+        ❌ STATUT : ANNULÉE
       </p>
     </td></tr>
   </table>
 
   <table width="100%" cellpadding="0" cellspacing="0">
-    <tr><td style="background:#FFFFFF;padding:32px;border-radius:0 0 12px 12px;box-shadow:0 2px 8px rgba(0,0,0,0.08)">
+    <tr><td style="background:#FFFFFF;padding:28px 32px;border-radius:0 0 12px 12px;box-shadow:0 2px 8px rgba(0,0,0,0.08)">
 
       <p style="margin:0 0 20px;font-size:14px;color:#374151;line-height:1.7;text-align:center">
-        Nous n'avons pas pu traiter votre commande.<br>
-        Si vous avez effectué un paiement, contactez-nous immédiatement pour un remboursement.
+        Nous sommes vraiment désolés pour ce désagrément.<br>
+        Votre satisfaction est notre priorité — <strong>repasser commande prend moins de 2 minutes</strong>.
       </p>
 
-      <table width="100%" cellpadding="0" cellspacing="0" style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:10px;margin-bottom:20px">
-        <tr><td style="padding:16px;text-align:center">
-          <p style="margin:0 0 8px;font-size:13px;color:#065F46;font-weight:700">Notre équipe est disponible pour vous aider 7j/7</p>
-          <a href="https://wa.me/237697657734" style="display:inline-block;background:#25D366;color:#FFFFFF;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:900;font-size:13px">
-            💬 Contacter le support WhatsApp
+      <!-- Reorder CTA -->
+      <table width="100%" cellpadding="0" cellspacing="0" style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;margin-bottom:16px">
+        <tr><td style="padding:20px;text-align:center">
+          <p style="margin:0 0 4px;font-size:14px;font-weight:900;color:#92400E">Repasser commande facilement</p>
+          <p style="margin:0 0 14px;font-size:12px;color:#78350F">Nos équipes sont disponibles maintenant pour vous servir.</p>
+          <a href="${reorderUrl}" style="display:inline-block;background:#B45309;color:#FFFFFF;text-decoration:none;padding:13px 28px;border-radius:8px;font-weight:900;font-size:14px;margin-bottom:10px">
+            🛒 Repasser ma commande
+          </a>
+          <br>
+          <a href="https://wa.me/237697657734?text=${encodeURIComponent(`Bonjour, je souhaite repasser ma commande annulée #${ref}`)}" style="display:inline-block;background:#25D366;color:#FFFFFF;text-decoration:none;padding:10px 22px;border-radius:8px;font-weight:900;font-size:13px">
+            💬 Commander via WhatsApp
           </a>
         </td></tr>
       </table>
 
-      <p style="margin:0;text-align:center;font-size:13px;color:#6B7280">
-        Nous nous excusons pour ce désagrément et restons à votre disposition.
-      </p>
+      <!-- Refund notice -->
+      <table width="100%" cellpadding="0" cellspacing="0" style="background:#FEF2F2;border:1px solid #FECACA;border-radius:10px;margin-bottom:16px">
+        <tr><td style="padding:14px 16px">
+          <p style="margin:0;font-size:13px;font-weight:900;color:#991B1B">💳 Vous avez effectué un paiement ?</p>
+          <p style="margin:6px 0 0;font-size:12px;color:#B91C1C;line-height:1.5">
+            Contactez-nous immédiatement sur WhatsApp avec votre référence <strong>#${ref}</strong>. Nous vous rembourserons intégralement dans les plus brefs délais.
+          </p>
+        </td></tr>
+      </table>
+
+      <!-- Support -->
+      <table width="100%" cellpadding="0" cellspacing="0" style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:10px">
+        <tr><td style="padding:14px;text-align:center">
+          <p style="margin:0 0 8px;font-size:12px;color:#065F46;font-weight:700">Notre équipe est disponible 7j/7 — 7h à 23h</p>
+          <a href="https://wa.me/237697657734" style="display:inline-block;background:#25D366;color:#FFFFFF;text-decoration:none;padding:10px 24px;border-radius:8px;font-weight:900;font-size:13px">
+            💬 Contacter le support WhatsApp
+          </a>
+        </td></tr>
+      </table>
 
       <p style="margin:24px 0 0;text-align:center;font-size:11px;color:#9CA3AF">
         © ${year} Chreol Empire · Boutiques Deido, Vallée 3, Douala, Cameroun<br>
@@ -79,13 +104,13 @@ function buildDeliveryEmail(name: string, ref: string): string {
 
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Commande livrée #${ref}</title></head>
+<title>Commande livrée ✅ #${ref}</title></head>
 <body style="margin:0;padding:0;background:#F3F4F6;font-family:Arial,Helvetica,sans-serif">
 <div style="max-width:580px;margin:0 auto;padding:20px 12px">
 
   <table width="100%" cellpadding="0" cellspacing="0">
-    <tr><td style="background:#0A0A0A;border-radius:12px 12px 0 0;padding:20px 32px;text-align:center">
-      <p style="margin:0;font-size:24px;font-weight:900">
+    <tr><td style="background:#0A0A0A;border-radius:12px 12px 0 0;padding:24px 32px;text-align:center">
+      <p style="margin:0;font-size:26px;font-weight:900">
         <span style="color:#DAA520">Chreol</span><span style="color:#FFFFFF">Empire</span>
       </p>
       <p style="margin:4px 0 0;font-size:11px;color:#6B7280">Le monde digital, à portée de Mobile Money</p>
@@ -93,35 +118,73 @@ function buildDeliveryEmail(name: string, ref: string): string {
   </table>
 
   <table width="100%" cellpadding="0" cellspacing="0">
-    <tr><td style="background:#D1FAE5;padding:16px 32px;border-left:4px solid #10B981">
-      <p style="margin:0;font-weight:900;color:#065F46;font-size:16px">✅ Votre commande a été livrée !</p>
-      <p style="margin:4px 0 0;color:#047857;font-size:13px">
-        Bonjour ${displayName}, votre commande <strong>#${ref}</strong> a bien été traitée.
+    <tr><td style="background:linear-gradient(135deg,#065F46,#047857);padding:24px 32px;text-align:center">
+      <p style="margin:0;font-size:40px">🎉</p>
+      <p style="margin:8px 0 4px;font-weight:900;color:#FFFFFF;font-size:20px">Votre commande a été livrée !</p>
+      <p style="margin:0;color:#A7F3D0;font-size:13px">Bonjour <strong>${displayName}</strong>, tout est en ordre.</p>
+      <p style="margin:12px 0 0;display:inline-block;background:#10B981;color:#FFFFFF;font-size:11px;font-weight:900;padding:5px 16px;border-radius:20px;letter-spacing:1px">
+        ✅ STATUT : LIVRÉ
       </p>
     </td></tr>
   </table>
 
   <table width="100%" cellpadding="0" cellspacing="0">
-    <tr><td style="background:#FFFFFF;padding:32px;border-radius:0 0 12px 12px;box-shadow:0 2px 8px rgba(0,0,0,0.08)">
+    <tr><td style="background:#FFFFFF;padding:28px 32px;border-radius:0 0 12px 12px;box-shadow:0 2px 8px rgba(0,0,0,0.08)">
+
+      <!-- Ref + status -->
+      <table width="100%" cellpadding="0" cellspacing="0" style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:10px;padding:16px;margin-bottom:20px">
+        <tr>
+          <td style="text-align:center">
+            <p style="margin:0;font-size:10px;color:#065F46;font-weight:900;letter-spacing:2px">RÉFÉRENCE COMMANDE</p>
+            <p style="margin:6px 0 0;font-size:26px;font-weight:900;color:#047857;letter-spacing:3px">#${ref}</p>
+          </td>
+          <td style="text-align:center;border-left:1px solid #BBF7D0;padding-left:16px">
+            <p style="margin:0;font-size:28px">✅</p>
+            <p style="margin:4px 0 0;font-size:12px;font-weight:900;color:#065F46">Livrée</p>
+          </td>
+        </tr>
+      </table>
 
       <p style="margin:0 0 20px;font-size:14px;color:#374151;line-height:1.7;text-align:center">
-        Vos articles ont été transmis sur WhatsApp.<br>
-        Si vous n'avez pas encore reçu votre commande, contactez-nous immédiatement.
+        Vos articles ont bien été transmis sur WhatsApp.<br>
+        <strong>Merci de votre confiance</strong> — nous espérons vous revoir très bientôt ! 🙏
       </p>
 
-      <table width="100%" cellpadding="0" cellspacing="0" style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;margin-bottom:24px">
+      <!-- Guarantee badges -->
+      <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px">
+        <tr>
+          <td style="padding:10px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;text-align:center">
+            <p style="margin:0;font-size:16px">✅</p>
+            <p style="margin:4px 0 0;font-size:10px;font-weight:700;color:#92400E">Code authentique</p>
+          </td>
+          <td width="8"></td>
+          <td style="padding:10px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;text-align:center">
+            <p style="margin:0;font-size:16px">🔒</p>
+            <p style="margin:4px 0 0;font-size:10px;font-weight:700;color:#92400E">Paiement sécurisé</p>
+          </td>
+          <td width="8"></td>
+          <td style="padding:10px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;text-align:center">
+            <p style="margin:0;font-size:16px">⭐</p>
+            <p style="margin:4px 0 0;font-size:10px;font-weight:700;color:#92400E">4.9/5 · 127 avis</p>
+          </td>
+        </tr>
+      </table>
+
+      <!-- Review CTA -->
+      <table width="100%" cellpadding="0" cellspacing="0" style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;margin-bottom:16px">
         <tr><td style="padding:16px;text-align:center">
-          <p style="margin:0 0 4px;font-size:13px;font-weight:900;color:#92400E">Votre avis nous aide énormément 🙏</p>
-          <p style="margin:0 0 12px;font-size:12px;color:#78350F">30 secondes pour aider d'autres Camerounais à nous faire confiance.</p>
+          <p style="margin:0 0 4px;font-size:13px;font-weight:900;color:#92400E">Votre avis aide des milliers de Camerounais 🙏</p>
+          <p style="margin:0 0 12px;font-size:12px;color:#78350F">30 secondes pour nous soutenir — et ça compte vraiment.</p>
           <a href="${reviewUrl}" style="display:inline-block;background:#EA4335;color:#FFFFFF;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:900;font-size:13px">
             ⭐ Laisser un avis Google
           </a>
         </td></tr>
       </table>
 
+      <!-- Support -->
       <table width="100%" cellpadding="0" cellspacing="0" style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:10px">
         <tr><td style="padding:14px;text-align:center">
-          <p style="margin:0 0 8px;font-size:12px;color:#065F46;font-weight:700">Un problème ? Notre équipe est disponible 7j/7</p>
+          <p style="margin:0 0 8px;font-size:12px;color:#065F46;font-weight:700">Un problème avec votre commande ? On est là 7j/7</p>
           <a href="https://wa.me/237697657734" style="display:inline-block;background:#25D366;color:#FFFFFF;text-decoration:none;padding:10px 24px;border-radius:8px;font-weight:900;font-size:13px">
             💬 Contacter le support WhatsApp
           </a>

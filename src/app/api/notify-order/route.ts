@@ -284,101 +284,138 @@ function buildClientEmail(p: NotifyPayload): string {
 
   <!-- Header -->
   <table width="100%" cellpadding="0" cellspacing="0">
-    <tr><td style="background:#0A0A0A;border-radius:12px 12px 0 0;padding:20px 32px;text-align:center">
-      <p style="margin:0;font-size:24px;font-weight:900">
+    <tr><td style="background:#0A0A0A;border-radius:12px 12px 0 0;padding:24px 32px;text-align:center">
+      <p style="margin:0;font-size:26px;font-weight:900;letter-spacing:-0.5px">
         <span style="color:#DAA520">Chreol</span><span style="color:#FFFFFF">Empire</span>
       </p>
-      <p style="margin:4px 0 0;font-size:11px;color:#6B7280">Le monde digital, à portée de Mobile Money</p>
+      <p style="margin:4px 0 0;font-size:11px;color:#6B7280;letter-spacing:0.5px">Le monde digital, à portée de Mobile Money</p>
     </td></tr>
   </table>
 
-  <!-- Success banner -->
+  <!-- Status banner -->
   <table width="100%" cellpadding="0" cellspacing="0">
-    <tr><td style="background:#D1FAE5;padding:16px 32px;border-left:4px solid #10B981">
-      <p style="margin:0;font-weight:900;color:#065F46;font-size:16px">✅ Commande confirmée !</p>
-      <p style="margin:4px 0 0;color:#047857;font-size:13px">
-        Bonjour ${esc(p.clientName)}, votre commande a bien été enregistrée.
+    <tr><td style="background:linear-gradient(135deg,#065F46,#047857);padding:20px 32px;text-align:center">
+      <p style="margin:0;font-size:28px">✅</p>
+      <p style="margin:6px 0 0;font-weight:900;color:#FFFFFF;font-size:18px">Commande enregistrée !</p>
+      <p style="margin:6px 0 0;color:#A7F3D0;font-size:13px">
+        Bonjour <strong>${esc(p.clientName)}</strong>, nous avons bien reçu votre commande.
+      </p>
+      <p style="margin:12px 0 0;display:inline-block;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:#FFFFFF;font-size:11px;font-weight:900;padding:4px 14px;border-radius:20px;letter-spacing:1px">
+        ⏳ EN COURS DE TRAITEMENT
       </p>
     </td></tr>
   </table>
 
   <!-- Body -->
   <table width="100%" cellpadding="0" cellspacing="0">
-    <tr><td style="background:#FFFFFF;padding:32px;border-radius:0 0 12px 12px;box-shadow:0 2px 8px rgba(0,0,0,0.08)">
+    <tr><td style="background:#FFFFFF;padding:28px 32px;border-radius:0 0 12px 12px;box-shadow:0 2px 8px rgba(0,0,0,0.08)">
 
-      <!-- Reference -->
-      <table width="100%" cellpadding="0" cellspacing="0" style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;margin-bottom:28px">
-        <tr><td style="padding:20px;text-align:center">
-          <p style="margin:0;font-size:11px;color:#92400E;font-weight:900;letter-spacing:2px">VOTRE RÉFÉRENCE DE COMMANDE</p>
-          <p style="margin:8px 0 0;font-size:34px;font-weight:900;color:#B45309;letter-spacing:3px">#${ref}</p>
-          <p style="margin:8px 0 0;font-size:12px;color:#78350F">Conservez ce numéro pour tout suivi</p>
-        </td></tr>
+      <!-- Ref + status row -->
+      <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px">
+        <tr>
+          <td style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;padding:16px 20px;text-align:center">
+            <p style="margin:0;font-size:10px;color:#92400E;font-weight:900;letter-spacing:2px">RÉFÉRENCE COMMANDE</p>
+            <p style="margin:6px 0;font-size:30px;font-weight:900;color:#B45309;letter-spacing:4px">#${ref}</p>
+            <p style="margin:0;font-size:11px;color:#78350F">Mentionnez cette référence pour tout suivi</p>
+          </td>
+          <td width="12"></td>
+          <td style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:10px;padding:16px 20px;text-align:center">
+            <p style="margin:0;font-size:10px;color:#065F46;font-weight:900;letter-spacing:2px">STATUT</p>
+            <p style="margin:8px 0 4px;font-size:22px">⏳</p>
+            <p style="margin:0;font-size:12px;font-weight:900;color:#047857">En traitement</p>
+            <p style="margin:4px 0 0;font-size:10px;color:#6B7280">Réponse sous 15–30 min</p>
+          </td>
+        </tr>
       </table>
 
       <!-- Items -->
-      <p style="margin:0 0 10px;font-size:10px;color:#9CA3AF;font-weight:900;letter-spacing:1.5px">VOTRE COMMANDE</p>
-      <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #E5E7EB;border-radius:8px;overflow:hidden;margin-bottom:24px">
+      <p style="margin:0 0 10px;font-size:10px;color:#9CA3AF;font-weight:900;letter-spacing:1.5px">RÉCAPITULATIF DE LA COMMANDE</p>
+      <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #E5E7EB;border-radius:10px;overflow:hidden;margin-bottom:20px">
+        <thead>
+          <tr style="background:#F9FAFB">
+            <th style="padding:10px 14px;font-size:10px;color:#6B7280;font-weight:900;letter-spacing:1px;text-align:left">ARTICLE</th>
+            <th style="padding:10px 14px;font-size:10px;color:#6B7280;font-weight:900;letter-spacing:1px;text-align:right">MONTANT</th>
+          </tr>
+        </thead>
         <tbody>${clientItemsHtml(p.items)}</tbody>
       </table>
 
       <!-- Total + Payment -->
-      <table width="100%" cellpadding="0" cellspacing="0" style="background:#FFFBEB;border:1px solid #FCD34D;border-radius:10px;margin-bottom:28px">
+      <table width="100%" cellpadding="0" cellspacing="0" style="background:#FFFBEB;border:2px solid #FCD34D;border-radius:10px;margin-bottom:24px">
         <tr>
-          <td style="padding:12px 20px;font-size:13px;color:#92400E;border-bottom:1px dashed #FCD34D">Mode de paiement sélectionné</td>
-          <td style="padding:12px 20px;font-size:13px;font-weight:900;color:${pColor};text-align:right;border-bottom:1px dashed #FCD34D">${esc(p.paymentMethod)}</td>
+          <td style="padding:11px 20px;font-size:13px;color:#92400E;border-bottom:1px dashed #FDE68A">Mode de paiement</td>
+          <td style="padding:11px 20px;font-size:13px;font-weight:900;color:${pColor};text-align:right;border-bottom:1px dashed #FDE68A">${esc(p.paymentMethod)}</td>
         </tr>
         ${p.commission ? `
         <tr>
-          <td style="padding:10px 20px;font-size:13px;color:#92400E;border-bottom:1px dashed #FCD34D">Montant articles</td>
-          <td style="padding:10px 20px;font-size:13px;font-weight:700;color:#B45309;text-align:right;border-bottom:1px dashed #FCD34D">${(p.total - p.commission).toLocaleString("fr-FR")} FCFA</td>
+          <td style="padding:10px 20px;font-size:12px;color:#92400E;border-bottom:1px dashed #FDE68A">Montant articles</td>
+          <td style="padding:10px 20px;font-size:12px;font-weight:700;color:#B45309;text-align:right;border-bottom:1px dashed #FDE68A">${(p.total - p.commission).toLocaleString("fr-FR")} FCFA</td>
         </tr>
         <tr>
-          <td style="padding:10px 20px;font-size:13px;color:#92400E;border-bottom:1px dashed #FCD34D">${esc(p.commissionLabel ?? "Frais de service")}</td>
-          <td style="padding:10px 20px;font-size:13px;font-weight:700;color:#EF4444;text-align:right;border-bottom:1px dashed #FCD34D">+ ${p.commission.toLocaleString("fr-FR")} FCFA</td>
+          <td style="padding:10px 20px;font-size:12px;color:#92400E;border-bottom:1px dashed #FDE68A">${esc(p.commissionLabel ?? "Frais de service")}</td>
+          <td style="padding:10px 20px;font-size:12px;font-weight:700;color:#EF4444;text-align:right;border-bottom:1px dashed #FDE68A">+ ${p.commission.toLocaleString("fr-FR")} FCFA</td>
         </tr>` : ""}
         <tr>
-          <td style="padding:16px 20px;font-size:15px;font-weight:900;color:#78350F">TOTAL À RÉGLER</td>
-          <td style="padding:16px 20px;font-size:26px;font-weight:900;color:#B45309;text-align:right;white-space:nowrap">${p.total.toLocaleString("fr-FR")} FCFA</td>
+          <td style="padding:14px 20px;font-size:14px;font-weight:900;color:#78350F">TOTAL À RÉGLER</td>
+          <td style="padding:14px 20px;font-size:24px;font-weight:900;color:#B45309;text-align:right;white-space:nowrap">${p.total.toLocaleString("fr-FR")} FCFA</td>
         </tr>
       </table>
 
       <!-- Steps -->
-      <p style="margin:0 0 16px;font-size:10px;color:#9CA3AF;font-weight:900;letter-spacing:1.5px">COMMENT ÇA SE PASSE</p>
+      <table width="100%" cellpadding="0" cellspacing="0" style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:20px;margin-bottom:20px">
+        <tr><td>
+          <p style="margin:0 0 16px;font-size:10px;color:#64748B;font-weight:900;letter-spacing:1.5px">CE QUI SE PASSE MAINTENANT</p>
+          <table width="100%" cellpadding="0" cellspacing="0">
+            <tr>
+              <td width="36" valign="top">
+                <div style="width:28px;height:28px;border-radius:50%;background:#10B981;color:#FFFFFF;text-align:center;line-height:28px;font-weight:900;font-size:12px">✓</div>
+              </td>
+              <td style="padding-left:12px;padding-bottom:14px">
+                <p style="margin:0;font-size:13px;font-weight:700;color:#1F2937">Commande reçue</p>
+                <p style="margin:2px 0 0;font-size:12px;color:#6B7280">Votre commande #${ref} est enregistrée</p>
+              </td>
+            </tr>
+            <tr>
+              <td width="36" valign="top">
+                <div style="width:28px;height:28px;border-radius:50%;background:#F59E0B;color:#FFFFFF;text-align:center;line-height:28px;font-weight:900;font-size:12px">2</div>
+              </td>
+              <td style="padding-left:12px;padding-bottom:14px">
+                <p style="margin:0;font-size:13px;font-weight:700;color:#1F2937">Contact WhatsApp sous 15–30 min ⏳</p>
+                <p style="margin:2px 0 0;font-size:12px;color:#6B7280">Un agent vous écrit pour confirmer le paiement</p>
+              </td>
+            </tr>
+            <tr>
+              <td width="36" valign="top">
+                <div style="width:28px;height:28px;border-radius:50%;background:#94A3B8;color:#FFFFFF;text-align:center;line-height:28px;font-weight:900;font-size:12px">3</div>
+              </td>
+              <td style="padding-left:12px">
+                <p style="margin:0;font-size:13px;font-weight:700;color:#94A3B8">Livraison instantanée après paiement</p>
+                <p style="margin:2px 0 0;font-size:12px;color:#CBD5E1">Vous recevrez un email de confirmation de livraison</p>
+              </td>
+            </tr>
+          </table>
+        </td></tr>
+      </table>
 
-      <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:10px">
+      <!-- Guarantees -->
+      <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px">
         <tr>
-          <td width="40" valign="top" style="padding-top:2px">
-            <div style="width:32px;height:32px;border-radius:50%;background:#B45309;color:#FFFFFF;text-align:center;line-height:32px;font-weight:900;font-size:14px">1</div>
+          <td style="padding:8px 12px;background:#FFF7ED;border-radius:8px;text-align:center;width:32%">
+            <p style="margin:0;font-size:18px">✅</p>
+            <p style="margin:4px 0 0;font-size:10px;font-weight:700;color:#92400E">Codes authentiques</p>
           </td>
-          <td style="padding-left:14px;padding-bottom:16px">
-            <p style="margin:0;font-size:14px;font-weight:700;color:#1F2937">Nous vous contactons sur WhatsApp</p>
-            <p style="margin:4px 0 0;font-size:13px;color:#6B7280">Un agent Chreol Empire vous écrit sous <strong>15–30 minutes</strong> sur votre WhatsApp</p>
+          <td width="8"></td>
+          <td style="padding:8px 12px;background:#FFF7ED;border-radius:8px;text-align:center;width:32%">
+            <p style="margin:0;font-size:18px">⚡</p>
+            <p style="margin:4px 0 0;font-size:10px;font-weight:700;color:#92400E">15–30 min</p>
           </td>
-        </tr>
-        <tr>
-          <td width="40" valign="top" style="padding-top:2px">
-            <div style="width:32px;height:32px;border-radius:50%;background:#B45309;color:#FFFFFF;text-align:center;line-height:32px;font-weight:900;font-size:14px">2</div>
-          </td>
-          <td style="padding-left:14px;padding-bottom:16px">
-            <p style="margin:0;font-size:14px;font-weight:700;color:#1F2937">Effectuez le paiement</p>
-            <p style="margin:4px 0 0;font-size:13px;color:#6B7280">
-              Réglez <strong>${p.total.toLocaleString("fr-FR")} FCFA</strong> via <strong>${esc(p.paymentMethod)}</strong> selon les instructions reçues
-            </p>
-          </td>
-        </tr>
-        <tr>
-          <td width="40" valign="top" style="padding-top:2px">
-            <div style="width:32px;height:32px;border-radius:50%;background:#10B981;color:#FFFFFF;text-align:center;line-height:32px;font-weight:900;font-size:14px">3</div>
-          </td>
-          <td style="padding-left:14px">
-            <p style="margin:0;font-size:14px;font-weight:700;color:#1F2937">Recevez votre produit</p>
-            <p style="margin:4px 0 0;font-size:13px;color:#6B7280">Livraison immédiate sur WhatsApp après confirmation du paiement ✅</p>
+          <td width="8"></td>
+          <td style="padding:8px 12px;background:#FFF7ED;border-radius:8px;text-align:center;width:32%">
+            <p style="margin:0;font-size:18px">🔒</p>
+            <p style="margin:4px 0 0;font-size:10px;font-weight:700;color:#92400E">0% commission</p>
           </td>
         </tr>
       </table>
-
-      <!-- Separator -->
-      <hr style="border:none;border-top:1px solid #F3F4F6;margin:24px 0">
 
       <!-- Support -->
       <table width="100%" cellpadding="0" cellspacing="0" style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:10px">

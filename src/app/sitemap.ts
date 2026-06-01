@@ -1,7 +1,13 @@
 import { MetadataRoute } from "next";
 import { POSTS } from "@/lib/blog";
+import { GIFT_CARDS } from "@/lib/services";
 
 const BASE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://chreolempire.com";
+
+const REGION_SLUGS = [
+  "europe", "france", "belgique", "italie", "allemagne",
+  "espagne", "uk", "usa", "canada", "australie", "global",
+];
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
@@ -28,9 +34,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const blogRoutes: MetadataRoute.Sitemap = POSTS.map(p => ({
     url: `${BASE}/blog/${p.slug}`,
     lastModified: new Date(p.dateISO),
-    changeFrequency: "monthly",
+    changeFrequency: "monthly" as const,
     priority: 0.7,
   }));
+
+  const programmaticRoutes: MetadataRoute.Sitemap = GIFT_CARDS.flatMap(card =>
+    REGION_SLUGS.map(region => ({
+      url: `${BASE}/services/cartes-cadeaux/${card.id}-${region}`,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+    }))
+  );
 
   return [
     ...staticRoutes.map(r => ({
@@ -40,5 +55,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: r.priority,
     })),
     ...blogRoutes,
+    ...programmaticRoutes,
   ];
 }
