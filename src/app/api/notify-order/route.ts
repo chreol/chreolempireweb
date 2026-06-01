@@ -13,13 +13,22 @@ async function hmac32(secret: string, data: string): Promise<string> {
 }
 
 async function buildMarkDoneUrl(
-  p: { orderId: string; clientEmail: string; clientName: string },
+  p: NotifyPayload,
   action: "done" | "cancel",
 ): Promise<string> {
   const secret  = process.env.MARK_DONE_SECRET ?? process.env.BREVO_API_KEY ?? "chreolempire";
   const ts      = Math.floor(Date.now() / 1000).toString();
   const token   = await hmac32(secret, `${p.orderId}:${p.clientEmail}:${ts}`);
   const base    = process.env.NEXT_PUBLIC_SITE_URL ?? "https://chreolempire.com";
+
+  // Compact summary for order recap in delivery/cancel emails
+  const summary = JSON.stringify({
+    it: p.items.map(i => ({ n: i.name.slice(0, 35), t: i.price * i.qty, q: i.qty })),
+    tot: p.total,
+    pm: p.paymentMethod,
+  });
+  const s = btoa(Array.from(new TextEncoder().encode(summary)).map(b => String.fromCharCode(b)).join(""));
+
   const params  = new URLSearchParams({
     id:  p.orderId,
     to:  p.clientEmail,
@@ -27,6 +36,7 @@ async function buildMarkDoneUrl(
     ts,
     sig: token,
     act: action,
+    s,
   });
   return `${base}/api/mark-done?${params}`;
 }
@@ -441,10 +451,12 @@ function buildClientEmail(p: NotifyPayload): string {
       <!-- Footer -->
       <p style="margin:24px 0 0;text-align:center;font-size:11px;color:#9CA3AF">
         © ${year} Chreol Empire · Boutiques Deido, Vallée 3, Douala, Cameroun<br>
-        0% commission · Livraison express 15–30 min · chreolempire.com
+        0% commission · Livraison express 15–30 min ·
+        <a href="https://chreolempire-web.vercel.app" target="_blank" rel="noopener noreferrer" style="color:#B45309;text-decoration:none;">chreolempire.com</a>
       </p>
       <p style="margin:6px 0 0;text-align:center;font-size:10px;color:#D1D5DB">
-        Cet email a été envoyé suite à votre commande sur chreolempire.com
+        Cet email a été envoyé suite à votre commande sur
+        <a href="https://chreolempire-web.vercel.app" target="_blank" rel="noopener noreferrer" style="color:#9CA3AF;">chreolempire.com</a>
       </p>
 
     </td></tr>

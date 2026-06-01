@@ -1,5 +1,48 @@
 export const runtime = "edge";
 
+interface OrderSummary {
+  it: { n: string; t: number; q: number }[];
+  tot: number;
+  pm: string;
+}
+
+function decodeSummary(s: string): OrderSummary | null {
+  try {
+    const bin = atob(s);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return JSON.parse(new TextDecoder().decode(bytes));
+  } catch { return null; }
+}
+
+function orderRecapHtml(summary: OrderSummary | null): string {
+  if (!summary) return "";
+  const rows = summary.it.map(i =>
+    `<tr>
+      <td style="padding:9px 14px;font-size:13px;color:#1F2937;border-bottom:1px solid #F3F4F6">${i.n}${i.q > 1 ? ` ×${i.q}` : ""}</td>
+      <td style="padding:9px 14px;font-size:13px;font-weight:700;color:#B45309;text-align:right;border-bottom:1px solid #F3F4F6;white-space:nowrap">${i.t.toLocaleString("fr-FR")} FCFA</td>
+    </tr>`
+  ).join("");
+  return `
+  <p style="margin:0 0 8px;font-size:10px;color:#9CA3AF;font-weight:900;letter-spacing:1.5px">RÉCAPITULATIF</p>
+  <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #E5E7EB;border-radius:8px;overflow:hidden;margin-bottom:16px">
+    <tbody>${rows}</tbody>
+    <tfoot>
+      <tr style="background:#FFFBEB">
+        <td style="padding:11px 14px;font-size:13px;font-weight:900;color:#78350F">TOTAL</td>
+        <td style="padding:11px 14px;font-size:15px;font-weight:900;color:#B45309;text-align:right;white-space:nowrap">${summary.tot.toLocaleString("fr-FR")} FCFA</td>
+      </tr>
+    </tfoot>
+  </table>`;
+}
+
+function reorderUrl(summary: OrderSummary | null, ref: string): string {
+  const items = summary?.it.map(i => `- ${i.n}${i.q > 1 ? ` ×${i.q}` : ""}`).join("%0A") ?? "";
+  const total = summary ? `${summary.tot.toLocaleString("fr-FR")} FCFA` : "";
+  const msg = `Bonjour%20Chreol%20Empire%20%F0%9F%91%8B%0AJe%20souhaite%20repasser%20ma%20commande%20%23${ref}%20:%0A${items}%0A%0ATotal%20:%20${encodeURIComponent(total)}%0AMerci%20!`;
+  return `https://wa.me/237697657734?text=${msg}`;
+}
+
 async function hmac32(secret: string, data: string): Promise<string> {
   const enc = new TextEncoder();
   const key = await crypto.subtle.importKey(
@@ -12,7 +55,7 @@ async function hmac32(secret: string, data: string): Promise<string> {
     .slice(0, 32);
 }
 
-function buildCancelEmail(name: string, ref: string): string {
+function buildCancelEmail(name: string, ref: string, summary: OrderSummary | null): string {
   const year = new Date().getFullYear();
   const displayName = name || "cher client";
   const reorderUrl = "https://chreolempire-web.vercel.app/services";
@@ -51,17 +94,16 @@ function buildCancelEmail(name: string, ref: string): string {
         Votre satisfaction est notre priorité — <strong>repasser commande prend moins de 2 minutes</strong>.
       </p>
 
+      ${orderRecapHtml(summary)}
+
       <!-- Reorder CTA -->
       <table width="100%" cellpadding="0" cellspacing="0" style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;margin-bottom:16px">
         <tr><td style="padding:20px;text-align:center">
-          <p style="margin:0 0 4px;font-size:14px;font-weight:900;color:#92400E">Repasser commande facilement</p>
-          <p style="margin:0 0 14px;font-size:12px;color:#78350F">Nos équipes sont disponibles maintenant pour vous servir.</p>
-          <a href="${reorderUrl}" style="display:inline-block;background:#B45309;color:#FFFFFF;text-decoration:none;padding:13px 28px;border-radius:8px;font-weight:900;font-size:14px;margin-bottom:10px">
-            🛒 Repasser ma commande
-          </a>
-          <br>
-          <a href="https://wa.me/237697657734?text=${encodeURIComponent(`Bonjour, je souhaite repasser ma commande annulée #${ref}`)}" style="display:inline-block;background:#25D366;color:#FFFFFF;text-decoration:none;padding:10px 22px;border-radius:8px;font-weight:900;font-size:13px">
-            💬 Commander via WhatsApp
+          <p style="margin:0 0 4px;font-size:14px;font-weight:900;color:#92400E">Repasser la même commande en 1 clic</p>
+          <p style="margin:0 0 14px;font-size:12px;color:#78350F">Votre commande est pré-remplie — il suffit d'envoyer le message.</p>
+          <a href="${reorderUrl(summary, ref)}" target="_blank" rel="noopener noreferrer"
+            style="display:inline-block;background:#25D366;color:#FFFFFF;text-decoration:none;padding:13px 28px;border-radius:8px;font-weight:900;font-size:14px">
+            🔄 Repasser ma commande via WhatsApp
           </a>
         </td></tr>
       </table>
@@ -88,7 +130,7 @@ function buildCancelEmail(name: string, ref: string): string {
 
       <p style="margin:24px 0 0;text-align:center;font-size:11px;color:#9CA3AF">
         © ${year} Chreol Empire · Boutiques Deido, Vallée 3, Douala, Cameroun<br>
-        chreolempire.com
+        <a href="https://chreolempire-web.vercel.app" target="_blank" rel="noopener noreferrer" style="color:#B45309;text-decoration:none;">chreolempire.com</a>
       </p>
 
     </td></tr>
@@ -97,7 +139,7 @@ function buildCancelEmail(name: string, ref: string): string {
 </body></html>`;
 }
 
-function buildDeliveryEmail(name: string, ref: string): string {
+function buildDeliveryEmail(name: string, ref: string, summary: OrderSummary | null): string {
   const year = new Date().getFullYear();
   const reviewUrl = "https://g.page/r/CQaaC7b5Jbg_EAE/review";
   const displayName = name || "cher client";
@@ -150,6 +192,19 @@ function buildDeliveryEmail(name: string, ref: string): string {
         <strong>Merci de votre confiance</strong> — nous espérons vous revoir très bientôt ! 🙏
       </p>
 
+      ${orderRecapHtml(summary)}
+
+      <!-- Reorder -->
+      <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px">
+        <tr><td style="text-align:center">
+          <a href="${reorderUrl(summary, ref)}" target="_blank" rel="noopener noreferrer"
+            style="display:inline-block;background:#0A0A0A;color:#DAA520;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:900;font-size:13px;border:2px solid #DAA520">
+            🔄 Repasser la même commande
+          </a>
+          <p style="margin:6px 0 0;font-size:11px;color:#9CA3AF">Ouvre WhatsApp avec votre commande pré-remplie</p>
+        </td></tr>
+      </table>
+
       <!-- Guarantee badges -->
       <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px">
         <tr>
@@ -193,7 +248,7 @@ function buildDeliveryEmail(name: string, ref: string): string {
 
       <p style="margin:24px 0 0;text-align:center;font-size:11px;color:#9CA3AF">
         © ${year} Chreol Empire · Boutiques Deido, Vallée 3, Douala, Cameroun<br>
-        chreolempire.com
+        <a href="https://chreolempire-web.vercel.app" target="_blank" rel="noopener noreferrer" style="color:#B45309;text-decoration:none;">chreolempire.com</a>
       </p>
 
     </td></tr>
@@ -251,6 +306,8 @@ export async function GET(request: Request): Promise<Response> {
   const ts      = searchParams.get("ts")   ?? "";
   const sig     = searchParams.get("sig")  ?? "";
   const action  = searchParams.get("act")  ?? "done";
+  const sRaw    = searchParams.get("s")    ?? "";
+  const summary = sRaw ? decodeSummary(sRaw) : null;
 
   if (!orderId || !email || !sig) {
     return new Response(ERROR_HTML("Paramètres manquants."), { status: 400, headers: { "Content-Type": "text/html" } });
@@ -299,7 +356,7 @@ export async function GET(request: Request): Promise<Response> {
   const subject  = isCancel
     ? `❌ Votre commande #${ref} a été annulée — Chreol Empire`
     : `✅ Votre commande #${ref} a été livrée — Chreol Empire`;
-  const html = isCancel ? buildCancelEmail(name, ref) : buildDeliveryEmail(name, ref);
+  const html = isCancel ? buildCancelEmail(name, ref, summary) : buildDeliveryEmail(name, ref, summary);
 
   const res = await fetch("https://api.brevo.com/v3/smtp/email", {
     method: "POST",

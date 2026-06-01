@@ -154,7 +154,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 {/* Brand */}
                 <div>
                   <Link href="/" className="inline-flex items-center gap-2 mb-2">
-                    <Image src="/logo.png" alt="Chreol Empire" width={36} height={36} unoptimized className="rounded-xl" />
+                    <Image src={IMAGES.logo} alt="Chreol Empire" width={36} height={36} unoptimized className="rounded-xl object-cover" />
                     <p className="font-black text-xl">
                       Chreol<span style={{ color: "var(--gold)" }}>Empire</span>
                     </p>

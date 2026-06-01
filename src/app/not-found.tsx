@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { IMAGES } from "@/lib/services";
+// logo = /assets/chreolempire logo avec contact m.webp
 
 export default function NotFound() {
   return (
@@ -8,7 +9,7 @@ export default function NotFound() {
       <div className="max-w-md w-full">
         {/* Logo */}
         <div className="flex items-center justify-center gap-2 mb-8">
-          <Image src="/logo.png" alt="Chreol Empire" width={48} height={48} unoptimized className="rounded-2xl" />
+          <Image src={IMAGES.logo} alt="Chreol Empire" width={48} height={48} unoptimized className="rounded-2xl object-cover" />
           <p className="text-2xl font-black">
             Chreol<span style={{ color: "var(--gold)" }}>Empire</span>
           </p>

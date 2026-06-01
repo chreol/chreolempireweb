@@ -352,7 +352,6 @@ export default function UBAPage() {
                   onChange={e => {
                     setCard6(e.target.value);
                     setErrors(p => ({ ...p, card6: "" }));
-                    if (e.target.value.length >= 6) refCard4.current?.focus({ preventScroll: true });
                   }}
                   className={inputCls}
                   style={errors.card6 ? inputErr : inputBase}
@@ -369,7 +368,6 @@ export default function UBAPage() {
                   onChange={e => {
                     setCard4(e.target.value);
                     setErrors(p => ({ ...p, card4: "" }));
-                    if (e.target.value.length >= 4) refClientId.current?.focus({ preventScroll: true });
                   }}
                   className={inputCls}
                   style={errors.card4 ? inputErr : inputBase}
@@ -388,7 +386,6 @@ export default function UBAPage() {
                 onChange={e => {
                   setClientId(e.target.value);
                   setErrors(p => ({ ...p, clientId: "" }));
-                  if (e.target.value.length >= 3) refFullName.current?.focus({ preventScroll: true });
                 }}
                 className={inputCls}
                 style={errors.clientId ? inputErr : inputBase}

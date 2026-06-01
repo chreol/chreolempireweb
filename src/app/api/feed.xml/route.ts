@@ -33,7 +33,7 @@ export async function GET(): Promise<Response> {
     <g:title><![CDATA[${title}]]></g:title>
     <g:description><![CDATA[${description}]]></g:description>
     <g:link>${link}</g:link>
-    <g:image_link>${BASE}/logo.png</g:image_link>
+    <g:image_link>${BASE}/assets/chreolempire%20logo%20avec%20contact%20m.webp</g:image_link>
     <g:condition>new</g:condition>
     <g:availability>in stock</g:availability>
     <g:price>${lowestAmount.price} XAF</g:price>
