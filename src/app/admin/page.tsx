@@ -7,6 +7,20 @@ const SERVICES_LIST = [
   "cartes-cadeaux", "crypto", "paypal", "coupons", "uba", "factures", "autre",
 ];
 
+interface PromoCode {
+  id: string;
+  code: string;
+  type: "percent" | "fixed";
+  value: number;
+  min_order: number;
+  max_uses: number;
+  uses: number;
+  active: boolean;
+  expires_at?: string;
+  description?: string;
+  created_at?: string;
+}
+
 interface Offer {
   id: string;
   title: string;
@@ -52,7 +66,17 @@ export default function AdminPage() {
   const [loading, setLoading]       = useState(true);
   const [actionId, setActionId]     = useState<string | null>(null);
   const [analytics, setAnalytics]   = useState<{ configured: boolean; pages?: unknown; events?: unknown } | null>(null);
-  const [tab, setTab]               = useState<"orders" | "offers" | "analytics">("orders");
+  const [tab, setTab]               = useState<"orders" | "offers" | "promo" | "campaign" | "analytics">("orders");
+  // Promo codes
+  const [promos, setPromos]           = useState<PromoCode[]>([]);
+  const [promoForm, setPromoForm]     = useState<Partial<PromoCode>>({ type: "percent", value: 10, min_order: 0, max_uses: 0 });
+  const [promoMsg, setPromoMsg]       = useState("");
+  // Campaign
+  const [campSubject, setCampSubject] = useState("");
+  const [campBody, setCampBody]       = useState("");
+  const [campFilter, setCampFilter]   = useState("");
+  const [campResult, setCampResult]   = useState<{ sent?: number; error?: string } | null>(null);
+  const [campLoading, setCampLoading] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [offers, setOffers]             = useState<Offer[]>([]);
   const [offerLoading, setOfferLoading] = useState(false);
@@ -77,7 +101,40 @@ export default function AdminPage() {
     if (tab === "offers" && offers.length === 0) {
       fetch("/api/admin/offers").then(r => r.json()).then(d => setOffers(Array.isArray(d) ? d : []));
     }
+    if (tab === "promo") {
+      fetch("/api/admin/promo").then(r => r.json()).then(d => setPromos(Array.isArray(d) ? d : []));
+    }
   }, [tab, analytics, offers.length]);
+
+  async function createPromo(e: React.FormEvent) {
+    e.preventDefault();
+    setPromoMsg("");
+    const res = await fetch("/api/admin/promo", {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(promoForm),
+    });
+    if (res.ok) {
+      setPromoMsg("✅ Code créé !");
+      setPromoForm({ type: "percent", value: 10, min_order: 0, max_uses: 0 });
+      fetch("/api/admin/promo").then(r => r.json()).then(d => setPromos(Array.isArray(d) ? d : []));
+    } else { setPromoMsg("❌ Erreur création"); }
+  }
+
+  async function deletePromo(id: string) {
+    if (!confirm("Supprimer ce code ?")) return;
+    await fetch("/api/admin/promo", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
+    setPromos(p => p.filter(c => c.id !== id));
+  }
+
+  async function sendCampaign(e: React.FormEvent) {
+    e.preventDefault();
+    setCampLoading(true); setCampResult(null);
+    const res = await fetch("/api/admin/campaign", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ subject: campSubject, htmlContent: campBody, filterService: campFilter || undefined }),
+    });
+    const data = await res.json();
+    setCampResult(data); setCampLoading(false);
+  }
 
   async function createOffer(e: React.FormEvent) {
     e.preventDefault();
@@ -177,9 +234,11 @@ export default function AdminPage() {
       {/* Tabs */}
       <div className="flex gap-2 mb-6">
         {([
-          { key: "orders",    label: "📋 Commandes" },
-          { key: "offers",    label: "🎁 Offres & Produits" },
-          { key: "analytics", label: "📊 Analytique" },
+          { key: "orders",   label: "📋 Commandes" },
+          { key: "offers",   label: "🎁 Offres" },
+          { key: "promo",    label: "🏷️ Codes promo" },
+          { key: "campaign", label: "📧 Campagne" },
+          { key: "analytics",label: "📊 Stats" },
         ] as const).map(t => (
           <button key={t.key} onClick={() => setTab(t.key)}
             className="px-5 py-2 rounded-full text-sm font-bold transition-all"
@@ -323,6 +382,157 @@ export default function AdminPage() {
             </div>
           )}
         </>
+      )}
+
+      {tab === "promo" && (
+        <div className="flex flex-col gap-6">
+          <div className="rounded-2xl p-5" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+            <p className="font-black text-white mb-4">➕ Créer un code promo</p>
+            <form onSubmit={createPromo} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-bold mb-1" style={{ color: "var(--text-muted)" }}>CODE *</label>
+                <input required value={promoForm.code ?? ""} onChange={e => setPromoForm(p => ({ ...p, code: e.target.value.toUpperCase() }))}
+                  placeholder="ex: PROMO20" className="w-full px-4 py-2.5 rounded-xl text-white text-sm outline-none font-mono"
+                  style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)" }} />
+              </div>
+              <div>
+                <label className="block text-xs font-bold mb-1" style={{ color: "var(--text-muted)" }}>TYPE</label>
+                <select value={promoForm.type ?? "percent"} onChange={e => setPromoForm(p => ({ ...p, type: e.target.value as "percent"|"fixed" }))}
+                  className="w-full px-4 py-2.5 rounded-xl text-white text-sm outline-none"
+                  style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)" }}>
+                  <option value="percent">% Pourcentage</option>
+                  <option value="fixed">FCFA fixe</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-bold mb-1" style={{ color: "var(--text-muted)" }}>
+                  VALEUR ({promoForm.type === "percent" ? "%" : "FCFA"}) *
+                </label>
+                <input required type="number" min="1" value={promoForm.value ?? ""} onChange={e => setPromoForm(p => ({ ...p, value: +e.target.value }))}
+                  placeholder={promoForm.type === "percent" ? "ex: 10" : "ex: 1000"}
+                  className="w-full px-4 py-2.5 rounded-xl text-white text-sm outline-none"
+                  style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)" }} />
+              </div>
+              <div>
+                <label className="block text-xs font-bold mb-1" style={{ color: "var(--text-muted)" }}>COMMANDE MINIMUM (FCFA)</label>
+                <input type="number" min="0" value={promoForm.min_order ?? 0} onChange={e => setPromoForm(p => ({ ...p, min_order: +e.target.value }))}
+                  placeholder="0 = pas de minimum"
+                  className="w-full px-4 py-2.5 rounded-xl text-white text-sm outline-none"
+                  style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)" }} />
+              </div>
+              <div>
+                <label className="block text-xs font-bold mb-1" style={{ color: "var(--text-muted)" }}>UTILISATIONS MAX (0 = illimité)</label>
+                <input type="number" min="0" value={promoForm.max_uses ?? 0} onChange={e => setPromoForm(p => ({ ...p, max_uses: +e.target.value }))}
+                  className="w-full px-4 py-2.5 rounded-xl text-white text-sm outline-none"
+                  style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)" }} />
+              </div>
+              <div>
+                <label className="block text-xs font-bold mb-1" style={{ color: "var(--text-muted)" }}>EXPIRATION (optionnel)</label>
+                <input type="datetime-local" value={promoForm.expires_at ?? ""} onChange={e => setPromoForm(p => ({ ...p, expires_at: e.target.value || undefined }))}
+                  className="w-full px-4 py-2.5 rounded-xl text-white text-sm outline-none"
+                  style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)" }} />
+              </div>
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-bold mb-1" style={{ color: "var(--text-muted)" }}>DESCRIPTION</label>
+                <input value={promoForm.description ?? ""} onChange={e => setPromoForm(p => ({ ...p, description: e.target.value || undefined }))}
+                  placeholder="ex: -10% pour les nouveaux clients"
+                  className="w-full px-4 py-2.5 rounded-xl text-white text-sm outline-none"
+                  style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)" }} />
+              </div>
+              <div className="sm:col-span-2 flex items-center gap-3">
+                <button type="submit" className="px-8 py-3 rounded-full font-black text-black text-sm hover:opacity-85" style={{ background: "var(--gold)" }}>
+                  ➕ Créer le code
+                </button>
+                {promoMsg && <p className="text-sm font-bold" style={{ color: promoMsg.startsWith("✅") ? "#10B981" : "#EF4444" }}>{promoMsg}</p>}
+              </div>
+            </form>
+          </div>
+          <div>
+            <p className="font-bold text-white mb-3">Codes actifs ({promos.length})</p>
+            {promos.length === 0 ? (
+              <p className="text-sm text-center py-8 rounded-2xl" style={{ background: "var(--bg-card)", color: "var(--text-muted)" }}>Aucun code créé</p>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {promos.map(p => (
+                  <div key={p.id} className="flex items-center gap-3 p-4 rounded-2xl" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-black font-mono text-white text-sm">{p.code}</span>
+                        <span className="text-xs px-2 py-0.5 rounded-full font-bold" style={{ background: "var(--gold)", color: "#0A0A0A" }}>
+                          {p.type === "percent" ? `-${p.value}%` : `-${p.value.toLocaleString("fr-FR")} F`}
+                        </span>
+                        {p.max_uses > 0 && <span className="text-xs" style={{ color: "var(--text-muted)" }}>{p.uses}/{p.max_uses} utilisations</span>}
+                        {p.min_order > 0 && <span className="text-xs" style={{ color: "var(--text-muted)" }}>min {p.min_order.toLocaleString("fr-FR")} F</span>}
+                      </div>
+                      {p.description && <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>{p.description}</p>}
+                    </div>
+                    <button onClick={() => deletePromo(p.id)} className="px-3 py-1.5 rounded-xl text-xs font-bold hover:opacity-75" style={{ background: "#EF444420", color: "#EF4444" }}>🗑️</button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {tab === "campaign" && (
+        <div className="flex flex-col gap-5">
+          <div className="rounded-2xl p-5" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+            <p className="font-black text-white mb-1">📧 Campagne email</p>
+            <p className="text-xs mb-4" style={{ color: "var(--text-muted)" }}>
+              Envoie un email promotionnel à tous les clients passés (emails collectés lors des commandes).
+            </p>
+            <form onSubmit={sendCampaign} className="flex flex-col gap-3">
+              <div>
+                <label className="block text-xs font-bold mb-1" style={{ color: "var(--text-muted)" }}>SUJET *</label>
+                <input required value={campSubject} onChange={e => setCampSubject(e.target.value)}
+                  placeholder="ex: 🎉 Promo -15% ce weekend chez Chreol Empire !"
+                  className="w-full px-4 py-2.5 rounded-xl text-white text-sm outline-none"
+                  style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)" }} />
+              </div>
+              <div>
+                <label className="block text-xs font-bold mb-1" style={{ color: "var(--text-muted)" }}>FILTRER PAR SERVICE (optionnel)</label>
+                <select value={campFilter} onChange={e => setCampFilter(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl text-white text-sm outline-none"
+                  style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)" }}>
+                  <option value="">Tous les clients</option>
+                  {SERVICES_LIST.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-bold mb-1" style={{ color: "var(--text-muted)" }}>CONTENU HTML *</label>
+                <textarea required value={campBody} onChange={e => setCampBody(e.target.value)}
+                  placeholder="<p>Bonjour {{name}},</p><p>Profitez de <strong>-15%</strong> sur toutes les cartes cadeaux ce weekend...</p>"
+                  rows={8}
+                  className="w-full px-4 py-2.5 rounded-xl text-white text-sm outline-none font-mono resize-y"
+                  style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)" }} />
+              </div>
+              <div className="flex items-center gap-3">
+                <button type="submit" disabled={campLoading}
+                  className="px-8 py-3 rounded-full font-black text-black text-sm hover:opacity-85 disabled:opacity-50"
+                  style={{ background: "var(--gold)" }}>
+                  {campLoading ? "Envoi en cours..." : "📤 Envoyer la campagne"}
+                </button>
+                {campResult && (
+                  <p className="text-sm font-bold" style={{ color: campResult.error ? "#EF4444" : "#10B981" }}>
+                    {campResult.error ? `❌ ${campResult.error}` : `✅ ${campResult.sent} email(s) envoyés`}
+                  </p>
+                )}
+              </div>
+            </form>
+          </div>
+          <div className="rounded-2xl p-4" style={{ background: "#FFFBEB22", border: "1px solid #FDE68A44" }}>
+            <p className="text-sm font-bold mb-2" style={{ color: "var(--gold)" }}>💡 Fonctionnalités à venir</p>
+            <div className="grid sm:grid-cols-2 gap-2 text-xs" style={{ color: "var(--text-secondary)" }}>
+              {[
+                "📱 WhatsApp broadcast — nécessite WhatsApp Business API (Meta)",
+                "🏆 Système de fidélité — points par commande (en développement)",
+                "📊 Rapport PDF mensuel — export des statistiques",
+                "💬 Bot FAQ WhatsApp — réponses automatiques (nécessite webhook)",
+              ].map(f => <div key={f} className="p-2 rounded-xl" style={{ background: "var(--bg-elevated)" }}>{f}</div>)}
+            </div>
+          </div>
+        </div>
       )}
 
       {tab === "offers" && (
