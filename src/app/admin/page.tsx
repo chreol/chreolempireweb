@@ -55,6 +55,21 @@ const STATUS_LABEL: Record<string, { label: string; color: string; bg: string }>
   cancelled: { label: "Annulé",     color: "#EF4444", bg: "#FEE2E2" },
 };
 
+interface Client {
+  key: string; name: string; email: string; phone: string;
+  orders: number; doneOrders: number; totalSpent: number;
+  points: number; tier: string; lastOrder: string | null;
+}
+interface ClientStats {
+  totalClients: number; totalRevenue: number; avgBasket: number;
+  gold: number; silver: number; bronze: number;
+}
+const TIER_STYLE: Record<string, { color: string; bg: string }> = {
+  Or:     { color: "#B45309", bg: "#FEF3C7" },
+  Argent: { color: "#6B7280", bg: "#F3F4F6" },
+  Bronze: { color: "#92400E", bg: "#FFEDD5" },
+};
+
 function formatDate(d: string) {
   return new Date(d).toLocaleString("fr-FR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
 }
@@ -66,11 +81,19 @@ export default function AdminPage() {
   const [loading, setLoading]       = useState(true);
   const [actionId, setActionId]     = useState<string | null>(null);
   const [analytics, setAnalytics]   = useState<{ configured: boolean; pages?: unknown; events?: unknown } | null>(null);
-  const [tab, setTab]               = useState<"orders" | "offers" | "promo" | "campaign" | "analytics">("orders");
+  const [tab, setTab]               = useState<"orders" | "clients" | "offers" | "promo" | "campaign" | "report" | "analytics">("orders");
   // Promo codes
   const [promos, setPromos]           = useState<PromoCode[]>([]);
   const [promoForm, setPromoForm]     = useState<Partial<PromoCode>>({ type: "percent", value: 10, min_order: 0, max_uses: 0 });
   const [promoMsg, setPromoMsg]       = useState("");
+  // Clients / loyalty
+  const [clients, setClients]         = useState<Client[]>([]);
+  const [clientStats, setClientStats] = useState<ClientStats | null>(null);
+  // Report
+  const [reportMonth, setReportMonth] = useState("");
+  // WhatsApp broadcast
+  const [waMessage, setWaMessage]     = useState("");
+  const [waPhones, setWaPhones]       = useState<{ phone: string; name: string }[]>([]);
   // Campaign
   const [campSubject, setCampSubject] = useState("");
   const [campBody, setCampBody]       = useState("");
@@ -104,7 +127,28 @@ export default function AdminPage() {
     if (tab === "promo") {
       fetch("/api/admin/promo").then(r => r.json()).then(d => setPromos(Array.isArray(d) ? d : []));
     }
-  }, [tab, analytics, offers.length]);
+    if (tab === "clients" && clients.length === 0) {
+      fetch("/api/admin/clients").then(r => r.json()).then(d => {
+        setClients(Array.isArray(d.clients) ? d.clients : []);
+        setClientStats(d.stats ?? null);
+      });
+    }
+  }, [tab, analytics, offers.length, clients.length]);
+
+  function downloadReport(format: "csv") {
+    const params = new URLSearchParams({ format });
+    if (reportMonth) params.set("month", reportMonth);
+    window.open(`/api/admin/report?${params}`, "_blank");
+  }
+
+  async function loadWaPhones() {
+    const res = await fetch("/api/admin/clients");
+    const d = await res.json();
+    const list = (Array.isArray(d.clients) ? d.clients : [])
+      .filter((c: Client) => c.phone && c.phone.replace(/\D/g, "").length >= 9)
+      .map((c: Client) => ({ phone: c.phone.replace(/\D/g, ""), name: c.name }));
+    setWaPhones(list);
+  }
 
   async function createPromo(e: React.FormEvent) {
     e.preventDefault();
@@ -202,14 +246,14 @@ export default function AdminPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <p className="text-2xl font-black text-white">
+      <div className="flex items-center justify-between gap-3 mb-6 sm:mb-8">
+        <div className="min-w-0">
+          <p className="text-xl sm:text-2xl font-black text-white truncate">
             <span style={{ color: "var(--gold)" }}>Chreol</span>Empire Admin
           </p>
           <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>Tableau de bord</p>
         </div>
-        <button onClick={logout} className="text-xs px-4 py-2 rounded-full transition-opacity hover:opacity-70"
+        <button onClick={logout} className="shrink-0 text-xs px-3 sm:px-4 py-2 rounded-full transition-opacity hover:opacity-70 whitespace-nowrap"
           style={{ background: "var(--bg-card)", color: "var(--text-secondary)", border: "1px solid var(--border)" }}>
           Déconnexion
         </button>
@@ -232,16 +276,18 @@ export default function AdminPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 mb-6">
+      <div className="flex gap-2 mb-6 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
         {([
           { key: "orders",   label: "📋 Commandes" },
+          { key: "clients",  label: "🏆 Clients & Fidélité" },
           { key: "offers",   label: "🎁 Offres" },
           { key: "promo",    label: "🏷️ Codes promo" },
           { key: "campaign", label: "📧 Campagne" },
+          { key: "report",   label: "📄 Rapport" },
           { key: "analytics",label: "📊 Stats" },
         ] as const).map(t => (
           <button key={t.key} onClick={() => setTab(t.key)}
-            className="px-5 py-2 rounded-full text-sm font-bold transition-all"
+            className="shrink-0 px-4 sm:px-5 py-2 rounded-full text-xs sm:text-sm font-bold transition-all whitespace-nowrap"
             style={{
               background: tab === t.key ? "var(--gold)" : "var(--bg-card)",
               color: tab === t.key ? "#0A0A0A" : "var(--text-secondary)",
@@ -255,10 +301,10 @@ export default function AdminPage() {
       {tab === "orders" && (
         <>
           {/* Filter */}
-          <div className="flex gap-2 mb-4 flex-wrap">
+          <div className="flex gap-2 mb-4 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
             {(["all", "pending", "done", "cancelled"] as const).map(s => (
               <button key={s} onClick={() => setFilter(s)}
-                className="px-4 py-1.5 rounded-full text-xs font-bold transition-all"
+                className="shrink-0 px-4 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap"
                 style={{
                   background: statusFilter === s ? "var(--gold)" : "var(--bg-elevated)",
                   color: statusFilter === s ? "#0A0A0A" : "var(--text-secondary)",
@@ -267,9 +313,9 @@ export default function AdminPage() {
                 {s === "all" ? `Toutes (${counts.all})` : `${STATUS_LABEL[s]?.label} (${counts[s]})`}
               </button>
             ))}
-            <button onClick={fetchOrders} className="ml-auto px-4 py-1.5 rounded-full text-xs font-bold transition-opacity hover:opacity-70"
+            <button onClick={fetchOrders} className="shrink-0 ml-auto px-4 py-1.5 rounded-full text-xs font-bold transition-opacity hover:opacity-70 whitespace-nowrap"
               style={{ background: "var(--bg-elevated)", color: "var(--text-muted)", border: "1px solid var(--border)" }}>
-              🔄 Actualiser
+              🔄
             </button>
           </div>
 
@@ -349,20 +395,20 @@ export default function AdminPage() {
                           <div className="flex gap-2 pt-1">
                             <button onClick={() => updateStatus(order.id, "done")}
                               disabled={actionId === order.id}
-                              className="flex-1 py-2.5 rounded-xl text-sm font-black text-white transition-opacity hover:opacity-85 disabled:opacity-50"
+                              className="flex-1 py-2.5 rounded-xl text-xs sm:text-sm font-black text-white transition-opacity hover:opacity-85 disabled:opacity-50 whitespace-nowrap"
                               style={{ background: "#059669" }}>
-                              {actionId === order.id ? "..." : "✅ Marquer traité"}
+                              {actionId === order.id ? "..." : "✅ Traité"}
                             </button>
                             <button onClick={() => updateStatus(order.id, "cancelled")}
                               disabled={actionId === order.id}
-                              className="flex-1 py-2.5 rounded-xl text-sm font-black text-white transition-opacity hover:opacity-85 disabled:opacity-50"
+                              className="flex-1 py-2.5 rounded-xl text-xs sm:text-sm font-black text-white transition-opacity hover:opacity-85 disabled:opacity-50 whitespace-nowrap"
                               style={{ background: "#DC2626" }}>
                               {actionId === order.id ? "..." : "❌ Annuler"}
                             </button>
                             {order.client_phone && (
                               <a href={`https://wa.me/${order.client_phone.replace(/\D/g, "")}`}
                                 target="_blank" rel="noopener noreferrer"
-                                className="px-4 py-2.5 rounded-xl text-sm font-black text-white flex items-center justify-center"
+                                className="shrink-0 px-4 py-2.5 rounded-xl text-sm font-black text-white flex items-center justify-center"
                                 style={{ background: "#25D366" }}>
                                 💬
                               </a>
@@ -382,6 +428,108 @@ export default function AdminPage() {
             </div>
           )}
         </>
+      )}
+
+      {tab === "clients" && (
+        <div className="flex flex-col gap-5">
+          {/* Loyalty stats */}
+          {clientStats && (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {[
+                { label: "Clients uniques",  value: clientStats.totalClients,                              icon: "👥", color: "var(--gold)" },
+                { label: "Panier moyen",     value: `${clientStats.avgBasket.toLocaleString("fr-FR")} F`,  icon: "🛒", color: "#10B981" },
+                { label: "CA total clients",  value: `${clientStats.totalRevenue.toLocaleString("fr-FR")} F`, icon: "💰", color: "#10B981" },
+                { label: "🥇 Or (200k+)",    value: clientStats.gold,    icon: "",  color: "#B45309" },
+                { label: "🥈 Argent (50k+)", value: clientStats.silver,  icon: "",  color: "#6B7280" },
+                { label: "🥉 Bronze",        value: clientStats.bronze,  icon: "",  color: "#92400E" },
+              ].map(s => (
+                <div key={s.label} className="rounded-2xl p-4" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+                  {s.icon && <p className="text-xl mb-1">{s.icon}</p>}
+                  <p className="text-lg font-black" style={{ color: s.color }}>{s.value}</p>
+                  <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>{s.label}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="rounded-2xl p-4" style={{ background: "#FFFBEB22", border: "1px solid #FDE68A44" }}>
+            <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
+              <strong style={{ color: "var(--gold)" }}>Règle de fidélité :</strong> 1 point par 500 FCFA dépensé (commandes traitées). Tiers : Bronze → Argent (50 000 F) → Or (200 000 F). Récompensez vos clients Or avec des codes promo exclusifs !
+            </p>
+          </div>
+
+          {/* Client list */}
+          <div>
+            <p className="font-bold text-white mb-3">Top clients ({clients.length})</p>
+            {clients.length === 0 ? (
+              <p className="text-sm text-center py-8 rounded-2xl" style={{ background: "var(--bg-card)", color: "var(--text-muted)" }}>
+                Aucun client avec commande traitée pour l&apos;instant
+              </p>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {clients.map((c, i) => {
+                  const ts = TIER_STYLE[c.tier] ?? TIER_STYLE.Bronze;
+                  return (
+                    <div key={c.key} className="flex items-center gap-3 p-4 rounded-2xl" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+                      <span className="shrink-0 w-7 text-center font-black text-sm" style={{ color: "var(--text-muted)" }}>{i + 1}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="font-black text-white text-sm truncate">{c.name}</p>
+                          <span className="text-xs font-black px-2 py-0.5 rounded-full" style={{ background: ts.bg, color: ts.color }}>{c.tier}</span>
+                        </div>
+                        <p className="text-xs truncate" style={{ color: "var(--text-muted)" }}>{c.email || c.phone}</p>
+                      </div>
+                      <div className="shrink-0 text-right">
+                        <p className="text-sm font-black" style={{ color: "var(--gold)" }}>{c.totalSpent.toLocaleString("fr-FR")} F</p>
+                        <p className="text-xs" style={{ color: "var(--text-muted)" }}>{c.points} pts · {c.doneOrders} cmd</p>
+                      </div>
+                      {c.phone && (
+                        <a href={`https://wa.me/${c.phone.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer"
+                          className="shrink-0 w-9 h-9 rounded-xl flex items-center justify-center text-white" style={{ background: "#25D366" }}>💬</a>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {tab === "report" && (
+        <div className="flex flex-col gap-5">
+          <div className="rounded-2xl p-5" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+            <p className="font-black text-white mb-1">📄 Export des commandes</p>
+            <p className="text-xs mb-4" style={{ color: "var(--text-muted)" }}>
+              Téléchargez vos commandes au format CSV (ouvrable dans Excel / Google Sheets). Laissez le mois vide pour tout exporter.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 sm:items-end">
+              <div className="flex-1">
+                <label className="block text-xs font-bold mb-1" style={{ color: "var(--text-muted)" }}>MOIS (optionnel)</label>
+                <input type="month" value={reportMonth} onChange={e => setReportMonth(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl text-white text-sm outline-none"
+                  style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)" }} />
+              </div>
+              <button onClick={() => downloadReport("csv")}
+                className="px-6 py-2.5 rounded-full font-black text-black text-sm hover:opacity-85 whitespace-nowrap"
+                style={{ background: "var(--gold)" }}>
+                ⬇️ Télécharger CSV
+              </button>
+            </div>
+          </div>
+
+          <div className="rounded-2xl p-5" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+            <p className="font-black text-white mb-1">🖨️ Rapport imprimable (PDF)</p>
+            <p className="text-xs mb-4" style={{ color: "var(--text-muted)" }}>
+              Ouvre une version imprimable de cette page. Utilisez « Imprimer → Enregistrer en PDF » de votre navigateur.
+            </p>
+            <button onClick={() => window.print()}
+              className="px-6 py-2.5 rounded-full font-black text-sm hover:opacity-85"
+              style={{ background: "var(--bg-elevated)", color: "var(--text-primary)", border: "1px solid var(--border)" }}>
+              🖨️ Imprimer / Enregistrer en PDF
+            </button>
+          </div>
+        </div>
       )}
 
       {tab === "promo" && (
@@ -521,16 +669,45 @@ export default function AdminPage() {
               </div>
             </form>
           </div>
+          {/* WhatsApp broadcast */}
+          <div className="rounded-2xl p-5" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+            <p className="font-black text-white mb-1">📱 Broadcast WhatsApp</p>
+            <p className="text-xs mb-4" style={{ color: "var(--text-muted)" }}>
+              Rédigez votre message promo, chargez vos clients, puis cliquez sur chaque lien pour envoyer (ouvre WhatsApp avec le message pré-rempli). Fonctionne sans API payante.
+            </p>
+            <textarea value={waMessage} onChange={e => setWaMessage(e.target.value)}
+              placeholder="ex: 🔥 Promo Chreol Empire ! -15% sur toutes les cartes cadeaux ce weekend. Commandez vite : chreolempire.com"
+              rows={3}
+              className="w-full px-4 py-2.5 mb-3 rounded-xl text-white text-sm outline-none resize-none"
+              style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)" }} />
+            <button onClick={loadWaPhones} disabled={!waMessage.trim()}
+              className="px-6 py-2.5 rounded-full font-black text-black text-sm hover:opacity-85 disabled:opacity-50"
+              style={{ background: "var(--gold)" }}>
+              👥 Charger les clients ({waPhones.length || "?"})
+            </button>
+
+            {waPhones.length > 0 && (
+              <div className="mt-4 flex flex-col gap-2 max-h-80 overflow-y-auto">
+                {waPhones.map(c => (
+                  <a key={c.phone}
+                    href={`https://wa.me/${c.phone}?text=${encodeURIComponent(waMessage)}`}
+                    target="_blank" rel="noopener noreferrer"
+                    className="flex items-center justify-between gap-3 p-3 rounded-xl transition-opacity hover:opacity-80"
+                    style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)" }}>
+                    <span className="text-sm truncate" style={{ color: "var(--text-secondary)" }}>{c.name} · +{c.phone}</span>
+                    <span className="shrink-0 text-xs font-black px-3 py-1.5 rounded-lg text-white" style={{ background: "#25D366" }}>Envoyer 💬</span>
+                  </a>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Bot FAQ note */}
           <div className="rounded-2xl p-4" style={{ background: "#FFFBEB22", border: "1px solid #FDE68A44" }}>
-            <p className="text-sm font-bold mb-2" style={{ color: "var(--gold)" }}>💡 Fonctionnalités à venir</p>
-            <div className="grid sm:grid-cols-2 gap-2 text-xs" style={{ color: "var(--text-secondary)" }}>
-              {[
-                "📱 WhatsApp broadcast — nécessite WhatsApp Business API (Meta)",
-                "🏆 Système de fidélité — points par commande (en développement)",
-                "📊 Rapport PDF mensuel — export des statistiques",
-                "💬 Bot FAQ WhatsApp — réponses automatiques (nécessite webhook)",
-              ].map(f => <div key={f} className="p-2 rounded-xl" style={{ background: "var(--bg-elevated)" }}>{f}</div>)}
-            </div>
+            <p className="text-sm font-bold mb-1" style={{ color: "var(--gold)" }}>💬 Bot FAQ WhatsApp automatique</p>
+            <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
+              Pour des réponses 100% automatiques (bot), il faut un compte <strong>WhatsApp Business API</strong> (Meta) ou un service comme Twilio/360dialog. Une fois le compte créé, je peux brancher un webhook qui répond automatiquement aux questions fréquentes. Dis-moi quand tu veux activer ça.
+            </p>
           </div>
         </div>
       )}
