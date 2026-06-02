@@ -10,7 +10,16 @@ import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/components/Toast";
 import FAQ from "@/components/FAQ";
+import StepGuide from "@/components/StepGuide";
 import RelatedServices from "@/components/RelatedServices";
+
+const STEPS_CADEAUX = [
+  { icon: "🎮", title: "Choisissez votre carte et le montant", description: "Sélectionnez la carte cadeau souhaitée (PSN, Roblox, Steam, iTunes…) et le montant désiré. Choisissez aussi la région (Europe, USA, France…) selon votre compte de jeu.", tip: "Pour PSN : la région doit correspondre à votre compte PlayStation." },
+  { icon: "📧", title: "Entrez votre email de confirmation", description: "Renseignez votre adresse email pour recevoir la confirmation de commande et le suivi de livraison automatiquement.", tip: "Utilisez une adresse que vous consultez régulièrement." },
+  { icon: "💬", title: "Finalisez via WhatsApp", description: "Cliquez sur 'Commander via WhatsApp'. Un message pré-rempli s'ouvre avec votre commande. Envoyez-le directement à notre équipe." },
+  { icon: "💰", title: "Effectuez le paiement MoMo", description: "Notre agent vous envoie les instructions de paiement MTN MoMo ou Orange Money. Réglez le montant et envoyez la capture d'écran de confirmation." },
+  { icon: "✅", title: "Recevez votre code instantanément", description: "Dès réception du paiement, nous vous envoyons le code de la carte cadeau sur WhatsApp. Activez-le directement sur la plateforme correspondante.", tip: "Délai moyen : 15 à 30 minutes après paiement confirmé." },
+];
 
 const PAGE_FAQ = [
   { q: "Où acheter des cartes cadeaux PSN en FCFA à Douala ?", a: "Chreol Empire est votre boutique locale à Douala (Vallée 3, Deido). Commandez vos cartes PSN, Steam, Nintendo, Roblox ou iTunes directement via WhatsApp — livraison du code en 15 minutes, paiement MTN MoMo ou Orange Money." },
@@ -331,6 +340,7 @@ export default function CartesCadeauxPage() {
           </div>
         ))}
       </div>
+      <StepGuide title="Comment acheter une carte cadeau — 5 étapes simples" steps={STEPS_CADEAUX} />
       <FAQ items={PAGE_FAQ} />
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(PAGE_FAQ_SCHEMA) }} />
       <RelatedServices current="cartes-cadeaux" />

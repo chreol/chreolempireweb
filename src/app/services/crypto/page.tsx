@@ -13,7 +13,16 @@ import { useHistory } from "@/contexts/HistoryContext";
 import { useToast } from "@/components/Toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import FAQ from "@/components/FAQ";
+import StepGuide from "@/components/StepGuide";
 import { Field, CalcRow } from "@/components/FormField";
+
+const STEPS_CRYPTO = [
+  { icon: "₿", title: "Choisissez votre crypto et réseau", description: "Sélectionnez la cryptomonnaie (USDT, BTC, TRX…) et le réseau. TRC20 est recommandé pour USDT : frais quasi nuls et confirmation en 1-2 minutes.", tip: "Évitez ERC20 pour USDT — frais de gas très élevés." },
+  { icon: "📧", title: "Renseignez votre email", description: "Entrez votre adresse email pour recevoir la confirmation et le suivi de la transaction automatiquement." },
+  { icon: "📬", title: "Copiez notre adresse wallet", description: "Notre adresse de dépôt s'affiche. Copiez-la avec précision — une erreur peut faire perdre vos fonds définitivement.", tip: "Double-vérifiez les 4 premiers et 4 derniers caractères." },
+  { icon: "📤", title: "Envoyez vos cryptos + partagez le TxID", description: "Effectuez le virement et partagez le hash de transaction (TxID) sur WhatsApp avec la capture de l'envoi.", tip: "Le TxID est visible dans votre wallet sous 'Historique des transactions'." },
+  { icon: "💰", title: "Recevez vos FCFA sur MoMo", description: "Après confirmation blockchain, nous virons le montant en FCFA. Délai total : 15 à 30 min. Taux garanti au moment de l'accord.", tip: "BTC peut prendre jusqu'à 1h selon la congestion réseau." },
+];
 
 const PAGE_FAQ = [
   { q: "Quel est le taux USDT en FCFA aujourd'hui au Cameroun ?", a: "Le taux USDT/FCFA est mis à jour en temps réel dans notre ticker en haut de page. Nous achetons à 580 FCFA/$ et vendons à 700 FCFA/$. Ce taux est garanti au moment de votre transaction, sans aucune commission cachée." },
@@ -480,6 +489,7 @@ export default function CryptoPage() {
           </div>
         )}
       </div>
+      <StepGuide title="Comment vendre/acheter des cryptos — Étape par étape" steps={STEPS_CRYPTO} />
       <FAQ items={PAGE_FAQ} />
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(PAGE_FAQ_SCHEMA) }} />
       <RelatedServices current="crypto" />

@@ -13,7 +13,16 @@ import { useHistory } from "@/contexts/HistoryContext";
 import { useToast } from "@/components/Toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import FAQ from "@/components/FAQ";
+import StepGuide from "@/components/StepGuide";
 import { Field } from "@/components/FormField";
+
+const STEPS_UBA = [
+  { icon: "💳", title: "Choisissez votre segment de carte", description: "Segment I (10 500 F · limite 2,5M/mois) · Segment II (17 500 F · limite 5M/mois) · Segment III (25 000 F · limite 10M/mois). Choisissez selon votre usage (shopping, Netflix, Amazon…).", tip: "Le Segment I est parfait pour débuter — utilisable sur tous les sites internationaux." },
+  { icon: "📋", title: "Fournissez vos documents", description: "Notre agent vous demandera : photocopie CNI ou passeport, plan de localisation, demi-photo type passeport (fond blanc) et votre NUI. Envoyez-les via WhatsApp.", tip: "Nous vous aidons à retrouver votre NUI si vous l'avez perdu (service 1 500 FCFA)." },
+  { icon: "💰", title: "Effectuez le paiement MoMo", description: "Réglez le montant du segment choisi via MTN MoMo ou Orange Money selon les instructions de l'agent. Envoyez la capture de confirmation.", tip: "Paiement sécurisé — aucun frais supplémentaire caché." },
+  { icon: "🏦", title: "Traitement de votre dossier UBA", description: "Notre équipe soumet votre dossier à la banque UBA. Le traitement prend 2 à 5 jours ouvrables. Vous serez notifié à chaque étape." },
+  { icon: "📦", title: "Réception de votre carte", description: "La carte est disponible à retrait dans notre boutique Vallée 3, Deido, Douala. Ou livraison à domicile sur Douala (frais supplémentaires).", tip: "Activez votre carte sur le site UBA ou en composant le code fourni." },
+];
 
 const PAGE_FAQ = [
   { q: "Comment obtenir une carte UBA Cameroun pour payer sur Amazon ?", a: "Commandez votre carte UBA Cameroun via WhatsApp en fournissant : CNI, plan de localisation, demi-photo et NUI. Livraison en 2 à 5 jours ouvrables. La carte Visa UBA est acceptée sur Amazon, Alibaba, Airbnb et tous les sites internationaux." },
@@ -510,6 +519,7 @@ export default function UBAPage() {
           </motion.div>
         )}
       </AnimatePresence>
+      <StepGuide title="Comment obtenir ou recharger une carte UBA — Étape par étape" steps={STEPS_UBA} />
       <FAQ items={PAGE_FAQ} />
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(PAGE_FAQ_SCHEMA) }} />
       <RelatedServices current="uba" />

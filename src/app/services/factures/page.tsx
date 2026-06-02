@@ -13,7 +13,16 @@ import { useToast } from "@/components/Toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useCart } from "@/contexts/CartContext";
 import FAQ from "@/components/FAQ";
+import StepGuide from "@/components/StepGuide";
 import { Field } from "@/components/FormField";
+
+const STEPS_FACTURES = [
+  { icon: "📋", title: "Choisissez l'onglet — Facture ou Échange MoMo", description: "Facture : payez Canal+, Eneo, Camwater, StarTimes. Échange MoMo : transférez entre MTN MoMo et Orange Money (ou autres opérateurs) sans frais." },
+  { icon: "🔢", title: "Entrez l'identifiant et le montant", description: "Pour les factures : votre numéro de téléphone abonné ou numéro de décodeur. Pour l'échange MoMo : les numéros source et destination avec les opérateurs respectifs.", tip: "Le numéro est généralement imprimé sur votre facture papier ou contrat." },
+  { icon: "📧", title: "Renseignez votre email", description: "Votre email pour recevoir la confirmation automatique de paiement de la facture ou d'exécution de l'échange." },
+  { icon: "💬", title: "Confirmez via WhatsApp", description: "Notre agent traite votre demande dès la réception. Délai de traitement : 5 à 15 minutes pendant les heures de service (7h–23h, 7j/7)." },
+  { icon: "✅", title: "Paiement effectué — Confirmation reçue", description: "Vous recevez un email de confirmation et une notification WhatsApp. Commission fixe : 200 FCFA par facture. Échange MoMo : 0% de frais.", tip: "Le paiement de votre facture apparaîtra dans votre espace client dans les 24h." },
+];
 
 const PAGE_FAQ = [
   { q: "Comment payer sa facture Eneo sans se déplacer à Douala ?", a: "Envoyez le montant + 200 FCFA de commission via MTN MoMo ou Orange Money, puis transmettez votre numéro de compteur sur WhatsApp. Nous réglons votre facture Eneo sous 15 minutes et vous envoyons la confirmation de paiement." },
@@ -531,6 +540,7 @@ export default function FacturesPage() {
           </motion.div>
         )}
       </AnimatePresence>
+      <StepGuide title="Comment payer une facture ou échanger du MoMo — Étape par étape" steps={STEPS_FACTURES} />
       <FAQ items={PAGE_FAQ} />
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(PAGE_FAQ_SCHEMA) }} />
       <RelatedServices current="factures" />

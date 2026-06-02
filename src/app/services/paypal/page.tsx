@@ -13,7 +13,16 @@ import { useHistory } from "@/contexts/HistoryContext";
 import { useToast } from "@/components/Toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import FAQ from "@/components/FAQ";
+import StepGuide from "@/components/StepGuide";
 import { Field, CalcRow } from "@/components/FormField";
+
+const STEPS_PAYPAL = [
+  { icon: "💸", title: "Choisissez l'opération — Vente ou Achat", description: "Vente : vous vendez votre solde PayPal contre FCFA (580 FCFA/€). Achat : vous achetez du solde PayPal avec vos FCFA (700 FCFA/€).", tip: "Votre compte PayPal doit être européen (France, Belgique, Suisse…)." },
+  { icon: "💶", title: "Entrez le montant et votre email PayPal", description: "Saisissez le montant, votre email de compte PayPal, votre numéro MoMo et votre email de contact pour la confirmation." },
+  { icon: "💬", title: "Confirmez via WhatsApp", description: "Envoyez le message pré-rempli à notre agent. Il vous répond sous 15–30 min avec les instructions précises." },
+  { icon: "🔄", title: "Effectuez le transfert PayPal ou MoMo", description: "Vente : envoyez le montant à notre compte PayPal communiqué, puis partagez la capture de confirmation. Achat : réglez via MoMo selon les instructions." },
+  { icon: "✅", title: "Recevez vos FCFA ou votre solde PayPal", description: "Après confirmation du transfert, les fonds sont envoyés dans les 15–30 minutes. Taux garanti au moment de la transaction.", tip: "Gardez la capture de confirmation PayPal jusqu'à réception des fonds." },
+];
 
 const PAGE_FAQ = [
   { q: "Comment vendre son solde PayPal en FCFA au Cameroun ?", a: "3 étapes simples : (1) envoyez le montant en € à notre compte PayPal communiqué sur WhatsApp, (2) partagez la capture de confirmation d'envoi, (3) recevez votre FCFA sur MTN MoMo ou Orange Money en moins de 30 minutes. Taux garanti au moment de la transaction." },
@@ -357,6 +366,7 @@ export default function PaypalPage() {
           <p key={s} style={{ color: "var(--text-secondary)" }}>✅ {s}</p>
         ))}
       </div>
+      <StepGuide title="Comment vendre / acheter du solde PayPal — Étape par étape" steps={STEPS_PAYPAL} />
       <FAQ items={PAGE_FAQ} />
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(PAGE_FAQ_SCHEMA) }} />
       <RelatedServices current="paypal" />

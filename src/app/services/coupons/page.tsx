@@ -12,7 +12,16 @@ import { useHistory } from "@/contexts/HistoryContext";
 import { useToast } from "@/components/Toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import FAQ from "@/components/FAQ";
+import StepGuide from "@/components/StepGuide";
 import { Field } from "@/components/FormField";
+
+const STEPS_COUPONS = [
+  { icon: "🎫", title: "Sélectionnez le type de coupon", description: "Choisissez entre PCS Mastercard (7% commission) ou Transcash (0% commission). Entrez la valeur en euros (minimum 20€)." },
+  { icon: "🔑", title: "Entrez le code du coupon", description: "PCS Mastercard : 8 caractères alphanumériques (ex: AB123456). Transcash : 12 chiffres. Ne partagez jamais votre code avant d'avoir confirmé l'échange.", tip: "Grattez délicatement la zone de sécurité pour révéler le code." },
+  { icon: "📱", title: "Renseignez vos coordonnées MoMo", description: "Indiquez votre opérateur (MTN ou Orange), votre numéro, votre nom complet et votre email pour la confirmation." },
+  { icon: "💬", title: "Envoyez la demande via WhatsApp", description: "Notre agent vérifie le code en temps réel. Le processus prend 5 à 15 minutes. Restez disponible sur WhatsApp pendant cette période.", tip: "Un coupon utilisé ou invalide sera détecté immédiatement — nous vous informerons sans délai." },
+  { icon: "💰", title: "Recevez vos FCFA sur MoMo", description: "Après validation du coupon, le montant net en FCFA est viré sur votre compte Mobile Money en moins de 15 minutes.", tip: "PCS 100€ → 93€ × 440 = 40 920 FCFA nets reçus." },
+];
 
 const PAGE_FAQ = [
   { q: "Comment échanger un coupon Transcash en FCFA au Cameroun ?", a: "Envoyez votre code Transcash sur WhatsApp avec le montant en €. Nous vérifions le code et vous virons le FCFA équivalent au taux de 440 FCFA/€ sur MTN MoMo ou Orange Money en 15 minutes. Minimum 20€ par échange." },
@@ -316,6 +325,7 @@ export default function CouponsPage() {
           </div>
         ))}
       </div>
+      <StepGuide title="Comment échanger un coupon PCS / Transcash — Étape par étape" steps={STEPS_COUPONS} />
       <FAQ items={PAGE_FAQ} />
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(PAGE_FAQ_SCHEMA) }} />
       <RelatedServices current="coupons" />

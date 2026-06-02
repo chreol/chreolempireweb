@@ -529,6 +529,48 @@ async function sendTelegram(p: NotifyPayload, markDoneUrl: string, markCancelUrl
   return res.status;
 }
 
+// ── Supabase order save ───────────────────────────────────────────────────────
+
+async function saveOrderToSupabase(p: NotifyPayload): Promise<void> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) return;
+
+  const summary = p.items.map(i => `${i.name} ×${i.qty}`).join(", ");
+  const service = p.sourceUrl?.split("/").filter(Boolean).pop() ?? "whatsapp";
+
+  await fetch(`${url}/rest/v1/orders`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      apikey: key,
+      Authorization: `Bearer ${key}`,
+      Prefer: "return=minimal",
+    },
+    body: JSON.stringify({
+      id:             p.orderId,
+      type:           "achat",
+      summary,
+      total:          p.total,
+      payment_method: p.paymentMethod,
+      item_count:     p.items.length,
+      client_name:    p.clientName,
+      client_email:   p.clientEmail,
+      client_phone:   p.clientPhone,
+      client_city:    "Douala",
+      status:         "pending",
+      payment_status: "manual",
+      payment_auto:   false,
+      details: {
+        service,
+        sourceUrl: p.sourceUrl ?? null,
+        items: p.items,
+        commission: p.commission ?? 0,
+      },
+    }),
+  }).catch(() => {});
+}
+
 // ── Route handler ─────────────────────────────────────────────────────────────
 
 export async function POST(request: Request): Promise<Response> {
@@ -565,6 +607,9 @@ export async function POST(request: Request): Promise<Response> {
     buildMarkDoneUrl(p, "done"),
     buildMarkDoneUrl(p, "cancel"),
   ]);
+
+  // Save to Supabase (fire & forget — n'affecte pas la réponse)
+  saveOrderToSupabase(p);
 
   const [adminResult, clientResult, telegramResult] = await Promise.allSettled([
     fetch("https://api.brevo.com/v3/smtp/email", {
