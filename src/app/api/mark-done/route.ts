@@ -58,7 +58,6 @@ async function hmac32(secret: string, data: string): Promise<string> {
 function buildCancelEmail(name: string, ref: string, summary: OrderSummary | null): string {
   const year = new Date().getFullYear();
   const displayName = name || "cher client";
-  const reorderUrl = "https://chreolempire-web.vercel.app/services";
 
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
