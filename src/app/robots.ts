@@ -1,6 +1,6 @@
 import { MetadataRoute } from "next";
 
-const BASE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://chreolempire.com";
+const BASE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://shop.chreolempire.com";
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -8,7 +8,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/cart", "/historique", "/api/"],
+        disallow: ["/cart", "/historique", "/api/", "/admin", "/checkout"],
       },
     ],
     sitemap: `${BASE}/sitemap.xml`,

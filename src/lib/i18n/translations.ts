@@ -52,7 +52,7 @@ export const T: TranslationMap = {
   "svc.crypto.desc":     { fr: "Achetez ou vendez vos cryptos contre FCFA via Mobile Money. Taux du marché en temps réel.", en: "Buy or sell crypto for FCFA via Mobile Money. Real-time market rates." },
   "svc.coupons.title":   { fr: "Échange Coupons",        en: "Coupon Exchange" },
   "svc.coupons.sub":     { fr: "Transcash · PCS Mastercard", en: "Transcash · PCS Mastercard" },
-  "svc.coupons.desc":    { fr: "Échangez vos coupons Transcash ou PCS Mastercard contre du FCFA. Taux 440 FCFA/€.", en: "Exchange your Transcash or PCS Mastercard coupons for FCFA. Rate 440 FCFA/€." },
+  "svc.coupons.desc":    { fr: "Échangez vos coupons Transcash ou PCS Mastercard contre du FCFA. Taux 480 FCFA/€.", en: "Exchange your Transcash or PCS Mastercard coupons for FCFA. Rate 480 FCFA/€." },
   "svc.uba.title":       { fr: "UBA Cameroun",           en: "UBA Cameroon" },
   "svc.uba.sub":         { fr: "Achat carte & recharge — Segments I, II, III", en: "Card purchase & top-up — Segments I, II, III" },
   "svc.uba.desc":        { fr: "Obtenez votre carte UBA Cameroun ou rechargez votre solde existant rapidement.", en: "Get your UBA Cameroon card or top up your existing balance quickly." },

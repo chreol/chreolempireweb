@@ -5,11 +5,11 @@ import { POSTS } from "@/lib/blog";
 export const metadata: Metadata = {
   title: { absolute: "Blog — Guides Cartes Cadeaux & Crypto au Cameroun | Chreol Empire" },
   description: "Guides pratiques pour acheter des cartes cadeaux (PSN, Roblox, V-Bucks) et échanger vos cryptomonnaies contre FCFA au Cameroun. Paiement MTN MoMo & Orange Money.",
-  alternates: { canonical: "https://chreolempire.com/blog" },
+  alternates: { canonical: "https://shop.chreolempire.com/blog" },
   openGraph: {
     title: "Blog Chreol Empire — Guides Cartes Cadeaux & Crypto Cameroun",
     description: "Guides pratiques pour acheter vos cartes cadeaux et échanger vos crypto au Cameroun.",
-    url: "https://chreolempire.com/blog",
+    url: "https://shop.chreolempire.com/blog",
   },
 };
 
@@ -18,12 +18,12 @@ const BLOG_LIST_SCHEMA = {
   "@type": "Blog",
   name: "Blog Chreol Empire",
   description: "Guides pratiques sur les cartes cadeaux et cryptomonnaies au Cameroun",
-  url: "https://chreolempire.com/blog",
+  url: "https://shop.chreolempire.com/blog",
   blogPost: POSTS.map(p => ({
     "@type": "BlogPosting",
     headline: p.title,
     description: p.description,
-    url: `https://chreolempire.com/blog/${p.slug}`,
+    url: `https://shop.chreolempire.com/blog/${p.slug}`,
     datePublished: p.dateISO,
   })),
 };

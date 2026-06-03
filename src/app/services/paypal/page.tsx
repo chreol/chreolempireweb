@@ -37,6 +37,76 @@ const PAGE_FAQ_SCHEMA = {
   mainEntity: PAGE_FAQ.map(f => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
 };
 
+type IdFormat = "email" | "phone" | "paypalme";
+type Errors = Record<string, string> | undefined;
+
+function PaypalIdField({
+  idFormat, setIdFormat, paypalId, setPaypalId,
+  errors, setErrors, label, inputBase, inputErr, inputCls, ID_FORMATS,
+}: {
+  idFormat: IdFormat;
+  setIdFormat: (f: IdFormat) => void;
+  paypalId: string;
+  setPaypalId: (v: string) => void;
+  errors: Errors;
+  setErrors: React.Dispatch<React.SetStateAction<Errors>>;
+  label: string;
+  inputBase: React.CSSProperties;
+  inputErr: React.CSSProperties;
+  inputCls: string;
+  ID_FORMATS: readonly { id: IdFormat; label: string; placeholder: string; icon: string }[];
+}) {
+  return (
+    <Field label={label} error={errors?.paypalId}>
+      {/* Switcher de format */}
+      <div className="flex gap-1.5 mb-2 flex-wrap">
+        {ID_FORMATS.map(f => (
+          <button
+            key={f.id}
+            type="button"
+            onClick={() => { setIdFormat(f.id); setPaypalId(""); setErrors(p => p ? { ...p, paypalId: "" } : undefined); }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black transition-all"
+            style={{
+              background: idFormat === f.id ? "#003087" : "var(--bg-card)",
+              border: `1.5px solid ${idFormat === f.id ? "#003087" : "var(--border)"}`,
+              color: idFormat === f.id ? "#fff" : "var(--text-secondary)",
+            }}
+          >
+            <span>{f.icon}</span>
+            <span>{f.label}</span>
+          </button>
+        ))}
+      </div>
+      {/* Input dynamique */}
+      {idFormat === "phone" ? (
+        <div className="flex items-center rounded-2xl overflow-hidden" style={errors?.paypalId ? inputErr : inputBase}>
+          <span className="px-3 text-sm font-bold shrink-0" style={{ color: "var(--text-muted)" }}>+</span>
+          <input
+            type="tel" placeholder="33 6 XX XX XX XX" value={paypalId}
+            onChange={e => { setPaypalId(e.target.value); setErrors(p => p ? { ...p, paypalId: "" } : undefined); }}
+            className="flex-1 py-3 pr-4 bg-transparent text-white text-sm outline-none"
+          />
+        </div>
+      ) : idFormat === "paypalme" ? (
+        <div className="flex items-center rounded-2xl overflow-hidden" style={errors?.paypalId ? inputErr : inputBase}>
+          <span className="px-3 text-sm font-bold shrink-0 whitespace-nowrap" style={{ color: "var(--text-muted)" }}>paypal.me/</span>
+          <input
+            type="text" placeholder="monlien" value={paypalId}
+            onChange={e => { setPaypalId(e.target.value); setErrors(p => p ? { ...p, paypalId: "" } : undefined); }}
+            className="flex-1 py-3 pr-4 bg-transparent text-white text-sm outline-none"
+          />
+        </div>
+      ) : (
+        <input
+          type="email" placeholder="exemple@email.com" value={paypalId}
+          onChange={e => { setPaypalId(e.target.value); setErrors(p => p ? { ...p, paypalId: "" } : undefined); }}
+          className={inputCls} style={errors?.paypalId ? inputErr : inputBase}
+        />
+      )}
+    </Field>
+  );
+}
+
 export default function PaypalPage() {
   useEffect(() => { track("service_view", { service: "paypal" }); }, []);
   const { addItem } = useCart();
@@ -47,18 +117,27 @@ export default function PaypalPage() {
   const [direction, setDirection]     = useState<"sell" | "buy">("sell");
   const [inputCurrency, setInputCurrency] = useState<"EUR" | "FCFA">("EUR");
   const [amount, setAmount]           = useState("");
-  const [paypalEmail, setPaypalEmail] = useState("");
+  const [idFormat, setIdFormat]       = useState<"email" | "phone" | "paypalme">("email");
+  const [paypalId, setPaypalId]       = useState("");
+  const [contactDialCode, setContactDialCode] = useState("+237");
+  const [contactPhone, setContactPhone] = useState("");
   const [contactEmail, setContactEmail] = useState("");
   const [momoOp, setMomoOp]           = useState("orange");
   const [momoPhone, setMomoPhone]     = useState("");
-  const [errors, setErrors]           = useState<Record<string, string>>({});
+  const [errors, setErrors]           = useState<Record<string, string>>();
+
+  const ID_FORMATS = [
+    { id: "email",    label: "Email",      placeholder: "exemple@email.com",  icon: "✉️" },
+    { id: "phone",    label: "Téléphone",  placeholder: "+33 6 XX XX XX XX",  icon: "📱" },
+    { id: "paypalme", label: "PayPal.me",  placeholder: "PayPal.me/monlien",  icon: "🔗" },
+  ] as const;
 
   const { sellRate, buyRate } = PAYPAL_RATES;
 
   function switchDirection(d: "sell" | "buy") {
-    setDirection(d); setAmount(""); setErrors({});
+    setDirection(d); setAmount(""); setErrors(undefined);
     setInputCurrency(d === "sell" ? "EUR" : "FCFA");
-    setContactEmail("");
+    setContactEmail(""); setPaypalId(""); setContactPhone(""); setContactDialCode("+237");
   }
 
   const numAmount = parseFloat(amount) || 0;
@@ -90,26 +169,32 @@ export default function PaypalPage() {
       const inFcfa = inputCurrency === "FCFA" ? numAmount : numAmount * buyRate;
       if (inFcfa < PAYPAL_LIMITS.buy.min) e.amount = `Minimum ${PAYPAL_LIMITS.buy.min.toLocaleString("fr-FR")} FCFA (≈ ${+(PAYPAL_LIMITS.buy.min / buyRate).toFixed(0)}€)`;
     }
-    if (!paypalEmail.trim()) e.paypalEmail = "Email ou nom PayPal requis";
+    if (!paypalId.trim()) e.paypalId = "Identifiant PayPal requis";
+    else if (idFormat === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(paypalId)) e.paypalId = "Email invalide";
     if (!contactEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) e.contactEmail = "Email de contact valide requis";
+    const cpD = contactPhone.replace(/\D/g, "");
+    if (cpD.length < 6) e.contactPhone = "Numéro trop court";
     const mpD = momoPhone.replace(/\D/g, "").replace(/^237/, "");
     if (mpD.length < 9) e.momoPhone = "Numéro invalide (9 chiffres)";
     setErrors(e);
     return Object.keys(e).length === 0;
   }
 
+  const idLabel = ID_FORMATS.find(f => f.id === idFormat)?.label ?? "Email";
+
   function buildDetails() {
     const op = MOMO_OPERATORS.find(o => o.id === momoOp)?.name ?? momoOp;
+    const idLine = `PayPal (${idLabel}) : ${paypalId}`;
     if (direction === "sell")
-      return `PayPal : ${paypalEmail} | ${displayEur.toFixed(2)}€ → ${fcfaResult.toLocaleString("fr-FR")} FCFA\n${op} +237 ${momoPhone}`;
-    return `PayPal : ${paypalEmail} | ${buyFcfa.toLocaleString("fr-FR")} FCFA → ${eurResult}€\n${op} +237 ${momoPhone}`;
+      return `${idLine} | ${displayEur.toFixed(2)}€ → ${fcfaResult.toLocaleString("fr-FR")} FCFA\n${op} +237 ${momoPhone}\nContact : ${contactDialCode} ${contactPhone}`;
+    return `${idLine} | ${buyFcfa.toLocaleString("fr-FR")} FCFA → ${eurResult}€\n${op} +237 ${momoPhone}\nContact : ${contactDialCode} ${contactPhone}`;
   }
 
   function buildMsgPlain() {
     const op = MOMO_OPERATORS.find(o => o.id === momoOp)?.name ?? momoOp;
     if (direction === "sell")
-      return `💸 VENTE PAYPAL\nCompte PayPal : ${paypalEmail}\nMontant : ${displayEur.toFixed(2)}€\nÀ recevoir : ${fcfaResult.toLocaleString("fr-FR")} FCFA\nTaux : 1€ = ${sellRate} FCFA\n\n💰 Réception MoMo\nOpérateur : ${op}\nNuméro : +237 ${momoPhone}`;
-    return `💳 ACHAT PAYPAL\nCompte PayPal : ${paypalEmail}\nJe paie : ${buyFcfa.toLocaleString("fr-FR")} FCFA\nÀ recevoir : ${eurResult}€\nTaux : 1€ = ${buyRate} FCFA\n\n💰 Paiement MoMo\nOpérateur : ${op}\nNuméro : +237 ${momoPhone}`;
+      return `💸 VENTE PAYPAL\nCompte PayPal (${idLabel}) : ${paypalId}\nMontant : ${displayEur.toFixed(2)}€\nÀ recevoir : ${fcfaResult.toLocaleString("fr-FR")} FCFA\nTaux : 1€ = ${sellRate} FCFA\n\n💰 Réception MoMo\nOpérateur : ${op}\nNuméro : +237 ${momoPhone}\n\n📱 Contact WhatsApp : ${contactDialCode} ${contactPhone}`;
+    return `💳 ACHAT PAYPAL\nCompte PayPal (${idLabel}) : ${paypalId}\nJe paie : ${buyFcfa.toLocaleString("fr-FR")} FCFA\nÀ recevoir : ${eurResult}€\nTaux : 1€ = ${buyRate} FCFA\n\n💰 Paiement MoMo\nOpérateur : ${op}\nNuméro : +237 ${momoPhone}\n\n📱 Contact WhatsApp : ${contactDialCode} ${contactPhone}`;
   }
 
   function sendNotification() {
@@ -121,7 +206,7 @@ export default function PaypalPage() {
         orderId: `paypal-${direction}-${Date.now()}`,
         clientName: contactEmail.split("@")[0],
         clientEmail: contactEmail,
-        clientPhone: momoPhone,
+        clientPhone: contactPhone || momoPhone,
         paymentMethod: op,
         items: [{
           name: direction === "sell" ? "Vente PayPal Europe" : "Achat PayPal Europe",
@@ -207,7 +292,7 @@ export default function PaypalPage() {
             <p className="text-xs font-bold mb-1" style={{ color: "var(--text-muted)" }}>Saisie en</p>
             <div className="flex rounded-xl overflow-hidden" style={{ border: "1px solid var(--border)" }}>
               {(["EUR", "FCFA"] as const).map(c => (
-                <button key={c} type="button" onClick={() => { setInputCurrency(c); setAmount(""); setErrors({}); }}
+                <button key={c} type="button" onClick={() => { setInputCurrency(c); setAmount(""); setErrors(undefined); }}
                   className="px-3 py-1.5 text-xs font-black transition-all"
                   style={{ background: inputCurrency === c ? "#003087" : "transparent", color: inputCurrency === c ? "#fff" : "var(--text-muted)" }}>
                   {c === "EUR" ? "€ EUR" : "FCFA"}
@@ -231,7 +316,7 @@ export default function PaypalPage() {
             label={direction === "sell"
               ? (inputCurrency === "EUR" ? "Montant à vendre (€)" : "Montant à vendre (FCFA)")
               : (inputCurrency === "FCFA" ? "Montant à payer (FCFA)" : "Montant à payer (€)")}
-            error={errors.amount}
+            error={errors?.amount}
           >
             <div className="relative">
               <input
@@ -243,7 +328,7 @@ export default function PaypalPage() {
                 }
                 value={amount}
                 onChange={e => { setAmount(e.target.value); setErrors(p => ({ ...p, amount: "" })); }}
-                className={`${inputCls} pr-16`} style={errors.amount ? inputErr : inputBase}
+                className={`${inputCls} pr-16`} style={errors?.amount ? inputErr : inputBase}
               />
               <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-black pointer-events-none"
                 style={{ color: "var(--text-muted)" }}>
@@ -281,16 +366,17 @@ export default function PaypalPage() {
             </motion.div>
           )}
 
-          <Field label={direction === "sell" ? "Email / nom du compte PayPal" : "Email PayPal à recharger"} error={errors.paypalEmail}>
-            <input
-              type="email" placeholder="exemple@email.com"
-              value={paypalEmail}
-              onChange={e => { setPaypalEmail(e.target.value); setErrors(p => ({ ...p, paypalEmail: "" })); }}
-              className={inputCls} style={errors.paypalEmail ? inputErr : inputBase}
-            />
-          </Field>
+          {/* ── Identifiant PayPal — affiché EN PREMIER seulement en mode VENTE ── */}
+          {direction === "sell" && <PaypalIdField
+            idFormat={idFormat} setIdFormat={setIdFormat}
+            paypalId={paypalId} setPaypalId={setPaypalId}
+            errors={errors} setErrors={setErrors}
+            label="Identifiant du compte PayPal (que vous vendez)"
+            inputBase={inputBase} inputErr={inputErr} inputCls={inputCls}
+            ID_FORMATS={ID_FORMATS}
+          />}
 
-          <Field label={direction === "sell" ? "Réception MoMo" : "Paiement MoMo"} error={errors.momoPhone}>
+          <Field label={direction === "sell" ? "Réception MoMo" : "Paiement MoMo"} error={errors?.momoPhone}>
             <div className="flex flex-col gap-2">
               <div className="flex gap-2">
                 {MOMO_OPERATORS.slice(0, 2).map(o => (
@@ -304,25 +390,69 @@ export default function PaypalPage() {
                   </button>
                 ))}
               </div>
-              <div className="flex items-center rounded-2xl overflow-hidden" style={errors.momoPhone ? inputErr : inputBase}>
+              <div className="flex items-center rounded-2xl overflow-hidden" style={errors?.momoPhone ? inputErr : inputBase}>
                 <span className="px-3 text-sm font-bold shrink-0" style={{ color: "var(--text-muted)" }}>+237</span>
                 <input type="tel" placeholder="6XXXXXXXX" value={momoPhone}
                   maxLength={9}
-                  onChange={e => { setMomoPhone(e.target.value); setErrors(p => ({ ...p, momoPhone: "" })); }}
+                  onChange={e => { setMomoPhone(e.target.value.replace(/\D/g, "")); setErrors(p => p ? { ...p, momoPhone: "" } : undefined); }}
                   className="flex-1 py-3 pr-4 bg-transparent text-white text-sm outline-none"
                 />
               </div>
             </div>
           </Field>
 
-          <Field label="Votre email (pour confirmation de commande)" error={errors.contactEmail}>
+          {/* ── Numéro WhatsApp contact avec indicatif éditable ── */}
+          <Field label="Votre numéro WhatsApp (pour vous contacter)" error={errors?.contactPhone}>
+            <div className="flex gap-2">
+              {/* Indicatif — champ indépendant, toujours cliquable */}
+              <input
+                type="text"
+                value={contactDialCode}
+                onChange={e => {
+                  let v = e.target.value.replace(/[^0-9+]/g, "");
+                  if (!v.startsWith("+")) v = "+" + v;
+                  setContactDialCode(v.slice(0, 5));
+                }}
+                placeholder="+237"
+                maxLength={5}
+                className="px-3 py-3 rounded-2xl text-sm font-bold text-center outline-none w-20 shrink-0"
+                style={{
+                  background: "var(--bg-elevated)",
+                  border: "2px solid var(--gold)",
+                  color: "var(--text-primary)",
+                }}
+              />
+              {/* Numéro */}
+              <input
+                type="tel"
+                placeholder={contactDialCode === "+237" ? "6XXXXXXXX" : "Votre numéro"}
+                value={contactPhone}
+                maxLength={contactDialCode === "+237" ? 9 : 15}
+                onChange={e => { setContactPhone(e.target.value.replace(/\D/g, "")); setErrors(p => p ? { ...p, contactPhone: "" } : undefined); }}
+                className="flex-1 px-4 py-3 rounded-2xl text-white text-sm outline-none"
+                style={errors?.contactPhone ? inputErr : inputBase}
+              />
+            </div>
+          </Field>
+
+          {/* ── Identifiant PayPal — affiché APRÈS WhatsApp seulement en mode ACHAT ── */}
+          {direction === "buy" && <PaypalIdField
+            idFormat={idFormat} setIdFormat={setIdFormat}
+            paypalId={paypalId} setPaypalId={setPaypalId}
+            errors={errors} setErrors={setErrors}
+            label="Compte PayPal à recharger (où recevoir les fonds)"
+            inputBase={inputBase} inputErr={inputErr} inputCls={inputCls}
+            ID_FORMATS={ID_FORMATS}
+          />}
+
+          <Field label="Votre email (pour confirmation de commande)" error={errors?.contactEmail}>
             <input
               type="email"
               placeholder="votre@email.com"
               value={contactEmail}
-              onChange={e => { setContactEmail(e.target.value); setErrors(p => ({ ...p, contactEmail: "" })); }}
+              onChange={e => { setContactEmail(e.target.value); setErrors(p => p ? { ...p, contactEmail: "" } : undefined); }}
               className={inputCls}
-              style={errors.contactEmail ? inputErr : inputBase}
+              style={errors?.contactEmail ? inputErr : inputBase}
             />
           </Field>
         </motion.div>

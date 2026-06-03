@@ -146,7 +146,7 @@ const SERVICE_SOURCE: Record<string, string> = {
 };
 
 async function sendEmailNotification(body: CampayWebhookBody, serviceId: string, clientPhone: string, productCode: string) {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://chreolempire.com";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://shop.chreolempire.com";
   const operatorLabel = body.operator?.toLowerCase().includes("orange") ? "Orange Money" : "MTN MoMo";
   const total = parseInt(body.amount, 10);
   const orderId = serviceId === "cart" && productCode ? productCode : `${Date.now()}-${productCode}`;

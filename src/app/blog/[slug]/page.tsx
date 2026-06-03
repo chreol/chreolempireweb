@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const post = getPost(slug);
   if (!post) return {};
-  const url = `https://chreolempire.com/blog/${post.slug}`;
+  const url = `https://shop.chreolempire.com/blog/${post.slug}`;
   return {
     title: { absolute: `${post.title} | Chreol Empire` },
     description: post.description,
@@ -74,7 +74,7 @@ export default async function BlogPostPage({ params }: Props) {
   const post = getPost(slug);
   if (!post) notFound();
 
-  const postUrl = `https://chreolempire.com/blog/${post.slug}`;
+  const postUrl = `https://shop.chreolempire.com/blog/${post.slug}`;
 
   const articleSchema = {
     "@context": "https://schema.org",
@@ -83,8 +83,8 @@ export default async function BlogPostPage({ params }: Props) {
     description: post.description,
     datePublished: post.dateISO,
     dateModified: post.dateISO,
-    author: { "@type": "Organization", name: "Chreol Empire", url: "https://chreolempire.com" },
-    publisher: { "@type": "Organization", name: "Chreol Empire", url: "https://chreolempire.com" },
+    author: { "@type": "Organization", name: "Chreol Empire", url: "https://shop.chreolempire.com" },
+    publisher: { "@type": "Organization", name: "Chreol Empire", url: "https://shop.chreolempire.com" },
     url: postUrl,
     keywords: post.keywords.join(", "),
     inLanguage: "fr-FR",

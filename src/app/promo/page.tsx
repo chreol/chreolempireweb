@@ -143,7 +143,7 @@ function PromoCard({ promo }: { promo: Promo }) {
             </a>
             <button
               onClick={() => {
-                const shareText = `🔥 Offre flash Chreol Empire : ${promo.title} à ${promo.promoPrice.toLocaleString("fr-FR")} ${promo.currency} !\n👉 https://chreolempire.com/promo`;
+                const shareText = `🔥 Offre flash Chreol Empire : ${promo.title} à ${promo.promoPrice.toLocaleString("fr-FR")} ${promo.currency} !\n👉 https://shop.chreolempire.com/promo`;
                 const url = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
                 track("promo_share", { id: promo.id });
                 window.open(url, "_blank");

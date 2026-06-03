@@ -19,7 +19,7 @@ async function buildMarkDoneUrl(
   const secret  = process.env.MARK_DONE_SECRET ?? process.env.BREVO_API_KEY ?? "chreolempire";
   const ts      = Math.floor(Date.now() / 1000).toString();
   const token   = await hmac32(secret, `${p.orderId}:${p.clientEmail}:${ts}`);
-  const base    = process.env.NEXT_PUBLIC_SITE_URL ?? "https://chreolempire.com";
+  const base    = process.env.NEXT_PUBLIC_SITE_URL ?? "https://shop.chreolempire.com";
 
   // Compact summary for order recap in delivery/cancel emails
   const summary = JSON.stringify({
@@ -452,11 +452,11 @@ function buildClientEmail(p: NotifyPayload): string {
       <p style="margin:24px 0 0;text-align:center;font-size:11px;color:#9CA3AF">
         © ${year} Chreol Empire · Boutiques Deido, Vallée 3, Douala, Cameroun<br>
         0% commission · Livraison express 15–30 min ·
-        <a href="https://chreolempire-web.vercel.app" target="_blank" rel="noopener noreferrer" style="color:#B45309;text-decoration:none;">chreolempire.com</a>
+        <a href="https://shop.chreolempire.com" target="_blank" rel="noopener noreferrer" style="color:#B45309;text-decoration:none;">chreolempire.com</a>
       </p>
       <p style="margin:6px 0 0;text-align:center;font-size:10px;color:#D1D5DB">
         Cet email a été envoyé suite à votre commande sur
-        <a href="https://chreolempire-web.vercel.app" target="_blank" rel="noopener noreferrer" style="color:#9CA3AF;">chreolempire.com</a>
+        <a href="https://shop.chreolempire.com" target="_blank" rel="noopener noreferrer" style="color:#9CA3AF;">chreolempire.com</a>
       </p>
 
     </td></tr>

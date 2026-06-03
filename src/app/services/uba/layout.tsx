@@ -3,12 +3,18 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: { absolute: "Carte UBA Cameroun — Achat & Recharge Visa Prépayée | Chreol Empire" },
   description: "Obtenez votre carte prépayée UBA Cameroun (Segment I dès 10 500 FCFA, II 17 500 FCFA, III 25 000 FCFA) ou rechargez votre carte existante. Livraison express à Douala. Paiement Mobile Money.",
-  keywords: ["carte UBA cameroun", "UBA prépayée douala", "recharge UBA cameroun", "carte UBA segment 1 2 3", "UBA visa cameroun"],
-  alternates: { canonical: "https://chreolempire.com/services/uba" },
+  keywords: [
+    "carte UBA cameroun", "UBA prépayée douala", "recharge UBA cameroun", "recharge carte UBA Douala",
+    "recharge carte prépayée cameroun", "recharge UBA MTN MoMo", "recharge UBA Orange Money",
+    "carte UBA segment 1 2 3", "UBA visa cameroun", "acheter carte UBA cameroun",
+    "carte UBA amazon cameroun", "carte visa prépayée Douala", "recharge UBA segment 1",
+    "recharge visa prépayée cameroun", "carte bancaire prépayée cameroun",
+  ],
+  alternates: { canonical: "https://shop.chreolempire.com/services/uba" },
   openGraph: {
     title: "Carte UBA Cameroun Segment I, II, III | Chreol Empire",
     description: "Achat et recharge carte UBA prépayée à Douala. Paiement MTN MoMo / Orange Money.",
-    url: "https://chreolempire.com/services/uba",
+    url: "https://shop.chreolempire.com/services/uba",
     images: [{ url: "/assets/Carte UBA Cameroun pour RECHARGE.webp", width: 1200, height: 630, alt: "Carte UBA Cameroun Prépayée" }],
   },
 };
@@ -17,9 +23,9 @@ const BREADCRUMB = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
   "itemListElement": [
-    { "@type": "ListItem", "position": 1, "name": "Accueil", "item": "https://chreolempire.com" },
-    { "@type": "ListItem", "position": 2, "name": "Services", "item": "https://chreolempire.com/services" },
-    { "@type": "ListItem", "position": 3, "name": "Carte UBA Cameroun", "item": "https://chreolempire.com/services/uba" },
+    { "@type": "ListItem", "position": 1, "name": "Accueil", "item": "https://shop.chreolempire.com" },
+    { "@type": "ListItem", "position": 2, "name": "Services", "item": "https://shop.chreolempire.com/services" },
+    { "@type": "ListItem", "position": 3, "name": "Carte UBA Cameroun", "item": "https://shop.chreolempire.com/services/uba" },
   ],
 };
 
@@ -27,7 +33,7 @@ const PRODUCT_SCHEMA = {
   "@context": "https://schema.org",
   "@type": "ItemList",
   "name": "Cartes UBA Cameroun — Chreol Empire",
-  "url": "https://chreolempire.com/services/uba",
+  "url": "https://shop.chreolempire.com/services/uba",
   "itemListElement": [
     {
       "@type": "ListItem", "position": 1,

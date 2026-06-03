@@ -20,7 +20,7 @@ import { CONTACT, IMAGES, SOCIAL_LINKS } from "@/lib/services";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist-sans" });
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://chreolempire.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://shop.chreolempire.com";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -36,6 +36,11 @@ export const metadata: Metadata = {
     "échange crypto cameroun", "PCS transcash cameroun", "UBA cameroun carte prépayée",
     "PayPal europe cameroun", "MTN MoMo", "Orange Money", "paiement mobile money",
     "chreol empire", "boutique digitale douala",
+    "recharge Canal+ cameroun", "recharge Canal+ Douala", "recharge Canal+ MTN MoMo",
+    "recharge Eneo cameroun", "paiement facture Eneo Douala", "recharge Camwater cameroun",
+    "recharge carte UBA cameroun", "recharge UBA prépayée Douala",
+    "échange MTN Orange cameroun", "transfert mobile money Douala",
+    "recharge mobile money cameroun", "recharge abonnement Canal+ Cameroun",
   ],
   authors: [{ name: "Chreol Empire", url: SITE_URL }],
   creator: "Chreol Empire",
@@ -76,7 +81,7 @@ const LOCAL_BUSINESS_JSON = {
   "@type": "LocalBusiness",
   "name": "Chreol Empire",
   "description": "Boutique en ligne spécialisée en cartes cadeaux numériques (PSN, iTunes, Roblox, Steam) et échange de cryptomonnaies (USDT, BTC, TRX) à Douala, Cameroun.",
-  "url": "https://chreolempire.com",
+  "url": "https://shop.chreolempire.com",
   "telephone": "+237694360978",
   "email": "chreolempire00@gmail.com",
   "address": {

@@ -3,7 +3,7 @@ import { GIFT_CARDS } from "@/lib/services";
 export const runtime = "edge";
 export const revalidate = 3600;
 
-const BASE = "https://chreolempire.com";
+const BASE = "https://shop.chreolempire.com";
 
 const REGIONS = ["EU", "FR", "BE", "IT", "DE", "ES", "UK", "US", "CA", "AU", "GLOBAL"];
 const REGION_LABELS: Record<string, string> = {

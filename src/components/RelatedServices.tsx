@@ -1,12 +1,12 @@
 import Link from "next/link";
 
 const ALL_SERVICES = [
-  { id: "cartes-cadeaux", label: "Cartes Cadeaux", emoji: "🎮", href: "/services/cartes-cadeaux", color: "#C9A84C" },
-  { id: "crypto",         label: "Crypto & MoMo",  emoji: "₿",  href: "/services/crypto",         color: "#26A17B" },
-  { id: "coupons",        label: "Coupons",         emoji: "🎫", href: "/services/coupons",         color: "#25D366" },
-  { id: "uba",            label: "UBA Cameroun",    emoji: "💳", href: "/services/uba",             color: "#8B0000" },
-  { id: "paypal",         label: "PayPal Europe",   emoji: "💸", href: "/services/paypal",          color: "#003087" },
-  { id: "factures",       label: "Paiement Factures", emoji: "🔄", href: "/services/factures",      color: "#FF6B00" },
+  { id: "cartes-cadeaux", label: "Cartes Cadeaux",    emoji: "🎮", href: "/services/cartes-cadeaux", color: "#C9A84C" },
+  { id: "crypto",         label: "Crypto & MoMo",     emoji: "₿",  href: "/services/crypto",         color: "#26A17B" },
+  { id: "uba",            label: "Recharge UBA",       emoji: "💳", href: "/services/uba",             color: "#8B0000" },
+  { id: "factures",       label: "Recharges & Factures", emoji: "🔄", href: "/services/factures",    color: "#FF6B00" },
+  { id: "paypal",         label: "PayPal Europe",      emoji: "💸", href: "/services/paypal",          color: "#003087" },
+  { id: "coupons",        label: "Coupons Transcash",  emoji: "🎫", href: "/services/coupons",         color: "#25D366" },
 ];
 
 export default function RelatedServices({ current }: { current: string }) {

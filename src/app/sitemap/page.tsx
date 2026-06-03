@@ -1,4 +1,11 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: { absolute: "Plan du site | Chreol Empire" },
+  alternates: { canonical: "https://shop.chreolempire.com/sitemap" },
+  robots: { index: false, follow: true },
+};
 
 const SITEMAP = [
   {

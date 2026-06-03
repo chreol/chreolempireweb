@@ -12,7 +12,7 @@ type ServiceCat = "all" | "gaming" | "crypto" | "fintech";
 const SERVICE_DATA = [
   { image: IMAGES.psn,        tk: "svc.giftcards", emoji: "🎮", color: "#C9A84C", href: "/services/cartes-cadeaux", stockId: "cartes-cadeaux", cat: "gaming"  as ServiceCat, tags: ["PSN", "iTunes", "Roblox", "Steam", "Razer", "Nintendo"] },
   { image: IMAGES.cryptoMomo, tk: "svc.crypto",    emoji: "₿",  color: "#26A17B", href: "/services/crypto",          stockId: "crypto",         cat: "crypto"  as ServiceCat, tags: ["USDT", "BTC", "TRX", "ETH", "MTN", "Orange"] },
-  { image: IMAGES.transcash,  tk: "svc.coupons",   emoji: "🎫", color: "#25D366", href: "/services/coupons",         stockId: "coupons",        cat: "fintech" as ServiceCat, tags: ["Transcash", "PCS", "440 FCFA/€", "Mobile Money"] },
+  { image: IMAGES.transcash,  tk: "svc.coupons",   emoji: "🎫", color: "#25D366", href: "/services/coupons",         stockId: "coupons",        cat: "fintech" as ServiceCat, tags: ["Transcash", "PCS", "480 FCFA/€", "Mobile Money"] },
   { image: IMAGES.ubaCard,    tk: "svc.uba",       emoji: "💳", color: "#8B0000", href: "/services/uba",             stockId: "uba",            cat: "fintech" as ServiceCat, tags: ["Segment I", "Segment II", "Segment III", "Recharge"] },
   { image: IMAGES.paypal2,    tk: "svc.paypal",    emoji: "💸", color: "#003087", href: "/services/paypal",          stockId: "paypal",         cat: "fintech" as ServiceCat, tags: ["PayPal", "700 FCFA/€", "Europe", "France"] },
   { image: IMAGES.factures,   tk: "svc.factures",  emoji: "🔄", color: "#FF6B00", href: "/services/factures",        stockId: "factures",       cat: "fintech" as ServiceCat, tags: ["Canal+", "Eneo", "Camwater", "StarTimes", "MoMo"] },

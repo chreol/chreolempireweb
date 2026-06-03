@@ -2,7 +2,7 @@ import { MetadataRoute } from "next";
 import { POSTS } from "@/lib/blog";
 import { GIFT_CARDS } from "@/lib/services";
 
-const BASE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://chreolempire.com";
+const BASE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://shop.chreolempire.com";
 
 const REGION_SLUGS = [
   "europe", "france", "belgique", "italie", "allemagne",

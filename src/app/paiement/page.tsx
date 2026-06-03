@@ -76,7 +76,7 @@ export default function PaiementPage() {
                   className="absolute top-2 right-2 px-2 py-0.5 rounded-full text-[10px] font-black"
                   style={{ background: m.color, color: "#0A0A0A" }}
                 >
-                  ⚡ Automatique
+                  ⚡ Manuel
                 </span>
               )}
             </div>

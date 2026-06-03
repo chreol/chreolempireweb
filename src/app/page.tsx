@@ -11,7 +11,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 const SERVICE_DATA = [
   { image: IMAGES.psn,        tk: "svc.giftcards", color: "#C9A84C", href: "/services/cartes-cadeaux", stockId: "cartes-cadeaux", emoji: "🎮", price: "à partir de 7 500 FCFA" },
   { image: IMAGES.cryptoMomo, tk: "svc.crypto",    color: "#26A17B", href: "/services/crypto",          stockId: "crypto",         emoji: "₿",  price: "taux temps réel" },
-  { image: IMAGES.coupons,    tk: "svc.coupons",   color: "#25D366", href: "/services/coupons",         stockId: "coupons",        emoji: "🎫", price: "440 FCFA/€" },
+  { image: IMAGES.coupons,    tk: "svc.coupons",   color: "#25D366", href: "/services/coupons",         stockId: "coupons",        emoji: "🎫", price: "480 FCFA/€" },
   { image: IMAGES.ubaCard,    tk: "svc.uba",       color: "#8B0000", href: "/services/uba",             stockId: "uba",            emoji: "💳", price: "à partir de 10 500 FCFA" },
   { image: IMAGES.paypal2,    tk: "svc.paypal",    color: "#003087", href: "/services/paypal",          stockId: "paypal",         emoji: "💸", price: "580 FCFA/€" },
   { image: IMAGES.factures,   tk: "svc.factures",  color: "#FF6B00", href: "/services/factures",        stockId: "factures",       emoji: "🔄", price: "+200 FCFA par facture" },
@@ -337,6 +337,9 @@ export default function HomePage() {
             <div className="text-center mb-10">
               <p className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: "var(--gold)" }}>Processus</p>
               <h2 className="text-3xl sm:text-4xl font-black text-white">{t("section.how")}</h2>
+              <Link href="/comment-ca-marche" className="inline-block mt-3 text-sm font-bold transition-opacity hover:opacity-70" style={{ color: "var(--gold)" }}>
+                Guide complet →
+              </Link>
             </div>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
               {STEPS.map((s, i) => (
@@ -530,7 +533,10 @@ export default function HomePage() {
 
       {/* ── PAYMENT METHODS ── */}
       <section className="px-4 sm:px-6 lg:px-12 pb-24 max-w-7xl mx-auto">
-        <h2 className="text-2xl font-black mb-6 text-white text-center">{t("section.payment")}</h2>
+        <div className="flex items-center justify-center gap-4 mb-6">
+          <h2 className="text-2xl font-black text-white text-center">{t("section.payment")}</h2>
+          <Link href="/paiement" className="text-xs font-bold transition-opacity hover:opacity-70" style={{ color: "var(--gold)" }}>Voir tous →</Link>
+        </div>
         <div className="flex flex-wrap justify-center gap-4">
           {[
             { image: IMAGES.mtn,      label: "MTN MoMo",    sub: "Mobile Money" },

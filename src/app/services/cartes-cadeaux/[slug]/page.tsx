@@ -50,8 +50,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return {
     title: { absolute: `${title} | Chreol Empire` },
     description,
-    alternates: { canonical: `https://chreolempire.com/services/cartes-cadeaux/${slug}` },
-    openGraph: { title, description, url: `https://chreolempire.com/services/cartes-cadeaux/${slug}` },
+    alternates: { canonical: `https://shop.chreolempire.com/services/cartes-cadeaux/${slug}` },
+    openGraph: { title, description, url: `https://shop.chreolempire.com/services/cartes-cadeaux/${slug}` },
   };
 }
 
@@ -93,10 +93,10 @@ export default async function CardRegionPage({ params }: { params: Promise<{ slu
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     "itemListElement": [
-      { "@type": "ListItem", "position": 1, "name": "Accueil", "item": "https://chreolempire.com" },
-      { "@type": "ListItem", "position": 2, "name": "Services", "item": "https://chreolempire.com/services" },
-      { "@type": "ListItem", "position": 3, "name": "Cartes Cadeaux", "item": "https://chreolempire.com/services/cartes-cadeaux" },
-      { "@type": "ListItem", "position": 4, "name": `${card.name} ${region.label}`, "item": `https://chreolempire.com/services/cartes-cadeaux/${slug}` },
+      { "@type": "ListItem", "position": 1, "name": "Accueil", "item": "https://shop.chreolempire.com" },
+      { "@type": "ListItem", "position": 2, "name": "Services", "item": "https://shop.chreolempire.com/services" },
+      { "@type": "ListItem", "position": 3, "name": "Cartes Cadeaux", "item": "https://shop.chreolempire.com/services/cartes-cadeaux" },
+      { "@type": "ListItem", "position": 4, "name": `${card.name} ${region.label}`, "item": `https://shop.chreolempire.com/services/cartes-cadeaux/${slug}` },
     ],
   };
 

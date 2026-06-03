@@ -129,7 +129,7 @@ function buildCancelEmail(name: string, ref: string, summary: OrderSummary | nul
 
       <p style="margin:24px 0 0;text-align:center;font-size:11px;color:#9CA3AF">
         © ${year} Chreol Empire · Boutiques Deido, Vallée 3, Douala, Cameroun<br>
-        <a href="https://chreolempire-web.vercel.app" target="_blank" rel="noopener noreferrer" style="color:#B45309;text-decoration:none;">chreolempire.com</a>
+        <a href="https://shop.chreolempire.com" target="_blank" rel="noopener noreferrer" style="color:#B45309;text-decoration:none;">chreolempire.com</a>
       </p>
 
     </td></tr>
@@ -247,7 +247,7 @@ function buildDeliveryEmail(name: string, ref: string, summary: OrderSummary | n
 
       <p style="margin:24px 0 0;text-align:center;font-size:11px;color:#9CA3AF">
         © ${year} Chreol Empire · Boutiques Deido, Vallée 3, Douala, Cameroun<br>
-        <a href="https://chreolempire-web.vercel.app" target="_blank" rel="noopener noreferrer" style="color:#B45309;text-decoration:none;">chreolempire.com</a>
+        <a href="https://shop.chreolempire.com" target="_blank" rel="noopener noreferrer" style="color:#B45309;text-decoration:none;">chreolempire.com</a>
       </p>
 
     </td></tr>

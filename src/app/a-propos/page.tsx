@@ -2,12 +2,6 @@ import Image from "next/image";
 import { CONTACT, IMAGES, SOCIAL_LINKS } from "@/lib/services";
 import WAPopover from "@/components/WAPopover";
 
-export const metadata = {
-  title: "À propos",
-  description:
-    "Chreol Empire — le premium, l'autorité des services digitaux au Cameroun depuis 2012. Cartes cadeaux, crypto, PayPal, coupons et factures à Douala.",
-};
-
 export default function AProposPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-10">

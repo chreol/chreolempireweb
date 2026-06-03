@@ -20,12 +20,12 @@ const STEPS_UBA = [
   { icon: "💳", title: "Choisissez votre segment de carte", description: "Segment I (10 500 F · limite 2,5M/mois) · Segment II (17 500 F · limite 5M/mois) · Segment III (25 000 F · limite 10M/mois). Choisissez selon votre usage (shopping, Netflix, Amazon…).", tip: "Le Segment I est parfait pour débuter — utilisable sur tous les sites internationaux." },
   { icon: "📋", title: "Fournissez vos documents", description: "Notre agent vous demandera : photocopie CNI ou passeport, plan de localisation, demi-photo type passeport (fond blanc) et votre NUI. Envoyez-les via WhatsApp.", tip: "Nous vous aidons à retrouver votre NUI si vous l'avez perdu (service 1 500 FCFA)." },
   { icon: "💰", title: "Effectuez le paiement MoMo", description: "Réglez le montant du segment choisi via MTN MoMo ou Orange Money selon les instructions de l'agent. Envoyez la capture de confirmation.", tip: "Paiement sécurisé — aucun frais supplémentaire caché." },
-  { icon: "🏦", title: "Traitement de votre dossier UBA", description: "Notre équipe soumet votre dossier à la banque UBA. Le traitement prend 2 à 5 jours ouvrables. Vous serez notifié à chaque étape." },
-  { icon: "📦", title: "Réception de votre carte", description: "La carte est disponible à retrait dans notre boutique Vallée 3, Deido, Douala. Ou livraison à domicile sur Douala (frais supplémentaires).", tip: "Activez votre carte sur le site UBA ou en composant le code fourni." },
+  { icon: "🏦", title: "Traitement de votre dossier UBA", description: "Notre équipe soumet votre dossier à la banque UBA pour l'activation de votre carte. Le traitement prend 1 à 24+ heures ouvrables. Vous serez notifié à chaque étape." },
+  { icon: "📦", title: "Réception de votre carte", description: "La carte est disponible immédiatement à retrait dans notre boutique Vallée 3 Boutique, Deido, Douala. Ou livraison à domicile sur Douala (frais supplémentaires) — cependant la documentation est nécessaire au préalable.", tip: "Activez votre carte sur le site UBA ou en composant le code fourni." },
 ];
 
 const PAGE_FAQ = [
-  { q: "Comment obtenir une carte UBA Cameroun pour payer sur Amazon ?", a: "Commandez votre carte UBA Cameroun via WhatsApp en fournissant : CNI, plan de localisation, demi-photo et NUI. Livraison en 2 à 5 jours ouvrables. La carte Visa UBA est acceptée sur Amazon, Alibaba, Airbnb et tous les sites internationaux." },
+  { q: "Comment obtenir une carte UBA Cameroun pour payer sur Amazon ?", a: "Commandez votre carte UBA Cameroun via WhatsApp en fournissant : CNI, plan de localisation, demi-photo et NUI. Activation rapide en 1 à 24h+ ouvrables après dossier complet. La carte Visa UBA est acceptée sur Amazon, Alibaba, Airbnb et tous les sites internationaux." },
   { q: "Quel est le plafond de la carte UBA Cameroun ?", a: "De 2 500 000 FCFA/mois pour le segment Classic à 10 000 000 FCFA/mois pour le segment Gold. La carte est utilisable pour les paiements en ligne et en magasin partout où Visa est accepté dans le monde." },
   { q: "La carte UBA Cameroun fonctionne-t-elle à l'international ?", a: "Oui, c'est une carte Visa prépayée internationale. Utilisable sur tous les sites e-commerce mondiaux (Amazon, Netflix, PayPal, Booking…) et dans les terminaux physiques Visa à l'étranger." },
   { q: "Combien coûte une carte UBA Cameroun à Douala ?", a: "De 10 500 FCFA pour la carte Classic à 25 000 FCFA pour la carte Gold selon votre segment. Les frais de recharge varient de 1 500 FCFA fixe (petits montants) à 3% pour les rechargements supérieurs à 350 000 FCFA." },
@@ -88,10 +88,11 @@ export default function UBAPage() {
   const fee       = calcFee(numAmount);
   const total     = numAmount + fee;
 
-  /* ── Buy validation (name optional) ── */
+  /* ── Buy validation ── */
   function validateBuy() {
     const e: Record<string, string> = {};
     if (!selectedSeg)                           e.seg      = "Sélectionnez un segment de carte";
+    if (!buyName.trim())                        e.buyName  = "Nom requis (tel qu'il apparaîtra sur la carte)";
     const bpD = buyPhone.replace(/\D/g, "").replace(/^237/, "");
     if (bpD.length < 9) e.buyPhone = "Numéro invalide (9 chiffres)";
     if (!buyAccepted)                           e.accepted = "Vous devez accepter les conditions";
@@ -120,12 +121,13 @@ export default function UBAPage() {
     showToast("Carte UBA ajoutée au panier !", "success");
   }
 
-  /* ── Recharge validation (name optional) ── */
+  /* ── Recharge validation ── */
   function validate() {
     const e: Record<string, string> = {};
     if (card6.length !== 6)                             e.card6    = "6 chiffres requis";
     if (card4.length !== 4)                             e.card4    = "4 chiffres requis";
     if (!clientId || clientId.length > 10)              e.clientId = "Client ID requis (max 10 chiffres)";
+    if (!fullName.trim())                               e.fullName = "Nom requis (tel qu'il apparaît sur la carte)";
     const phD = phone.replace(/\D/g, "").replace(/^237/, "");
     if (phD.length < 9) e.phone = "Numéro invalide (9 chiffres)";
     if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = "Email valide requis";
@@ -290,15 +292,15 @@ export default function UBAPage() {
                   </p>
                 </div>
 
-                <Field label="Nom complet" optional>
+                <Field label="Nom complet (tel qu'il apparaîtra sur la carte)" error={buyErrors.buyName}>
                   <input
                     type="text"
-                    placeholder="Votre nom complet (optionnel)"
+                    placeholder="ex : JEAN DUPONT"
                     value={buyName}
-                    onChange={e => setBuyName(e.target.value)}
+                    onChange={e => { setBuyName(e.target.value); setBuyErrors(p => ({ ...p, buyName: "" })); }}
                     onKeyDown={e => e.key === "Enter" && refBuyPhone.current?.focus({ preventScroll: true })}
                     className={inputCls}
-                    style={inputBase}
+                    style={buyErrors.buyName ? inputErr : inputBase}
                   />
                 </Field>
 
@@ -311,8 +313,10 @@ export default function UBAPage() {
                       placeholder="6XXXXXXXX"
                       value={buyPhone}
                       maxLength={9}
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                       onChange={e => {
-                        setBuyPhone(e.target.value);
+                        setBuyPhone(e.target.value.replace(/\D/g, "").slice(0, 9));
                         setBuyErrors(p => ({ ...p, buyPhone: "" }));
                       }}
                       className="flex-1 py-3 pr-4 bg-transparent text-sm outline-none"
@@ -349,7 +353,7 @@ export default function UBAPage() {
         ) : (
           <motion.div key="recharge" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }} className="flex flex-col gap-5">
 
-            {/* Card digits — auto-advance */}
+            {/* Card digits — chiffres uniquement + auto-avance */}
             <div className="grid grid-cols-2 gap-3">
               <Field label="6 premiers chiffres" error={errors.card6}>
                 <input
@@ -358,9 +362,12 @@ export default function UBAPage() {
                   value={card6}
                   maxLength={6}
                   inputMode="numeric"
+                  pattern="[0-9]*"
                   onChange={e => {
-                    setCard6(e.target.value);
+                    const v = e.target.value.replace(/\D/g, "").slice(0, 6);
+                    setCard6(v);
                     setErrors(p => ({ ...p, card6: "" }));
+                    if (v.length === 6) refCard4.current?.focus({ preventScroll: true });
                   }}
                   className={inputCls}
                   style={errors.card6 ? inputErr : inputBase}
@@ -374,9 +381,12 @@ export default function UBAPage() {
                   value={card4}
                   maxLength={4}
                   inputMode="numeric"
+                  pattern="[0-9]*"
                   onChange={e => {
-                    setCard4(e.target.value);
+                    const v = e.target.value.replace(/\D/g, "").slice(0, 4);
+                    setCard4(v);
                     setErrors(p => ({ ...p, card4: "" }));
+                    if (v.length === 4) refClientId.current?.focus({ preventScroll: true });
                   }}
                   className={inputCls}
                   style={errors.card4 ? inputErr : inputBase}
@@ -392,25 +402,28 @@ export default function UBAPage() {
                 value={clientId}
                 maxLength={10}
                 inputMode="numeric"
+                pattern="[0-9]*"
                 onChange={e => {
-                  setClientId(e.target.value);
+                  const v = e.target.value.replace(/\D/g, "").slice(0, 10);
+                  setClientId(v);
                   setErrors(p => ({ ...p, clientId: "" }));
+                  if (v.length === 10) refFullName.current?.focus({ preventScroll: true });
                 }}
                 className={inputCls}
                 style={errors.clientId ? inputErr : inputBase}
               />
             </Field>
 
-            <Field label="Nom complet" optional>
+            <Field label="Nom complet (tel qu'il apparaît sur la carte)" error={errors.fullName}>
               <input
                 ref={refFullName}
                 type="text"
-                placeholder="Votre nom complet (optionnel)"
+                placeholder="ex : JEAN DUPONT"
                 value={fullName}
-                onChange={e => setFullName(e.target.value)}
+                onChange={e => { setFullName(e.target.value); setErrors(p => ({ ...p, fullName: "" })); }}
                 onKeyDown={e => e.key === "Enter" && refPhone.current?.focus({ preventScroll: true })}
                 className={inputCls}
-                style={inputBase}
+                style={errors.fullName ? inputErr : inputBase}
               />
             </Field>
 
@@ -424,9 +437,12 @@ export default function UBAPage() {
                   value={phone}
                   maxLength={9}
                   inputMode="numeric"
+                  pattern="[0-9]*"
                   onChange={e => {
-                    setPhone(e.target.value);
+                    const v = e.target.value.replace(/\D/g, "").slice(0, 9);
+                    setPhone(v);
                     setErrors(p => ({ ...p, phone: "" }));
+                    if (v.length === 9) refAmount.current?.focus({ preventScroll: true });
                   }}
                   className="flex-1 py-3 pr-4 bg-transparent text-sm outline-none"
                   style={{ color: "var(--text-primary)" }}
@@ -448,13 +464,19 @@ export default function UBAPage() {
             <Field label="Montant à recharger (1 500 – 500 000 FCFA)" error={errors.amount}>
               <input
                 ref={refAmount}
-                type="number"
-                min="1500"
-                max="500000"
-                placeholder="ex: 25 000"
+                type="tel"
+                placeholder="ex: 25000"
                 value={amount}
                 inputMode="numeric"
-                onChange={e => { setAmount(e.target.value); setErrors(p => ({ ...p, amount: "" })); }}
+                pattern="[0-9]*"
+                maxLength={6}
+                onChange={e => {
+                  const v = e.target.value.replace(/\D/g, "").slice(0, 6);
+                  if (parseInt(v || "0") <= 500000) {
+                    setAmount(v);
+                    setErrors(p => ({ ...p, amount: "" }));
+                  }
+                }}
                 className={inputCls}
                 style={errors.amount ? inputErr : inputBase}
               />
