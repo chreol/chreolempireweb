@@ -178,7 +178,8 @@ export default function PaypalPage() {
     if (direction === "sell" && cpD.length < 6) e.contactPhone = "Numéro trop court";
     if (direction === "buy" && contactPhone && cpD.length < 6) e.contactPhone = "Numéro trop court";
     const mpD = momoPhone.replace(/\D/g, "").replace(/^237/, "");
-    if (mpD.length < 9) e.momoPhone = "Numéro invalide (9 chiffres)";
+    if (direction === "sell" && mpD.length < 9) e.momoPhone = "Numéro invalide (9 chiffres)";
+    if (direction === "buy" && momoPhone && mpD.length < 9) e.momoPhone = "Numéro invalide (9 chiffres)";
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -381,7 +382,7 @@ export default function PaypalPage() {
             ID_FORMATS={ID_FORMATS}
           />}
 
-          <Field label={direction === "sell" ? "Réception MoMo" : "Paiement MoMo"} error={errors?.momoPhone}>
+          <Field label={direction === "sell" ? "Réception MoMo" : "Paiement MoMo (optionnel)"} error={errors?.momoPhone}>
             <div className="flex flex-col gap-2">
               <div className="flex gap-2">
                 {MOMO_OPERATORS.slice(0, 2).map(o => (
