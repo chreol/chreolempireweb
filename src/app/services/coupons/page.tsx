@@ -84,16 +84,18 @@ export default function CouponsPage() {
     return Object.keys(e).length === 0;
   }
 
+  const codeOut = type === "transcash" ? code.replace(/\D/g, "") : code.trim();
+
   function buildDetails() {
     const op = MOMO_OPERATORS.find(o => o.id === momoOp)?.name ?? momoOp;
     const typeName = type === "pcs" ? "PCS Mastercard" : "Transcash";
-    return `${typeName} ${amount}€ | Code : ${code.trim()}\n${op} ${dialCode} ${phone} | Nom : ${name}`;
+    return `${typeName} ${amount}€ | Code : ${codeOut}\n${op} ${dialCode} ${phone} | Nom : ${name}`;
   }
 
   function buildMsgPlain() {
     const op = MOMO_OPERATORS.find(o => o.id === momoOp)?.name ?? momoOp;
     const typeName = type === "pcs" ? "PCS Mastercard" : "Transcash";
-    return `🎫 ÉCHANGE COUPON\nType : ${typeName}\nValeur : ${amount}€\nCode : ${code.trim()}\nCommission : ${rate.commission}%\nÀ recevoir : ${fcfaResult.toLocaleString("fr-FR")} FCFA\n\n💰 Réception MoMo\nOpérateur : ${op}\nNuméro : ${dialCode} ${phone}\nNom : ${name}`;
+    return `🎫 ÉCHANGE COUPON\nType : ${typeName}\nValeur : ${amount}€\nCode : ${codeOut}\nCommission : ${rate.commission}%\nÀ recevoir : ${fcfaResult.toLocaleString("fr-FR")} FCFA\n\n💰 Réception MoMo\nOpérateur : ${op}\nNuméro : ${dialCode} ${phone}\nNom : ${name}`;
   }
 
   function sendNotification() {
