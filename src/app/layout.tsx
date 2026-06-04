@@ -13,7 +13,6 @@ import PromoBanner from "@/components/PromoBanner";
 import WASupport from "@/components/WASupport";
 import GoogleMerchantWidget from "@/components/GoogleMerchantWidget";
 import WAPopover from "@/components/WAPopover";
-import FloatingCalc from "@/components/FloatingCalc";
 import MobileWACTA from "@/components/MobileWACTA";
 import Image from "next/image";
 import { CONTACT, IMAGES, SOCIAL_LINKS } from "@/lib/services";
@@ -148,7 +147,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Navbar />
           </div>
           <main className="flex-1 pb-[72px] sm:pb-0">{children}</main>
-          <FloatingCalc />
           <MobileWACTA />
           <GoogleMerchantWidget />
 
