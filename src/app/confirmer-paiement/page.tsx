@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -24,7 +24,7 @@ function formatDate(d: string) {
   });
 }
 
-export default function ConfirmerPaiementPage() {
+function ConfirmerPaiementContent() {
   const params  = useSearchParams();
   const orderId = params.get("order") ?? "";
 
@@ -269,5 +269,18 @@ export default function ConfirmerPaiementPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function ConfirmerPaiementPage() {
+  return (
+    <Suspense fallback={
+      <div className="max-w-lg mx-auto px-4 py-20 text-center">
+        <p className="text-4xl mb-4 animate-pulse">⏳</p>
+        <p style={{ color: "var(--text-muted)" }}>Chargement…</p>
+      </div>
+    }>
+      <ConfirmerPaiementContent />
+    </Suspense>
   );
 }
