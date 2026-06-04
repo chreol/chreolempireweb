@@ -139,8 +139,8 @@ export default function CGUPage() {
               +237 694 360 978
             </a>{" "}
             ou par email à{" "}
-            <a href="mailto:chreolempire00@gmail.com" className="font-bold hover:underline" style={{ color: "var(--gold)" }}>
-              chreolempire00@gmail.com
+            <a href="mailto:contact@chreolempire.com" className="font-bold hover:underline" style={{ color: "var(--gold)" }}>
+              contact@chreolempire.com
             </a>.
           </p>
         </section>

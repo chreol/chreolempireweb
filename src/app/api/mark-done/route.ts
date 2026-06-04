@@ -349,7 +349,7 @@ export async function GET(request: Request): Promise<Response> {
   const senderIdRaw = process.env.BREVO_SENDER_ID;
   const sender = senderIdRaw
     ? { id: parseInt(senderIdRaw, 10) }
-    : { name: "Chreol Empire", email: process.env.BREVO_SENDER_EMAIL ?? "chreolempire00@gmail.com" };
+    : { name: "Chreol Empire", email: process.env.BREVO_SENDER_EMAIL ?? "contact@chreolempire.com" };
 
   const isCancel = action === "cancel";
   const subject  = isCancel

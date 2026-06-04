@@ -26,7 +26,7 @@ export default function MentionsLegalesPage() {
             <p><span className="font-bold text-white">Responsable de publication :</span> Chreol Empire</p>
             <p><span className="font-bold text-white">Adresse :</span> Vallée 3, Boutiques Deido, Douala, Cameroun</p>
             <p><span className="font-bold text-white">Téléphone / WhatsApp :</span> +237 694 360 978</p>
-            <p><span className="font-bold text-white">Email :</span> chreolempire00@gmail.com</p>
+            <p><span className="font-bold text-white">Email :</span> contact@chreolempire.com</p>
             <p><span className="font-bold text-white">Activité depuis :</span> 2012</p>
           </div>
         </section>
@@ -88,8 +88,8 @@ export default function MentionsLegalesPage() {
               +237 694 360 978
             </a>{" "}
             ou par email à{" "}
-            <a href="mailto:chreolempire00@gmail.com" className="font-bold hover:underline" style={{ color: "var(--gold)" }}>
-              chreolempire00@gmail.com
+            <a href="mailto:contact@chreolempire.com" className="font-bold hover:underline" style={{ color: "var(--gold)" }}>
+              contact@chreolempire.com
             </a>.
           </p>
         </section>

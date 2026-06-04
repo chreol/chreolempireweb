@@ -258,7 +258,7 @@ function buildAdminEmail(p: NotifyPayload, markDoneUrl: string, markCancelUrl: s
   </table>
 
   <p style="text-align:center;font-size:11px;color:#9CA3AF;margin-top:16px">
-    Chreol Empire · Douala, Cameroun · chreolempire00@gmail.com
+    Chreol Empire · Douala, Cameroun · contact@chreolempire.com
   </p>
 </div>
 </body></html>`;
@@ -593,8 +593,8 @@ export async function POST(request: Request): Promise<Response> {
   const senderIdRaw = process.env.BREVO_SENDER_ID;
   const sender = senderIdRaw
     ? { id: parseInt(senderIdRaw, 10) }
-    : { name: "Chreol Empire", email: process.env.BREVO_SENDER_EMAIL ?? "chreolempire00@gmail.com" };
-  const adminMail = process.env.ADMIN_EMAIL ?? "chreolempire00@gmail.com";
+    : { name: "Chreol Empire", email: process.env.BREVO_SENDER_EMAIL ?? "contact@chreolempire.com" };
+  const adminMail = process.env.ADMIN_EMAIL ?? "contact@chreolempire.com";
   const ref       = p.orderId.slice(-8).toUpperCase();
 
   // Résoudre l'URL complète de la source à partir de l'origine de la requête

@@ -2,7 +2,7 @@ export const CONTACT = {
   whatsapp: "+237697657734",
   whatsappDisplay: "+237 697 657 734",
   tel: "+237694360978",
-  email: "chreolempire00@gmail.com",
+  email: "contact@chreolempire.com",
   address: "Vallée 3, Boutiques Deido, Douala, Cameroun",
   paypalEmail: "LARAMBAMBO@GMAIL.COM",
 };

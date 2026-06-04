@@ -82,7 +82,7 @@ const LOCAL_BUSINESS_JSON = {
   "description": "Boutique en ligne spécialisée en cartes cadeaux numériques (PSN, iTunes, Roblox, Steam) et échange de cryptomonnaies (USDT, BTC, TRX) à Douala, Cameroun.",
   "url": "https://shop.chreolempire.com",
   "telephone": "+237694360978",
-  "email": "chreolempire00@gmail.com",
+  "email": "contact@chreolempire.com",
   "address": {
     "@type": "PostalAddress",
     "streetAddress": "Vallée 3, Boutiques Deido",

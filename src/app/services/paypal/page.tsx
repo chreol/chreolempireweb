@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { track } from "@vercel/analytics";
 import { motion, AnimatePresence } from "framer-motion";
@@ -115,6 +115,7 @@ export default function PaypalPage() {
   const { showToast } = useToast();
   const { t } = useLanguage();
 
+  const orderIdRef = useRef("");
   const [direction, setDirection]     = useState<"sell" | "buy">("sell");
   const [inputCurrency, setInputCurrency] = useState<"EUR" | "FCFA">("EUR");
   const [amount, setAmount]           = useState("");
@@ -192,10 +193,11 @@ export default function PaypalPage() {
   }
 
   function buildMsgPlain() {
-    const op = MOMO_OPERATORS.find(o => o.id === momoOp)?.name ?? momoOp;
+    const op  = MOMO_OPERATORS.find(o => o.id === momoOp)?.name ?? momoOp;
+    const ref = orderIdRef.current ? ` — Réf #${orderIdRef.current.slice(-8).toUpperCase()}` : "";
     if (direction === "sell")
-      return `💸 VENTE PAYPAL\nCompte PayPal (${idLabel}) : ${paypalId}\nMontant : ${displayEur.toFixed(2)}€\nÀ recevoir : ${fcfaResult.toLocaleString("fr-FR")} FCFA\nTaux : 1€ = ${sellRate} FCFA\n\n💰 Réception MoMo\nOpérateur : ${op}\nNuméro : +237 ${momoPhone}\n\n📱 Contact WhatsApp : ${contactDialCode} ${contactPhone}`;
-    return `💳 ACHAT PAYPAL\nCompte PayPal (${idLabel}) : ${paypalId}\nJe paie : ${buyFcfa.toLocaleString("fr-FR")} FCFA\nÀ recevoir : ${eurResult}€\nTaux : 1€ = ${buyRate} FCFA\n\n💰 Paiement MoMo\nOpérateur : ${op}\nNuméro : +237 ${momoPhone}\n\n📱 Contact WhatsApp : ${contactDialCode} ${contactPhone}`;
+      return `💸 VENTE PAYPAL${ref}\nCompte PayPal (${idLabel}) : ${paypalId}\nMontant : ${displayEur.toFixed(2)}€\nÀ recevoir : ${fcfaResult.toLocaleString("fr-FR")} FCFA\nTaux : 1€ = ${sellRate} FCFA\n\n💰 Réception MoMo\nOpérateur : ${op}\nNuméro : +237 ${momoPhone}\n\n📱 Contact WhatsApp : ${contactDialCode} ${contactPhone}`;
+    return `💳 ACHAT PAYPAL${ref}\nCompte PayPal (${idLabel}) : ${paypalId}\nJe paie : ${buyFcfa.toLocaleString("fr-FR")} FCFA\nÀ recevoir : ${eurResult}€\nTaux : 1€ = ${buyRate} FCFA\n\n💰 Paiement MoMo\nOpérateur : ${op}\nNuméro : +237 ${momoPhone}\n\n📱 Contact WhatsApp : ${contactDialCode} ${contactPhone}`;
   }
 
   function sendNotification() {
@@ -204,7 +206,7 @@ export default function PaypalPage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        orderId: `paypal-${direction}-${Date.now()}`,
+        orderId: (() => { const id = `paypal-${direction}-${Date.now()}`; orderIdRef.current = id; return id; })(),
         clientName: contactEmail.split("@")[0],
         clientEmail: contactEmail,
         clientPhone: contactPhone || momoPhone,

@@ -74,7 +74,7 @@ export default function CartPage() {
   const summary = items.map(i => `${i.cardName} ×${i.qty} (${i.amount})`).join(", ");
   const opConfig = OPERATORS.find(o => o.id === selectedOp);
 
-  function buildMsgPlain(opLabel?: string) {
+  function buildMsgPlain(opLabel?: string, orderId?: string) {
     const lines = items.map(i => {
       if (i.details) {
         return `• ${i.cardName}\n  ${i.details}\n  Montant : ${(i.price * i.qty).toLocaleString("fr-FR")} FCFA`;
@@ -82,7 +82,8 @@ export default function CartPage() {
       return `• ${i.cardName} — ${i.amount} × ${i.qty} = ${(i.price * i.qty).toLocaleString("fr-FR")} FCFA`;
     }).join("\n\n");
     const payLabel = isSell ? "Vente / Échange" : (opLabel ?? "Via WhatsApp");
-    return `Je souhaite :\n${lines}\n\nTotal : ${total.toLocaleString("fr-FR")} FCFA\nPaiement : ${payLabel}\n\nTél : ${phone}${referral ? `\nCode parrainage : ${referral.toUpperCase()}` : ""}`;
+    const ref = orderId ? `\nRéf commande : #${orderId.slice(-8).toUpperCase()}` : "";
+    return `Je souhaite :${ref}\n${lines}\n\nTotal : ${total.toLocaleString("fr-FR")} FCFA\nPaiement : ${payLabel}\n\nTél : ${phone}${referral ? `\nCode parrainage : ${referral.toUpperCase()}` : ""}`;
   }
 
   async function handleOrderClick(force = false) {
@@ -167,7 +168,7 @@ export default function CartPage() {
       }),
     }).catch(err => console.error("[cart-wa] notify:", err));
 
-    const waUrl = `https://wa.me/${CONTACT.whatsapp}?text=${encodeURIComponent(buildMsgPlain(opLabel))}`;
+    const waUrl = `https://wa.me/${CONTACT.whatsapp}?text=${encodeURIComponent(buildMsgPlain(opLabel, orderId))}`;
     window.open(waUrl, "_blank", "noopener,noreferrer");
 
     saveClientInfo({ name: name || "Client", email, phone });

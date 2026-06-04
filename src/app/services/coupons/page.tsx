@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { track } from "@vercel/analytics";
 import { motion } from "framer-motion";
@@ -46,6 +46,7 @@ export default function CouponsPage() {
   const { showToast } = useToast();
   const { t } = useLanguage();
 
+  const orderIdRef = useRef("");
   const [type, setType]         = useState<CouponType>("pcs");
   const [amount, setAmount]     = useState("");
   const [code, setCode]         = useState("");
@@ -96,7 +97,8 @@ export default function CouponsPage() {
   function buildMsgPlain() {
     const op = MOMO_OPERATORS.find(o => o.id === momoOp)?.name ?? momoOp;
     const typeName = type === "pcs" ? "PCS Mastercard" : "Transcash";
-    return `🎫 ÉCHANGE COUPON\nType : ${typeName}\nValeur : ${amount}€\nCode : ${codeOut}\nCommission : ${rate.commission}%\nÀ recevoir : ${fcfaResult.toLocaleString("fr-FR")} FCFA\n\n💰 Réception MoMo\nOpérateur : ${op}\nNuméro : ${dialCode} ${phone}\nNom : ${name}`;
+    const ref = orderIdRef.current ? `#${orderIdRef.current.slice(-8).toUpperCase()}` : "";
+    return `🎫 ÉCHANGE COUPON${ref ? ` — Réf ${ref}` : ""}\nType : ${typeName}\nValeur : ${amount}€\nCode : ${codeOut}\nCommission : ${rate.commission}%\nÀ recevoir : ${fcfaResult.toLocaleString("fr-FR")} FCFA\n\n💰 Réception MoMo\nOpérateur : ${op}\nNuméro : ${dialCode} ${phone}\nNom : ${name}`;
   }
 
   function sendNotification() {
@@ -106,7 +108,7 @@ export default function CouponsPage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        orderId: `coupon-${type}-${Date.now()}`,
+        orderId: (() => { const id = `coupon-${type}-${Date.now()}`; orderIdRef.current = id; return id; })(),
         clientName: name,
         clientEmail: email,
         clientPhone: `${dialCode}${phone}`,

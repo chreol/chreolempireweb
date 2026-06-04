@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { track } from "@vercel/analytics";
 import { motion, AnimatePresence } from "framer-motion";
@@ -45,6 +45,7 @@ export default function CryptoPage() {
   const { showToast } = useToast();
   const { t } = useLanguage();
 
+  const orderIdRef = useRef("");
   const [direction, setDirection] = useState<"sell" | "buy">("sell");
   const [cryptoId, setCryptoId]   = useState("usdt");
   const [network, setNetwork]     = useState(CRYPTO_NETWORKS["usdt"][0]);
@@ -106,9 +107,10 @@ export default function CryptoPage() {
   function buildMsgPlain() {
     const op          = MOMO_OPERATORS.find(o => o.id === momoOp)?.name ?? momoOp;
     const depositAddr = CRYPTO_WALLETS[cryptoId]?.[network] ?? "—";
+    const ref = orderIdRef.current ? `Réf #${orderIdRef.current.slice(-8).toUpperCase()}` : "";
     if (direction === "sell") {
       return [
-        `📤 VENTE CRYPTO`,
+        `📤 VENTE CRYPTO${ref ? ` — ${ref}` : ""}`,
         `Crypto : ${crypto.name} (${crypto.fullName})`,
         `Réseau : ${network}`,
         `Montant : ${amount} ${crypto.unit}`,
@@ -125,7 +127,7 @@ export default function CryptoPage() {
         `Email : ${email}`,
       ].join("\n");
     }
-    return `📥 ACHAT CRYPTO\nCrypto : ${crypto.name} (${crypto.fullName})\nRéseau : ${network}\nJe paie : ${numAmount.toLocaleString("fr-FR")} FCFA\nÀ recevoir : ${cryptoReceived.toFixed(6)} ${crypto.unit}\n\nWallet : ${walletAddr}\nEmail : ${email}`;
+    return `📥 ACHAT CRYPTO${ref ? ` — ${ref}` : ""}\nCrypto : ${crypto.name} (${crypto.fullName})\nRéseau : ${network}\nJe paie : ${numAmount.toLocaleString("fr-FR")} FCFA\nÀ recevoir : ${cryptoReceived.toFixed(6)} ${crypto.unit}\n\nWallet : ${walletAddr}\nEmail : ${email}`;
   }
 
   function sendNotification() {
@@ -134,7 +136,7 @@ export default function CryptoPage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        orderId: `crypto-${cryptoId}-${Date.now()}`,
+        orderId: (() => { const id = `crypto-${cryptoId}-${Date.now()}`; orderIdRef.current = id; return id; })(),
         clientName: direction === "sell" ? beneficiary : email.split("@")[0],
         clientEmail: email,
         clientPhone: direction === "sell" ? momoPhone : "",

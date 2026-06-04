@@ -58,6 +58,7 @@ export default function UBAPage() {
   const { t } = useLanguage();
   const { showToast } = useToast();
 
+  const orderIdRef = useRef("");
   const [mode, setMode]         = useState<"buy" | "recharge">("buy");
 
   /* ── Buy mode ── */
@@ -139,7 +140,8 @@ export default function UBAPage() {
   }
 
   function buildRechargeMsgPlain() {
-    return `💳 RECHARGE UBA\nCarte : ${card6}••••••${card4}\nClient ID : ${clientId}\n${fullName ? `Nom : ${fullName}\n` : ""}Téléphone : +237 ${phone}\nMontant : ${numAmount.toLocaleString("fr-FR")} FCFA\nFrais : ${fee.toLocaleString("fr-FR")} FCFA\nTotal à payer : ${total.toLocaleString("fr-FR")} FCFA`;
+    const ref = orderIdRef.current ? ` — Réf #${orderIdRef.current.slice(-8).toUpperCase()}` : "";
+    return `💳 RECHARGE UBA${ref}\nCarte : ${card6}••••••${card4}\nClient ID : ${clientId}\n${fullName ? `Nom : ${fullName}\n` : ""}Téléphone : +237 ${phone}\nMontant : ${numAmount.toLocaleString("fr-FR")} FCFA\nFrais : ${fee.toLocaleString("fr-FR")} FCFA\nTotal à payer : ${total.toLocaleString("fr-FR")} FCFA`;
   }
 
   function handleAddToCart() {
@@ -170,7 +172,7 @@ export default function UBAPage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        orderId: `uba-recharge-${Date.now()}`,
+        orderId: (() => { const id = `uba-recharge-${Date.now()}`; orderIdRef.current = id; return id; })(),
         clientName: fullName || email.split("@")[0],
         clientEmail: email,
         clientPhone: phone,

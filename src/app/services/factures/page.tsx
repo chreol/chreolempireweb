@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { track } from "@vercel/analytics";
 import { motion, AnimatePresence } from "framer-motion";
@@ -47,6 +47,7 @@ export default function FacturesPage() {
   const { t } = useLanguage();
   const { addItem } = useCart();
 
+  const orderIdRef = useRef("");
   const [tab, setTab]       = useState<Tab>("factures");
   const [cartDialog, setCartDialog] = useState(false);
 
@@ -86,7 +87,8 @@ export default function FacturesPage() {
 
   function buildFactureMsgPlain() {
     const billerName = FACTURE_BILLERS.find(b => b.id === biller)?.name ?? biller;
-    return `📋 PAIEMENT FACTURE\nFournisseur : ${billerName}\nIdentifiant : ${identifier} (${idType === "phone" ? "téléphone" : "décodeur"})\nMontant facture : ${numFacAmt.toLocaleString("fr-FR")} FCFA\nCommission : ${FACTURE_COMMISSION} FCFA\nTotal à payer : ${totalFacture.toLocaleString("fr-FR")} FCFA`;
+    const ref = orderIdRef.current ? ` — Réf #${orderIdRef.current.slice(-8).toUpperCase()}` : "";
+    return `📋 PAIEMENT FACTURE${ref}\nFournisseur : ${billerName}\nIdentifiant : ${identifier} (${idType === "phone" ? "téléphone" : "décodeur"})\nMontant facture : ${numFacAmt.toLocaleString("fr-FR")} FCFA\nCommission : ${FACTURE_COMMISSION} FCFA\nTotal à payer : ${totalFacture.toLocaleString("fr-FR")} FCFA`;
   }
 
   function handleFactureBeforeOpen() {
@@ -104,7 +106,7 @@ export default function FacturesPage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        orderId: `facture-${biller}-${Date.now()}`,
+        orderId: (() => { const id = `facture-${biller}-${Date.now()}`; orderIdRef.current = id; return id; })(),
         clientName: email.split("@")[0],
         clientEmail: email,
         clientPhone: idType === "phone" ? identifier : "",
@@ -144,7 +146,8 @@ export default function FacturesPage() {
   function buildMomoMsgPlain() {
     const src = MOMO_OPERATORS.find(o => o.id === srcOp)?.name ?? srcOp;
     const dst = MOMO_OPERATORS.find(o => o.id === dstOp)?.name ?? dstOp;
-    return `🔄 ÉCHANGE MOBILE MONEY\nDe : ${src} — +237 ${srcPhone}\nVers : ${dst} — +237 ${dstPhone}\nMontant : ${numMomoAmt.toLocaleString("fr-FR")} FCFA\nÀ recevoir : ${numMomoAmt.toLocaleString("fr-FR")} FCFA\nCommission : 0%`;
+    const ref = orderIdRef.current ? ` — Réf #${orderIdRef.current.slice(-8).toUpperCase()}` : "";
+    return `🔄 ÉCHANGE MOBILE MONEY${ref}\nDe : ${src} — +237 ${srcPhone}\nVers : ${dst} — +237 ${dstPhone}\nMontant : ${numMomoAmt.toLocaleString("fr-FR")} FCFA\nÀ recevoir : ${numMomoAmt.toLocaleString("fr-FR")} FCFA\nCommission : 0%`;
   }
 
   function handleMomoBeforeOpen() {
@@ -163,7 +166,7 @@ export default function FacturesPage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        orderId: `momo-${srcOp}-${dstOp}-${Date.now()}`,
+        orderId: (() => { const id = `momo-${srcOp}-${dstOp}-${Date.now()}`; orderIdRef.current = id; return id; })(),
         clientName: email.split("@")[0],
         clientEmail: email,
         clientPhone: srcPhone,

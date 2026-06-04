@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { track } from "@vercel/analytics";
 import { useCart } from "@/contexts/CartContext";
@@ -64,6 +64,7 @@ export default function CartesCadeauxPage() {
   const { showToast } = useToast();
   const [tab, setTab] = useState<TabKey>("standard");
   const [cardId, setCardId] = useState<string | null>(null);
+  const orderIdRef = useRef("");
   const [amountLabel, setAmountLabel] = useState<string | null>(null);
   const [region, setRegion] = useState("EU");
   const [customVal, setCustomVal] = useState("");
@@ -99,7 +100,7 @@ export default function CartesCadeauxPage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        orderId: `carte-${card.id}-${Date.now()}`,
+        orderId: (() => { const id = `carte-${card.id}-${Date.now()}`; orderIdRef.current = id; return id; })(),
         clientName: email.split("@")[0],
         clientEmail: email,
         clientPhone: "",
@@ -125,7 +126,8 @@ export default function CartesCadeauxPage() {
     if (!card) return "";
     const finalLabel = customPrice ? `${customVal}€ (personnalisé)` : amountLabel ?? "";
     const finalPrice = (customPrice ?? amount?.price ?? 0).toLocaleString("fr-FR");
-    return `Je veux commander ${card.name} ${finalLabel} [${region}] — ${finalPrice} FCFA`;
+    const ref = orderIdRef.current ? ` — Réf #${orderIdRef.current.slice(-8).toUpperCase()}` : "";
+    return `Je veux commander ${card.name} ${finalLabel} [${region}] — ${finalPrice} FCFA${ref}`;
   }
 
   return (
