@@ -175,7 +175,8 @@ export default function PaypalPage() {
     else if (idFormat === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(paypalId)) e.paypalId = "Email invalide";
     if (!contactEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) e.contactEmail = "Email de contact valide requis";
     const cpD = contactPhone.replace(/\D/g, "");
-    if (cpD.length < 6) e.contactPhone = "Numéro trop court";
+    if (direction === "sell" && cpD.length < 6) e.contactPhone = "Numéro trop court";
+    if (direction === "buy" && contactPhone && cpD.length < 6) e.contactPhone = "Numéro trop court";
     const mpD = momoPhone.replace(/\D/g, "").replace(/^237/, "");
     if (mpD.length < 9) e.momoPhone = "Numéro invalide (9 chiffres)";
     setErrors(e);
@@ -406,7 +407,7 @@ export default function PaypalPage() {
           </Field>
 
           {/* ── Numéro WhatsApp contact avec indicatif éditable ── */}
-          <Field label="Votre numéro WhatsApp (pour vous contacter)" error={errors?.contactPhone}>
+          <Field label={`Votre numéro WhatsApp${direction === "buy" ? " (optionnel)" : ""}`} error={errors?.contactPhone}>
             <div className="flex gap-2">
               {/* Indicatif — champ indépendant, toujours cliquable */}
               <input

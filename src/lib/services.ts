@@ -193,7 +193,7 @@ export const PAYPAL_RATES = {
 
 export const PAYPAL_LIMITS = {
   sell: { min: 20,    max: 500,    currency: "€",    label: "Vente (retrait)" },
-  buy:  { min: 10000, max: 500000, currency: "FCFA", label: "Achat (recharge)" },
+  buy:  { min: 3500,  max: 500000, currency: "FCFA", label: "Achat (recharge)" },
 };
 
 export const MOMO_OPERATORS = [
