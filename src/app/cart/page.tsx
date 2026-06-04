@@ -145,18 +145,34 @@ export default function CartPage() {
   /* ── Success state ── */
   if (done) {
     return (
-      <div className="max-w-xl mx-auto px-4 py-20 text-center">
+      <div className="max-w-lg mx-auto px-4 py-16 text-center">
         <p className="text-6xl mb-4">⚡</p>
         <h1 className="text-2xl font-black text-white mb-2">
           {isSell ? t("cart.success.sell") : t("cart.success.buy")}
         </h1>
-        <p className="mb-2" style={{ color: "var(--text-secondary)" }}>
+        <p className="mb-2 text-sm" style={{ color: "var(--text-secondary)" }}>
           {isSell ? t("cart.success.sell.desc") : t("cart.success.buy.desc")}
         </p>
         <p className="text-xs mb-8" style={{ color: "var(--text-muted)" }}>
           {t("history.ref")} {done.slice(-8).toUpperCase()}
         </p>
-        <Link href="/services" className="inline-block px-6 py-3 rounded-full font-black text-black text-sm" style={{ background: "var(--gold)" }}>
+
+        {/* ── Envoyer la preuve de paiement ── */}
+        <div className="rounded-2xl p-5 mb-6 text-left" style={{ background: "var(--bg-card)", border: "1.5px solid var(--gold)44" }}>
+          <p className="font-black text-white text-sm mb-1">📎 Envoyez votre preuve de paiement</p>
+          <p className="text-xs mb-4" style={{ color: "var(--text-secondary)" }}>
+            Uploadez la capture d&apos;écran de votre paiement MoMo pour que notre agent puisse traiter votre commande immédiatement.
+          </p>
+          <Link
+            href={`/confirmer-paiement?order=${done}`}
+            className="w-full flex items-center justify-center py-3 rounded-xl font-black text-black text-sm transition-opacity hover:opacity-85"
+            style={{ background: "var(--gold)" }}
+          >
+            📤 Envoyer ma capture d&apos;écran →
+          </Link>
+        </div>
+
+        <Link href="/services" className="inline-block px-6 py-3 rounded-full font-black text-sm" style={{ background: "var(--bg-elevated)", color: "var(--text-secondary)" }}>
           {t("cart.continue")}
         </Link>
       </div>

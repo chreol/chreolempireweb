@@ -46,6 +46,7 @@ interface Order {
   client_phone: string;
   status: "pending" | "done" | "cancelled";
   created_at: string;
+  proof_url?: string | null;
   details?: { sourceUrl?: string; items?: { name: string; qty: number; price: number }[] };
 }
 
@@ -419,6 +420,39 @@ export default function AdminPage() {
                           <p className="text-xs text-center py-1" style={{ color: "var(--text-muted)" }}>
                             Commande {order.status === "done" ? "traitée ✅" : "annulée ❌"}
                           </p>
+                        )}
+
+                        {/* ── Preuve de paiement ── */}
+                        {order.proof_url ? (
+                          <div className="mt-2 rounded-xl overflow-hidden" style={{ border: "1px solid #10B98144" }}>
+                            <div className="flex items-center justify-between px-3 py-2" style={{ background: "#10B98114" }}>
+                              <p className="text-xs font-black" style={{ color: "#10B981" }}>📎 Preuve de paiement</p>
+                              <a href={order.proof_url} target="_blank" rel="noopener noreferrer"
+                                className="text-[10px] font-bold underline" style={{ color: "#10B981" }}>
+                                Ouvrir →
+                              </a>
+                            </div>
+                            <a href={order.proof_url} target="_blank" rel="noopener noreferrer" className="block">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={order.proof_url}
+                                alt="Preuve paiement"
+                                className="w-full max-h-40 object-contain"
+                                style={{ background: "var(--bg-elevated)" }}
+                              />
+                            </a>
+                          </div>
+                        ) : order.status === "pending" && (
+                          <div className="mt-2 px-3 py-2 rounded-xl text-xs flex items-center justify-between"
+                            style={{ background: "#F59E0B11", border: "1px solid #F59E0B33" }}>
+                            <span style={{ color: "#F59E0B" }}>⏳ En attente de preuve de paiement</span>
+                            <a
+                              href={`/confirmer-paiement?order=${order.id}`}
+                              target="_blank" rel="noopener noreferrer"
+                              className="text-[10px] font-bold underline" style={{ color: "#F59E0B" }}>
+                              Lien client →
+                            </a>
+                          </div>
                         )}
                       </div>
                     )}
