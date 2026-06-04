@@ -5,6 +5,7 @@ import Image from "next/image";
 import { track } from "@vercel/analytics";
 import { motion, AnimatePresence } from "framer-motion";
 import { PAYPAL_RATES, PAYPAL_LIMITS, MOMO_OPERATORS, IMAGES } from "@/lib/services";
+import { saveClientInfo } from "@/lib/clientInfo";
 import WAPopover from "@/components/WAPopover";
 import USSDOrderFlow from "@/components/USSDOrderFlow";
 import RelatedServices from "@/components/RelatedServices";
@@ -225,6 +226,7 @@ export default function PaypalPage() {
 
   function handleAddToCart() {
     if (!validate()) { showToast("Corrigez les erreurs", "error"); return; }
+    saveClientInfo({ email: contactEmail, phone: contactPhone, dialCode: contactDialCode, name: contactEmail.split("@")[0] });
     const op = MOMO_OPERATORS.find(o => o.id === momoOp)?.name ?? momoOp;
     addItem({
       id: `paypal-${direction}-${Date.now()}`,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { track } from "@vercel/analytics";
 import { useCart } from "@/contexts/CartContext";
@@ -9,6 +9,7 @@ import { IMAGES, CONTACT } from "@/lib/services";
 import WAPopover from "@/components/WAPopover";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { saveClientInfo, loadClientInfo, saveLastOrder, loadRecentOrder } from "@/lib/clientInfo";
 
 const OPERATORS = [
   {
@@ -50,6 +51,25 @@ export default function CartPage() {
   const [payStep, setPayStep]       = useState<null | "choose" | "ussd">(null);
   const [selectedOp, setSelectedOp] = useState<OpId | null>(null);
 
+  // Pré-remplissage depuis localStorage
+  const [infoConfirmed, setInfoConfirmed] = useState(false);
+  const [editingInfo,   setEditingInfo]   = useState(false);
+
+  useEffect(() => {
+    const saved = loadClientInfo();
+    if (!saved) return;
+    if (saved.name)  setName(saved.name);
+    if (saved.email) setEmail(saved.email);
+    if (saved.phone) setPhone(saved.phone);
+    if (saved.name && saved.email && saved.phone) setInfoConfirmed(true);
+  }, []);
+
+  // Déduplication
+  const [dupModal, setDupModal] = useState<{
+    orderId: string; total: number; summary: string; created_at: string;
+  } | null>(null);
+  const [dupChecking, setDupChecking] = useState(false);
+
   const isSell = items.length > 0 && items.every(i => i.type === "sell");
   const summary = items.map(i => `${i.cardName} ×${i.qty} (${i.amount})`).join(", ");
   const opConfig = OPERATORS.find(o => o.id === selectedOp);
@@ -65,12 +85,39 @@ export default function CartPage() {
     return `Je souhaite :\n${lines}\n\nTotal : ${total.toLocaleString("fr-FR")} FCFA\nPaiement : ${payLabel}\n\nTél : ${phone}${referral ? `\nCode parrainage : ${referral.toUpperCase()}` : ""}`;
   }
 
-  function handleOrderClick() {
+  async function handleOrderClick(force = false) {
     if (!email) {
       setEmailError("Email requis pour recevoir la confirmation de commande");
       return;
     }
     setEmailError("");
+
+    if (!force) {
+      // 1. Vérification client (localStorage)
+      const recent = loadRecentOrder(email);
+      if (recent) {
+        setDupModal({
+          orderId: recent.orderId,
+          total: recent.total,
+          summary: "",
+          created_at: new Date(recent.timestamp).toISOString(),
+        });
+        return;
+      }
+      // 2. Vérification serveur
+      setDupChecking(true);
+      try {
+        const res  = await fetch(`/api/check-duplicate?email=${encodeURIComponent(email)}`);
+        const data = await res.json();
+        if (data.duplicate) {
+          setDupModal(data);
+          setDupChecking(false);
+          return;
+        }
+      } catch { /* continue */ }
+      setDupChecking(false);
+    }
+
     setSelectedOp(null);
     setPayStep("choose");
   }
@@ -123,6 +170,8 @@ export default function CartPage() {
     const waUrl = `https://wa.me/${CONTACT.whatsapp}?text=${encodeURIComponent(buildMsgPlain(opLabel))}`;
     window.open(waUrl, "_blank", "noopener,noreferrer");
 
+    saveClientInfo({ name: name || "Client", email, phone });
+    saveLastOrder(orderId, email, total);
     clearCart();
     setDone(orderId);
     setLoading(false);
@@ -267,13 +316,41 @@ export default function CartPage() {
             <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "var(--text-muted)" }}>
               {t("cart.your_info")}
             </p>
-            <div className="flex flex-col gap-3">
-              <input type="text"  placeholder={t("cart.name")}  value={name}  onChange={e => setName(e.target.value)}  className="w-full px-4 py-3 rounded-2xl text-white text-sm outline-none" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }} />
-              <div>
-                <input type="email" placeholder={t("cart.email")} value={email} onChange={e => { setEmail(e.target.value); if (e.target.value) setEmailError(""); }} className="w-full px-4 py-3 rounded-2xl text-white text-sm outline-none" style={{ background: "var(--bg-card)", border: `1px solid ${emailError ? "#EF4444" : "var(--border)"}` }} />
-                {emailError && <p className="text-xs mt-1 px-1" style={{ color: "#EF4444" }}>{emailError}</p>}
+
+            {/* ── Carte de confirmation (info déjà connue) ── */}
+            {infoConfirmed && !editingInfo ? (
+              <div className="rounded-2xl p-4 mb-1" style={{ background: "var(--bg-card)", border: "1.5px solid var(--gold)55" }}>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex flex-col gap-1.5 text-sm">
+                    {name  && <span className="text-white font-bold">👤 {name}</span>}
+                    {email && <span style={{ color: "var(--text-secondary)" }}>📧 {email}</span>}
+                    {phone && <span style={{ color: "var(--text-secondary)" }}>📱 {phone}</span>}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setEditingInfo(true)}
+                    className="text-xs font-bold shrink-0 transition-opacity hover:opacity-70"
+                    style={{ color: "var(--gold)" }}
+                  >
+                    Modifier
+                  </button>
+                </div>
               </div>
-              <input type="tel"   placeholder={t("cart.phone")} value={phone} onChange={e => setPhone(e.target.value)} className="w-full px-4 py-3 rounded-2xl text-white text-sm outline-none" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }} />
+            ) : (
+              <div className="flex flex-col gap-3">
+                <input type="text"  placeholder={t("cart.name")}  value={name}  onChange={e => setName(e.target.value)}  className="w-full px-4 py-3 rounded-2xl text-white text-sm outline-none" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }} />
+                <div>
+                  <input type="email" placeholder={t("cart.email")} value={email} onChange={e => { setEmail(e.target.value); if (e.target.value) setEmailError(""); }} className="w-full px-4 py-3 rounded-2xl text-white text-sm outline-none" style={{ background: "var(--bg-card)", border: `1px solid ${emailError ? "#EF4444" : "var(--border)"}` }} />
+                  {emailError && <p className="text-xs mt-1 px-1" style={{ color: "#EF4444" }}>{emailError}</p>}
+                </div>
+                <input type="tel" placeholder={t("cart.phone")} value={phone} onChange={e => setPhone(e.target.value)} className="w-full px-4 py-3 rounded-2xl text-white text-sm outline-none" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }} />
+                {infoConfirmed && (
+                  <button type="button" onClick={() => setEditingInfo(false)} className="text-xs font-bold text-left transition-opacity hover:opacity-70" style={{ color: "var(--text-muted)" }}>
+                    ← Annuler
+                  </button>
+                )}
+              </div>
+            )}
               {/* Code parrainage */}
               <div className="relative">
                 <input
@@ -291,7 +368,6 @@ export default function CartPage() {
                   </span>
                 )}
               </div>
-            </div>
           </div>
 
           {/* Info vente */}
@@ -445,12 +521,12 @@ export default function CartPage() {
               </WAPopover>
             ) : payStep === null && (
               <button
-                onClick={handleOrderClick}
-                disabled={loading}
+                onClick={() => handleOrderClick()}
+                disabled={loading || dupChecking}
                 className="flex items-center justify-center gap-2 w-full py-4 rounded-full font-black text-white text-sm transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96] disabled:opacity-50"
                 style={{ background: "#25D366" }}
               >
-                {loading ? t("cart.loading") : (
+                {dupChecking ? "⏳ Vérification…" : loading ? t("cart.loading") : (
                   <><Image src={IMAGES.whatsapp} alt="" width={20} height={20} unoptimized className="shrink-0" /> {t("cart.wa.order")}</>
                 )}
               </button>
@@ -464,6 +540,58 @@ export default function CartPage() {
           </div>
         </div>
       </div>
+
+      {/* ── Modal déduplication — position:fixed, overlay toute la page ── */}
+      {dupModal ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4"
+          style={{ background: "rgba(0,0,0,0.75)" }}
+          onClick={e => { if (e.target === e.currentTarget) setDupModal(null); }}>
+          <div className="w-full max-w-sm rounded-3xl p-6 flex flex-col gap-5"
+            style={{ background: "var(--bg-card)", border: "1.5px solid #F59E0B55" }}>
+            <div className="text-center">
+              <p className="text-3xl mb-2">⚠️</p>
+              <p className="font-black text-white text-lg">Commande déjà en cours</p>
+              <p className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>
+                Vous avez une commande similaire en attente.
+              </p>
+            </div>
+
+            <div className="rounded-2xl p-4" style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)" }}>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Commande</span>
+                <span className="font-black text-sm" style={{ color: "var(--gold)" }}>
+                  #{dupModal.orderId.slice(-8).toUpperCase()}
+                </span>
+              </div>
+              {dupModal.total > 0 && (
+                <p className="text-base font-black text-white">{dupModal.total.toLocaleString("fr-FR")} FCFA</p>
+              )}
+              <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>
+                {new Date(dupModal.created_at).toLocaleString("fr-FR", { hour: "2-digit", minute: "2-digit" })} · En attente
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Link
+                href={`/confirmer-paiement?order=${dupModal.orderId}`}
+                className="w-full py-3 rounded-full font-black text-black text-sm text-center transition-opacity hover:opacity-85"
+                style={{ background: "var(--gold)" }}
+                onClick={() => setDupModal(null)}
+              >
+                Voir ma commande →
+              </Link>
+              <button
+                type="button"
+                onClick={() => { setDupModal(null); handleOrderClick(true); }}
+                className="w-full py-3 rounded-full font-black text-sm transition-opacity hover:opacity-85"
+                style={{ background: "var(--bg-elevated)", color: "var(--text-secondary)", border: "1px solid var(--border)" }}
+              >
+                Refaire une nouvelle commande
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

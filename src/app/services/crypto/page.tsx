@@ -5,6 +5,7 @@ import Image from "next/image";
 import { track } from "@vercel/analytics";
 import { motion, AnimatePresence } from "framer-motion";
 import { CRYPTO_RATES, CRYPTO_NETWORKS, CRYPTO_WALLETS, MOMO_OPERATORS, IMAGES } from "@/lib/services";
+import { saveClientInfo } from "@/lib/clientInfo";
 import WAPopover from "@/components/WAPopover";
 import USSDOrderFlow from "@/components/USSDOrderFlow";
 import RelatedServices from "@/components/RelatedServices";
@@ -155,6 +156,7 @@ export default function CryptoPage() {
 
   function handleAddToCart() {
     if (!validate()) { showToast("Corrigez les erreurs avant d'ajouter au panier", "error"); return; }
+    saveClientInfo({ email, phone: momoPhone, name: beneficiary || email.split("@")[0] });
     const op = MOMO_OPERATORS.find(o => o.id === momoOp)?.name ?? momoOp;
     addItem({
       id: `crypto-${cryptoId}-${Date.now()}`,

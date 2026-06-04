@@ -5,6 +5,7 @@ import Image from "next/image";
 import { track } from "@vercel/analytics";
 import { motion } from "framer-motion";
 import { COUPON_RATES, MOMO_OPERATORS, IMAGES } from "@/lib/services";
+import { saveClientInfo } from "@/lib/clientInfo";
 import WAPopover from "@/components/WAPopover";
 import RelatedServices from "@/components/RelatedServices";
 import { useCart } from "@/contexts/CartContext";
@@ -125,6 +126,7 @@ export default function CouponsPage() {
 
   function handleAddToCart() {
     if (!validate()) { showToast("Corrigez les erreurs avant d'ajouter au panier", "error"); return; }
+    saveClientInfo({ name, email, phone, dialCode });
     const op = MOMO_OPERATORS.find(o => o.id === momoOp)?.name ?? momoOp;
     addItem({
       id: `coupon-${type}-${Date.now()}`,

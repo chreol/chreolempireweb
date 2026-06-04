@@ -5,6 +5,7 @@ import Image from "next/image";
 import { track } from "@vercel/analytics";
 import { motion, AnimatePresence } from "framer-motion";
 import { UBA_CARDS, UBA_RECHARGE_FEES, IMAGES } from "@/lib/services";
+import { saveClientInfo } from "@/lib/clientInfo";
 import WAPopover from "@/components/WAPopover";
 import USSDOrderFlow from "@/components/USSDOrderFlow";
 import RelatedServices from "@/components/RelatedServices";
@@ -102,6 +103,7 @@ export default function UBAPage() {
 
   function handleBuyAddToCart() {
     if (!validateBuy()) { showToast("Corrigez les erreurs", "error"); return; }
+    saveClientInfo({ name: buyName, phone: buyPhone });
     const card = UBA_CARDS.find(c => c.segment === selectedSeg)!;
     addItem({
       id: `uba-buy-${Date.now()}`,
@@ -142,6 +144,7 @@ export default function UBAPage() {
 
   function handleAddToCart() {
     if (!validate()) { showToast("Corrigez les erreurs", "error"); return; }
+    saveClientInfo({ name: fullName, email, phone });
     addItem({
       id: `uba-recharge-${Date.now()}`,
       cardName: "UBA Cameroun — Recharge",
