@@ -65,3 +65,15 @@ export function loadRecentOrder(email: string): LastOrder | null {
     return o;
   } catch { return null; }
 }
+
+// ── Dernier mode de paiement utilisé ───────────────────────────────────────
+
+const PAYMENT_KEY = "chreol_payment_method";
+
+export function savePaymentMethod(opId: string): void {
+  try { localStorage.setItem(PAYMENT_KEY, opId); } catch { /* ignore */ }
+}
+
+export function loadPaymentMethod(): string | null {
+  try { return localStorage.getItem(PAYMENT_KEY); } catch { return null; }
+}

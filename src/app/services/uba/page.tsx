@@ -8,6 +8,7 @@ import { UBA_CARDS, UBA_RECHARGE_FEES, IMAGES } from "@/lib/services";
 import { saveClientInfo } from "@/lib/clientInfo";
 import WAPopover from "@/components/WAPopover";
 import USSDOrderFlow from "@/components/USSDOrderFlow";
+import PaymentMethodSelector, { resolvePaymentMethod } from "@/components/PaymentMethodSelector";
 import RelatedServices from "@/components/RelatedServices";
 import { useCart } from "@/contexts/CartContext";
 import { useHistory } from "@/contexts/HistoryContext";
@@ -60,6 +61,7 @@ export default function UBAPage() {
 
   const orderIdRef = useRef("");
   const [mode, setMode]         = useState<"buy" | "recharge">("buy");
+  const [payOp, setPayOp]       = useState<string | null>(null);
 
   /* ── Buy mode ── */
   const [selectedSeg, setSelectedSeg] = useState<string | null>(null);
@@ -141,7 +143,8 @@ export default function UBAPage() {
 
   function buildRechargeMsgPlain() {
     const ref = orderIdRef.current ? ` — Réf #${orderIdRef.current.slice(-8).toUpperCase()}` : "";
-    return `💳 RECHARGE UBA${ref}\nCarte : ${card6}••••••${card4}\nClient ID : ${clientId}\n${fullName ? `Nom : ${fullName}\n` : ""}Téléphone : +237 ${phone}\nMontant : ${numAmount.toLocaleString("fr-FR")} FCFA\nFrais : ${fee.toLocaleString("fr-FR")} FCFA\nTotal à payer : ${total.toLocaleString("fr-FR")} FCFA`;
+    const pay = payOp ? `\nPaiement : ${resolvePaymentMethod(payOp)}` : "";
+    return `💳 RECHARGE UBA${ref}\nCarte : ${card6}••••••${card4}\nClient ID : ${clientId}\n${fullName ? `Nom : ${fullName}\n` : ""}Téléphone : +237 ${phone}\nMontant : ${numAmount.toLocaleString("fr-FR")} FCFA\nFrais : ${fee.toLocaleString("fr-FR")} FCFA\nTotal à payer : ${total.toLocaleString("fr-FR")} FCFA${pay}`;
   }
 
   function handleAddToCart() {
@@ -176,7 +179,7 @@ export default function UBAPage() {
         clientName: fullName || email.split("@")[0],
         clientEmail: email,
         clientPhone: phone,
-        paymentMethod: "Via WhatsApp",
+        paymentMethod: resolvePaymentMethod(payOp),
         items: [{
           name: "UBA Cameroun — Recharge",
           qty: 1,
@@ -524,6 +527,9 @@ export default function UBAPage() {
                 ))}
               </div>
             </details>
+
+            {/* Mode de paiement préféré (optionnel) */}
+            <PaymentMethodSelector value={payOp} onChange={setPayOp} />
 
             <button
               onClick={handleAddToCart}

@@ -6,6 +6,7 @@ import { track } from "@vercel/analytics";
 import { useCart } from "@/contexts/CartContext";
 import { GIFT_CARDS, IMAGES } from "@/lib/services";
 import USSDOrderFlow from "@/components/USSDOrderFlow";
+import PaymentMethodSelector, { resolvePaymentMethod } from "@/components/PaymentMethodSelector";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/components/Toast";
@@ -71,6 +72,7 @@ export default function CartesCadeauxPage() {
   const [added, setAdded] = useState(false);
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("");
+  const [payOp, setPayOp] = useState<string | null>(null);
 
   const cards = GIFT_CARDS.filter(c => c.tier === tab);
   const card = GIFT_CARDS.find(c => c.id === cardId);
@@ -104,7 +106,7 @@ export default function CartesCadeauxPage() {
         clientName: email.split("@")[0],
         clientEmail: email,
         clientPhone: "",
-        paymentMethod: "Via WhatsApp",
+        paymentMethod: resolvePaymentMethod(payOp),
         items: [{ name: `${card.name} [${region}]`, qty: 1, price: finalPrice, amount: `${finalLabel} — ${finalPrice.toLocaleString("fr-FR")} FCFA` }],
         total: finalPrice,
         sourceUrl: window.location.pathname,
@@ -127,7 +129,8 @@ export default function CartesCadeauxPage() {
     const finalLabel = customPrice ? `${customVal}€ (personnalisé)` : amountLabel ?? "";
     const finalPrice = (customPrice ?? amount?.price ?? 0).toLocaleString("fr-FR");
     const ref = orderIdRef.current ? ` — Réf #${orderIdRef.current.slice(-8).toUpperCase()}` : "";
-    return `Je veux commander ${card.name} ${finalLabel} [${region}] — ${finalPrice} FCFA${ref}`;
+    const pay = payOp ? `\nPaiement : ${resolvePaymentMethod(payOp)}` : "";
+    return `Je veux commander ${card.name} ${finalLabel} [${region}] — ${finalPrice} FCFA${ref}${pay}`;
   }
 
   return (
@@ -287,6 +290,11 @@ export default function CartesCadeauxPage() {
                   style={{ background: "var(--bg-card)", border: `1px solid ${emailError ? "#EF4444" : "var(--border)"}` }}
                 />
                 {emailError && <p className="text-xs mt-1 px-1" style={{ color: "#EF4444" }}>{emailError}</p>}
+              </div>
+
+              {/* Mode de paiement préféré (optionnel) */}
+              <div className="mb-3 mt-1">
+                <PaymentMethodSelector value={payOp} onChange={setPayOp} />
               </div>
 
               <div className="flex flex-col gap-2">

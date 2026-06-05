@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { FACTURE_BILLERS, FACTURE_COMMISSION, MOMO_OPERATORS, IMAGES } from "@/lib/services";
 import WAPopover from "@/components/WAPopover";
 import USSDOrderFlow from "@/components/USSDOrderFlow";
+import PaymentMethodSelector, { resolvePaymentMethod } from "@/components/PaymentMethodSelector";
 import RelatedServices from "@/components/RelatedServices";
 import { useHistory } from "@/contexts/HistoryContext";
 import { useToast } from "@/components/Toast";
@@ -50,6 +51,7 @@ export default function FacturesPage() {
   const orderIdRef = useRef("");
   const [tab, setTab]       = useState<Tab>("factures");
   const [cartDialog, setCartDialog] = useState(false);
+  const [payOp, setPayOp]   = useState<string | null>(null);
 
   /* --- Shared --- */
   const [email, setEmail]     = useState("");
@@ -88,7 +90,8 @@ export default function FacturesPage() {
   function buildFactureMsgPlain() {
     const billerName = FACTURE_BILLERS.find(b => b.id === biller)?.name ?? biller;
     const ref = orderIdRef.current ? ` — Réf #${orderIdRef.current.slice(-8).toUpperCase()}` : "";
-    return `📋 PAIEMENT FACTURE${ref}\nFournisseur : ${billerName}\nIdentifiant : ${identifier} (${idType === "phone" ? "téléphone" : "décodeur"})\nMontant facture : ${numFacAmt.toLocaleString("fr-FR")} FCFA\nCommission : ${FACTURE_COMMISSION} FCFA\nTotal à payer : ${totalFacture.toLocaleString("fr-FR")} FCFA`;
+    const pay = payOp ? `\nPaiement : ${resolvePaymentMethod(payOp)}` : "";
+    return `📋 PAIEMENT FACTURE${ref}\nFournisseur : ${billerName}\nIdentifiant : ${identifier} (${idType === "phone" ? "téléphone" : "décodeur"})\nMontant facture : ${numFacAmt.toLocaleString("fr-FR")} FCFA\nCommission : ${FACTURE_COMMISSION} FCFA\nTotal à payer : ${totalFacture.toLocaleString("fr-FR")} FCFA${pay}`;
   }
 
   function handleFactureBeforeOpen() {
@@ -110,7 +113,7 @@ export default function FacturesPage() {
         clientName: email.split("@")[0],
         clientEmail: email,
         clientPhone: idType === "phone" ? identifier : "",
-        paymentMethod: "Via WhatsApp",
+        paymentMethod: resolvePaymentMethod(payOp),
         items: [{
           name: `Facture ${billerName}`,
           qty: 1,
@@ -334,6 +337,9 @@ export default function FacturesPage() {
                 </div>
               </motion.div>
             )}
+
+            {/* Mode de paiement préféré (optionnel) */}
+            <PaymentMethodSelector value={payOp} onChange={setPayOp} />
 
             <div className="flex gap-2 items-stretch">
               {/* Cart button → mini dialog */}
