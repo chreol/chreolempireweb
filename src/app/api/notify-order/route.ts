@@ -95,64 +95,69 @@ function payColor(method: string): string {
   return "#22C55E";
 }
 
-function getMomoPaymentBlock(method: string, total: number): string {
+// Retourne des <tr> à insérer directement dans le tableau de paiement,
+// entre la ligne "Mode de paiement" et la ligne "TOTAL À RÉGLER".
+function getMomoPaymentRows(method: string, total: number): string {
   const lower = method.toLowerCase();
-  type MomoInfo = { icon: string; name: string; merchant: string; merchantName: string; ussd: string; color: string };
-  let info: MomoInfo | null = null;
-  if (lower.includes("mtn")) info = {
+  const isMtn    = lower.includes("mtn");
+  const isOrange = lower.includes("orange");
+  // Si méthode inconnue / Via WhatsApp → proposer les deux opérateurs
+  const showBoth = !isMtn && !isOrange;
+
+  type Op = { icon: string; name: string; merchant: string; merchantName: string; ussd: string; color: string };
+  const ops: Op[] = [];
+  if (isMtn || showBoth) ops.push({
     icon: "🟡", name: "MTN Mobile Money", merchant: "672416141",
     merchantName: "ETS Content", color: "#F59E0B",
     ussd: `*126*14*672416141*${total}#`,
-  };
-  else if (lower.includes("orange")) info = {
+  });
+  if (isOrange || showBoth) ops.push({
     icon: "🟠", name: "Orange Money", merchant: "692251299",
     merchantName: "Ets Tagny", color: "#FF6600",
     ussd: `#150*14*518554*692251299*${total}#`,
-  };
-  if (!info) return "";
+  });
+
   const waProof = `https://wa.me/237697657734?text=${encodeURIComponent(`Bonjour, voici ma preuve de paiement — Montant : ${total.toLocaleString("fr-FR")} FCFA`)}`;
-  return `
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0A0A0A;border:2px solid ${info.color};border-radius:12px;margin-bottom:20px">
-    <tr><td style="padding:16px 20px">
-      <p style="margin:0 0 12px;font-size:10px;font-weight:900;letter-spacing:2px;color:${info.color}">💳 PROCÉDER AU PAIEMENT</p>
-      <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:12px">
+
+  return ops.map((op, idx) => `
+  <tr>
+    <td colspan="2" style="padding:0 20px ${idx === ops.length - 1 ? "4px" : "0"} 20px;background:#0A0A0A">
+      <table width="100%" cellpadding="0" cellspacing="0"
+        style="border:1.5px solid ${op.color}55;border-radius:10px;margin:${idx === 0 ? "8px" : "6px"} 0 0;overflow:hidden">
+        <tr><td style="padding:10px 14px;background:${op.color}18">
+          <p style="margin:0;font-size:11px;font-weight:900;color:${op.color}">
+            ${op.icon} PAYER VIA ${op.name.toUpperCase()}
+          </p>
+        </td></tr>
         <tr>
-          <td style="background:rgba(255,255,255,0.06);border-radius:8px;padding:10px 14px;width:48%">
-            <p style="margin:0;font-size:10px;color:#9CA3AF">Opérateur</p>
-            <p style="margin:4px 0 0;font-size:14px;font-weight:900;color:#FFFFFF">${info.icon} ${info.name}</p>
-          </td>
-          <td width="8"></td>
-          <td style="background:rgba(255,255,255,0.06);border-radius:8px;padding:10px 14px;width:48%">
-            <p style="margin:0;font-size:10px;color:#9CA3AF">Code Marchand</p>
-            <p style="margin:4px 0 0;font-size:18px;font-weight:900;color:${info.color};letter-spacing:2px">${info.merchant}</p>
-            <p style="margin:2px 0 0;font-size:10px;color:#6B7280">${info.merchantName}</p>
+          <td style="padding:10px 14px">
+            <table width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td style="width:50%;vertical-align:top">
+                  <p style="margin:0;font-size:9px;color:#9CA3AF;letter-spacing:1px">CODE MARCHAND</p>
+                  <p style="margin:4px 0 2px;font-size:20px;font-weight:900;color:${op.color};letter-spacing:2px">${op.merchant}</p>
+                  <p style="margin:0;font-size:10px;color:#6B7280">${op.merchantName}</p>
+                </td>
+                <td width="12"></td>
+                <td style="vertical-align:top">
+                  <p style="margin:0;font-size:9px;color:#9CA3AF;letter-spacing:1px">CODE USSD</p>
+                  <p style="margin:4px 0 0;font-size:14px;font-weight:900;color:#FFFFFF;font-family:monospace;word-break:break-all">${op.ussd}</p>
+                </td>
+              </tr>
+            </table>
           </td>
         </tr>
       </table>
-      <table width="100%" cellpadding="0" cellspacing="0" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;margin-bottom:12px">
-        <tr><td style="padding:12px 14px">
-          <p style="margin:0;font-size:10px;color:#9CA3AF;letter-spacing:1px">CODE USSD À COMPOSER</p>
-          <p style="margin:6px 0 4px;font-size:20px;font-weight:900;color:#FFFFFF;font-family:monospace;letter-spacing:1px">${info.ussd}</p>
-          <p style="margin:0;font-size:11px;color:#6B7280">Remplacez <strong style="color:#9CA3AF">${total}</strong> par le montant exact si différent</p>
-        </td></tr>
-      </table>
-      <table width="100%" cellpadding="0" cellspacing="0">
-        <tr>
-          <td style="background:${info.color};border-radius:8px;padding:10px 14px;text-align:center;font-size:16px;font-weight:900;color:#0A0A0A">
-            Montant à régler : ${total.toLocaleString("fr-FR")} FCFA
-          </td>
-        </tr>
-      </table>
-      <p style="margin:12px 0 8px;font-size:11px;font-weight:700;color:#D1D5DB;text-align:center">Après paiement, envoyez la preuve ici :</p>
-      <table width="100%" cellpadding="0" cellspacing="0">
-        <tr><td style="text-align:center">
-          <a href="${waProof}" style="display:inline-block;background:#25D366;color:#FFFFFF;text-decoration:none;padding:10px 24px;border-radius:8px;font-weight:900;font-size:13px">
-            📱 Envoyer la preuve via WhatsApp
-          </a>
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>`;
+    </td>
+  </tr>`).join("") + `
+  <tr>
+    <td colspan="2" style="padding:10px 20px 12px;background:#0A0A0A;text-align:center">
+      <a href="${waProof}"
+        style="display:inline-block;background:#25D366;color:#FFFFFF;text-decoration:none;padding:9px 22px;border-radius:8px;font-weight:900;font-size:12px">
+        📱 Envoyer la preuve de paiement via WhatsApp
+      </a>
+    </td>
+  </tr>`;
 }
 
 // ── Admin email ───────────────────────────────────────────────────────────────
@@ -415,29 +420,27 @@ function buildClientEmail(p: NotifyPayload): string {
         <tbody>${clientItemsHtml(p.items)}</tbody>
       </table>
 
-      <!-- Total + Payment -->
-      <table width="100%" cellpadding="0" cellspacing="0" style="background:#FFFBEB;border:2px solid #FCD34D;border-radius:10px;margin-bottom:24px">
-        <tr>
+      <!-- Total + Payment + USSD intégré -->
+      <table width="100%" cellpadding="0" cellspacing="0" style="border:2px solid #FCD34D;border-radius:10px;margin-bottom:24px;overflow:hidden">
+        <tr style="background:#FFFBEB">
           <td style="padding:11px 20px;font-size:13px;color:#92400E;border-bottom:1px dashed #FDE68A">Mode de paiement</td>
           <td style="padding:11px 20px;font-size:13px;font-weight:900;color:${pColor};text-align:right;border-bottom:1px dashed #FDE68A">${esc(p.paymentMethod)}</td>
         </tr>
+        ${getMomoPaymentRows(p.paymentMethod, p.total)}
         ${p.commission ? `
-        <tr>
+        <tr style="background:#FFFBEB">
           <td style="padding:10px 20px;font-size:12px;color:#92400E;border-bottom:1px dashed #FDE68A">Montant articles</td>
           <td style="padding:10px 20px;font-size:12px;font-weight:700;color:#B45309;text-align:right;border-bottom:1px dashed #FDE68A">${(p.total - p.commission).toLocaleString("fr-FR")} FCFA</td>
         </tr>
-        <tr>
+        <tr style="background:#FFFBEB">
           <td style="padding:10px 20px;font-size:12px;color:#92400E;border-bottom:1px dashed #FDE68A">${esc(p.commissionLabel ?? "Frais de service")}</td>
           <td style="padding:10px 20px;font-size:12px;font-weight:700;color:#EF4444;text-align:right;border-bottom:1px dashed #FDE68A">+ ${p.commission.toLocaleString("fr-FR")} FCFA</td>
         </tr>` : ""}
-        <tr>
+        <tr style="background:#FFFBEB">
           <td style="padding:14px 20px;font-size:14px;font-weight:900;color:#78350F">TOTAL À RÉGLER</td>
           <td style="padding:14px 20px;font-size:24px;font-weight:900;color:#B45309;text-align:right;white-space:nowrap">${p.total.toLocaleString("fr-FR")} FCFA</td>
         </tr>
       </table>
-
-      <!-- Payment instructions (MTN/Orange only) -->
-      ${getMomoPaymentBlock(p.paymentMethod, p.total)}
 
       <!-- Canal de commande -->
       <table width="100%" cellpadding="0" cellspacing="0" style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;margin-bottom:16px">
