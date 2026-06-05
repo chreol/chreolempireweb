@@ -17,15 +17,8 @@ import FAQ from "@/components/FAQ";
 import StepGuide from "@/components/StepGuide";
 import { Field, CalcRow } from "@/components/FormField";
 
-const STEPS_CRYPTO = [
-  { icon: "₿", title: "Choisissez votre crypto et réseau", description: "Sélectionnez la cryptomonnaie (USDT, BTC, TRX…) et le réseau. TRC20 est recommandé pour USDT : frais quasi nuls et confirmation en 1-2 minutes.", tip: "Évitez ERC20 pour USDT — frais de gas très élevés." },
-  { icon: "📧", title: "Renseignez votre email", description: "Entrez votre adresse email pour recevoir la confirmation et le suivi de la transaction automatiquement." },
-  { icon: "📬", title: "Copiez notre adresse wallet", description: "Notre adresse de dépôt s'affiche. Copiez-la avec précision — une erreur peut faire perdre vos fonds définitivement.", tip: "Double-vérifiez les 4 premiers et 4 derniers caractères." },
-  { icon: "📤", title: "Envoyez vos cryptos + partagez le TxID", description: "Effectuez le virement et partagez le hash de transaction (TxID) sur WhatsApp avec la capture de l'envoi.", tip: "Le TxID est visible dans votre wallet sous 'Historique des transactions'." },
-  { icon: "💰", title: "Recevez vos FCFA sur MoMo", description: "Après confirmation blockchain, nous virons le montant en FCFA. Délai total : 15 à 30 min. Taux garanti au moment de l'accord.", tip: "BTC peut prendre jusqu'à 1h selon la congestion réseau." },
-];
-
-const PAGE_FAQ = [
+// FAQ en français pour le JSON-LD SEO (marché camerounais francophone-dominant)
+const FAQ_FR = [
   { q: "Quel est le taux USDT en FCFA aujourd'hui au Cameroun ?", a: "Le taux USDT/FCFA est mis à jour en temps réel dans notre ticker en haut de page. Nous achetons à 580 FCFA/$ et vendons à 700 FCFA/$. Ce taux est garanti au moment de votre transaction, sans aucune commission cachée." },
   { q: "Comment vendre ses crypto en FCFA au Cameroun sans arnaque ?", a: "Chreol Empire opère depuis 2012 à Douala. Processus sécurisé en 3 étapes : (1) envoyez vos crypto à notre adresse vérifiée, (2) partagez le TxID sur WhatsApp avec capture de l'envoi, (3) recevez votre FCFA sur MTN MoMo ou Orange Money sous 30 min post-confirmation blockchain." },
   { q: "Quelle blockchain utiliser pour envoyer de l'USDT au Cameroun ?", a: "TRC20 (réseau Tron) est recommandé : frais proches de zéro et confirmations en 1-2 minutes. BEP20 (BNB Chain) est aussi accepté. Évitez ERC20 pour l'USDT — les frais de gas Ethereum peuvent dépasser 10$." },
@@ -35,7 +28,7 @@ const PAGE_FAQ = [
 const PAGE_FAQ_SCHEMA = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
-  mainEntity: PAGE_FAQ.map(f => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+  mainEntity: FAQ_FR.map(f => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
 };
 
 export default function CryptoPage() {
@@ -59,6 +52,20 @@ export default function CryptoPage() {
   const [errors, setErrors]       = useState<Record<string, string>>({});
   const [howOpen, setHowOpen]     = useState(false);
 
+  const STEPS_CRYPTO = [
+    { icon: "₿",  title: t("c.step1.t"), description: t("c.step1.d"), tip: t("c.step1.tip") },
+    { icon: "📧", title: t("c.step2.t"), description: t("c.step2.d") },
+    { icon: "📬", title: t("c.step3.t"), description: t("c.step3.d"), tip: t("c.step3.tip") },
+    { icon: "📤", title: t("c.step4.t"), description: t("c.step4.d"), tip: t("c.step4.tip") },
+    { icon: "💰", title: t("c.step5.t"), description: t("c.step5.d"), tip: t("c.step5.tip") },
+  ];
+  const PAGE_FAQ = [
+    { q: t("c.faq1.q"), a: t("c.faq1.a") },
+    { q: t("c.faq2.q"), a: t("c.faq2.a") },
+    { q: t("c.faq3.q"), a: t("c.faq3.a") },
+    { q: t("c.faq4.q"), a: t("c.faq4.a") },
+  ];
+
   const crypto   = CRYPTO_RATES.find(c => c.id === cryptoId)!;
   const networks = CRYPTO_NETWORKS[cryptoId] ?? [];
   const numAmount = parseFloat(amount) || 0;
@@ -75,15 +82,15 @@ export default function CryptoPage() {
 
   function validate() {
     const e: Record<string, string> = {};
-    if (!amount || numAmount <= 0) e.amount = "Montant requis";
-    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = "Adresse email valide requise";
+    if (!amount || numAmount <= 0) e.amount = t("err.amount_required");
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = t("err.email_valid");
     if (direction === "sell") {
-      if (txid && txid.length < 20) e.txid = "Hash invalide (min 20 caractères)";
-      if (!beneficiary.trim()) e.beneficiary = "Nom requis";
+      if (txid && txid.length < 20) e.txid = t("c.txid_invalid");
+      if (!beneficiary.trim()) e.beneficiary = t("err.name_required");
       const mpD = momoPhone.replace(/\D/g, "").replace(/^237/, "");
-      if (mpD.length < 9) e.momoPhone = "Numéro invalide (9 chiffres)";
+      if (mpD.length < 9) e.momoPhone = t("err.phone_invalid");
     } else {
-      if (!walletAddr.trim()) e.walletAddr = "Adresse wallet requise";
+      if (!walletAddr.trim()) e.walletAddr = t("c.wallet_receive");
     }
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -157,7 +164,7 @@ export default function CryptoPage() {
   }
 
   function handleAddToCart() {
-    if (!validate()) { showToast("Corrigez les erreurs avant d'ajouter au panier", "error"); return; }
+    if (!validate()) { showToast(t("err.fix_before_cart"), "error"); return; }
     saveClientInfo({ email, phone: momoPhone, name: beneficiary || email.split("@")[0] });
     const op = MOMO_OPERATORS.find(o => o.id === momoOp)?.name ?? momoOp;
     addItem({
@@ -179,7 +186,7 @@ export default function CryptoPage() {
       currency: "FCFA",
       status: "pending",
     });
-    showToast(`${direction === "sell" ? "Vente" : "Achat"} ${crypto.name} ajouté au panier !`, "success");
+    showToast(direction === "sell" ? t("c.added_sell", { name: crypto.name }) : t("c.added_buy", { name: crypto.name }), "success");
   }
 
 
@@ -190,9 +197,9 @@ export default function CryptoPage() {
   return (
     <div className="max-w-2xl lg:max-w-4xl mx-auto px-4 sm:px-6 py-10">
       <div className="flex items-center gap-2 text-xs mb-6" style={{ color: "var(--text-muted)" }}>
-        <a href="/services" className="hover:text-white transition-colors">Services</a>
+        <a href="/services" className="hover:text-white transition-colors">{t("nav.services")}</a>
         <span>›</span>
-        <span style={{ color: "var(--gold)" }}>Crypto & coins</span>
+        <span style={{ color: "var(--gold)" }}>{t("c.breadcrumb")}</span>
       </div>
 
       <h1 className="text-3xl font-black text-white mb-1">{t("p.crypto.title")}</h1>
@@ -212,14 +219,14 @@ export default function CryptoPage() {
               color: direction === d ? "#0A0A0A" : "var(--text-secondary)",
             }}
           >
-            {d === "sell" ? "💰 Je vends ma crypto" : "💳 J'achète de la crypto"}
+            {d === "sell" ? t("c.sell_tab") : t("c.buy_tab")}
           </button>
         ))}
       </div>
 
       {/* Crypto selector */}
       <div className="mb-6">
-        <p className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: "var(--text-muted)" }}>Choisir la crypto</p>
+        <p className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: "var(--text-muted)" }}>{t("c.choose_crypto")}</p>
         <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
           {CRYPTO_RATES.map(c => (
             <button
@@ -251,7 +258,7 @@ export default function CryptoPage() {
           className="flex flex-col gap-5"
         >
           {/* Network */}
-          <Field label="Réseau blockchain">
+          <Field label={t("c.network")}>
             <select value={network} onChange={e => setNetwork(e.target.value)} className={inputCls} style={inputBase}>
               {networks.map(n => <option key={n} value={n}>{n}</option>)}
             </select>
@@ -259,7 +266,7 @@ export default function CryptoPage() {
 
           {/* Amount */}
           <Field
-            label={direction === "sell" ? `Montant à vendre (${crypto.unit})` : "Montant FCFA à dépenser"}
+            label={direction === "sell" ? `${t("c.amount_sell")} (${crypto.unit})` : t("c.amount_buy")}
             error={errors.amount}
           >
             <input
@@ -281,33 +288,33 @@ export default function CryptoPage() {
               style={{ background: crypto.color + "12", border: `1px solid ${crypto.color}44` }}
             >
               <p className="text-xs font-black uppercase tracking-wider mb-3" style={{ color: crypto.color }}>
-                Tableau de calcul
+                {t("common.calc_table")}
               </p>
               {direction === "sell" ? (
                 <>
-                  <CalcRow label="Crypto envoyée" value={`${amount} ${crypto.unit}`} />
-                  <CalcRow label="Réseau" value={network} />
-                  <CalcRow label={`Taux d'achat`} value={`1 ${crypto.unit} = ${crypto.buyRate.toLocaleString("fr-FR")} FCFA`} />
-                  <CalcRow label="Commission" value="0 FCFA (0%)" />
-                  <CalcRow label="Vous recevez" value={`${fcfaReceived.toLocaleString("fr-FR")} FCFA`} highlight />
+                  <CalcRow label={t("c.crypto_sent")} value={`${amount} ${crypto.unit}`} />
+                  <CalcRow label={t("common.network")} value={network} />
+                  <CalcRow label={t("c.buy_rate")} value={`1 ${crypto.unit} = ${crypto.buyRate.toLocaleString("fr-FR")} FCFA`} />
+                  <CalcRow label="Commission" value={t("common.commission_0")} />
+                  <CalcRow label={t("common.you_receive")} value={`${fcfaReceived.toLocaleString("fr-FR")} FCFA`} highlight />
                 </>
               ) : (
                 <>
-                  <CalcRow label="FCFA à payer" value={`${numAmount.toLocaleString("fr-FR")} FCFA`} />
-                  <CalcRow label="Réseau" value={network} />
-                  <CalcRow label="Taux de vente" value={`1 ${crypto.unit} = ${crypto.sellRate.toLocaleString("fr-FR")} FCFA`} />
-                  <CalcRow label="Commission" value="0 FCFA (0%)" />
-                  <CalcRow label="Vous recevez" value={`${cryptoReceived.toFixed(6)} ${crypto.unit}`} highlight />
+                  <CalcRow label={t("c.fcfa_to_pay")} value={`${numAmount.toLocaleString("fr-FR")} FCFA`} />
+                  <CalcRow label={t("common.network")} value={network} />
+                  <CalcRow label={t("c.sell_rate")} value={`1 ${crypto.unit} = ${crypto.sellRate.toLocaleString("fr-FR")} FCFA`} />
+                  <CalcRow label="Commission" value={t("common.commission_0")} />
+                  <CalcRow label={t("common.you_receive")} value={`${cryptoReceived.toFixed(6)} ${crypto.unit}`} highlight />
                 </>
               )}
             </motion.div>
           )}
 
           {/* Email — commun aux deux directions */}
-          <Field label="Adresse email" error={errors.email}>
+          <Field label={t("f.email")} error={errors.email}>
             <input
               type="email"
-              placeholder="votre@email.com"
+              placeholder={t("f.email.ph")}
               value={email}
               onChange={e => { setEmail(e.target.value); setErrors(p => ({ ...p, email: "" })); }}
               className={inputCls}
@@ -327,10 +334,10 @@ export default function CryptoPage() {
                   style={{ background: "var(--gold)15", border: "1px solid var(--gold)44" }}
                 >
                   <p className="text-xs font-black uppercase tracking-wider mb-2" style={{ color: "var(--gold)" }}>
-                    📤 Envoyez à cette adresse
+                    {t("c.send_address")}
                   </p>
                   <p className="text-[11px] mb-3" style={{ color: "var(--text-secondary)" }}>
-                    Réseau : <span className="font-bold text-white">{network}</span> — vérifiez le réseau avant d&apos;envoyer
+                    {t("common.network")} : <span className="font-bold text-white">{network}</span> — {t("c.verify_network")}
                   </p>
                   <div
                     className="flex items-center gap-2 px-3 py-2.5 rounded-xl"
@@ -344,34 +351,34 @@ export default function CryptoPage() {
                       onClick={() =>
                         navigator.clipboard
                           .writeText(CRYPTO_WALLETS[cryptoId][network])
-                          .then(() => showToast("Adresse copiée !", "success"))
+                          .then(() => showToast(t("f.copied"), "success"))
                       }
                       className="shrink-0 text-xs px-2 py-1 rounded-lg font-bold hover:bg-white/10 transition-colors"
                       style={{ color: "var(--gold)" }}
                     >
-                      📋 Copier
+                      {t("f.copy")}
                     </button>
                   </div>
                 </motion.div>
               )}
 
-              <Field label="TxID / Hash de la transaction (optionnel — à fournir après envoi)" error={errors.txid}>
+              <Field label={t("c.txid")} error={errors.txid}>
                 <input
-                  type="text" placeholder="Collez votre hash de transaction ici… (peut être ajouté plus tard)"
+                  type="text" placeholder={t("c.txid.ph")}
                   value={txid}
                   onChange={e => { setTxid(e.target.value); setErrors(p => ({ ...p, txid: "" })); }}
                   className={inputCls} style={errors.txid ? inputErr : inputBase}
                 />
               </Field>
-              <Field label="Nom du bénéficiaire" error={errors.beneficiary}>
+              <Field label={t("f.beneficiary")} error={errors.beneficiary}>
                 <input
-                  type="text" placeholder="Votre nom complet"
+                  type="text" placeholder={t("f.fullname.ph")}
                   value={beneficiary}
                   onChange={e => { setBeneficiary(e.target.value); setErrors(p => ({ ...p, beneficiary: "" })); }}
                   className={inputCls} style={errors.beneficiary ? inputErr : inputBase}
                 />
               </Field>
-              <Field label="Réception Mobile Money" error={errors.momoPhone}>
+              <Field label={t("f.momo_receive")} error={errors.momoPhone}>
                 <div className="flex flex-col gap-2">
                   <div className="flex gap-2">
                     {MOMO_OPERATORS.slice(0, 2).map(o => (
@@ -400,10 +407,10 @@ export default function CryptoPage() {
 
           {/* BUY — wallet */}
           {direction === "buy" && (
-            <Field label="Adresse wallet de réception" error={errors.walletAddr}>
+            <Field label={t("c.wallet_receive")} error={errors.walletAddr}>
               <div className="relative">
                 <input
-                  type="text" placeholder={`Adresse ${crypto.name} réseau ${network}…`}
+                  type="text" placeholder={t("c.wallet.ph", { name: crypto.name, network })}
                   value={walletAddr}
                   onChange={e => { setWalletAddr(e.target.value); setErrors(p => ({ ...p, walletAddr: "" })); }}
                   className={inputCls + " pr-12"} style={errors.walletAddr ? inputErr : inputBase}
@@ -430,29 +437,29 @@ export default function CryptoPage() {
           className="w-full py-4 rounded-full font-black text-black text-sm transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
           style={{ background: "var(--gold)" }}
         >
-          🛒 Ajouter au panier
+          {t("btn.add_to_cart")}
         </button>
         {direction === "sell" ? (
           <WAPopover
-            onBeforeOpen={() => { const ok = validate(); if (!ok) { showToast("Corrigez les erreurs", "error"); return false; } sendNotification(); return true; }}
+            onBeforeOpen={() => { const ok = validate(); if (!ok) { showToast(t("err.fix"), "error"); return false; } sendNotification(); return true; }}
             getMsg={buildMsgPlain}
             prefillPrenom={beneficiary}
             className="w-full py-3 rounded-full font-black text-white text-sm flex items-center justify-center gap-2 transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
             style={{ background: "#25D366" }}
           >
             <Image src={IMAGES.whatsapp} alt="" width={20} height={20} unoptimized className="shrink-0" />
-            Commander directement via WhatsApp
+            {t("btn.order_wa_direct")}
           </WAPopover>
         ) : (
           <USSDOrderFlow
             total={numAmount}
             getMsg={buildMsgPlain}
-            onBeforeOpen={() => { const ok = validate(); if (!ok) { showToast("Corrigez les erreurs", "error"); return false; } sendNotification(); return true; }}
+            onBeforeOpen={() => { const ok = validate(); if (!ok) { showToast(t("err.fix"), "error"); return false; } sendNotification(); return true; }}
             className="w-full py-3 rounded-full font-black text-white text-sm flex items-center justify-center gap-2 transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
             style={{ background: "#25D366" }}
           >
             <Image src={IMAGES.whatsapp} alt="" width={20} height={20} unoptimized className="shrink-0" />
-            Commander via WhatsApp
+            {t("btn.order_wa")}
           </USSDOrderFlow>
         )}
       </div>
@@ -493,7 +500,7 @@ export default function CryptoPage() {
           </div>
         )}
       </div>
-      <StepGuide title="Comment vendre/acheter des cryptos — Étape par étape" steps={STEPS_CRYPTO} />
+      <StepGuide title={t("c.guide_title")} steps={STEPS_CRYPTO} />
       <FAQ items={PAGE_FAQ} />
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(PAGE_FAQ_SCHEMA) }} />
       <RelatedServices current="crypto" />

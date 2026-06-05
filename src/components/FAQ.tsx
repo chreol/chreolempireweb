@@ -2,17 +2,20 @@
 
 import { useState } from "react";
 import { track } from "@vercel/analytics";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export interface FAQItem { q: string; a: string }
 
-export default function FAQ({ items, title = "Questions fréquentes" }: { items: FAQItem[]; title?: string }) {
+export default function FAQ({ items, title }: { items: FAQItem[]; title?: string }) {
   const [open, setOpen] = useState<number | null>(null);
+  const { t } = useLanguage();
+  const heading = title ?? t("common.faq_title");
 
   return (
     <section className="mt-12 mb-4">
       <div className="flex items-center gap-3 mb-5">
         <div className="h-px flex-1" style={{ background: "var(--border)" }} />
-        <h2 className="text-lg font-black shrink-0" style={{ color: "var(--text-primary)" }}>{title}</h2>
+        <h2 className="text-lg font-black shrink-0" style={{ color: "var(--text-primary)" }}>{heading}</h2>
         <div className="h-px flex-1" style={{ background: "var(--border)" }} />
       </div>
 

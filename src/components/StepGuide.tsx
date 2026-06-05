@@ -1,5 +1,7 @@
 "use client";
 
+import { useLanguage } from "@/contexts/LanguageContext";
+
 interface Step {
   icon: string;
   title: string;
@@ -12,12 +14,14 @@ interface StepGuideProps {
   steps: Step[];
 }
 
-export default function StepGuide({ title = "Comment commander — Étape par étape", steps }: StepGuideProps) {
+export default function StepGuide({ title, steps }: StepGuideProps) {
+  const { t } = useLanguage();
+  const heading = title ?? t("guide.default_title");
   return (
     <div className="rounded-2xl overflow-hidden mb-8" style={{ border: "1px solid var(--border)" }}>
       {/* Header */}
       <div className="px-5 py-4" style={{ background: "var(--bg-card)", borderBottom: "1px solid var(--border)" }}>
-        <p className="font-black text-white text-sm">{title}</p>
+        <p className="font-black text-white text-sm">{heading}</p>
       </div>
 
       {/* Steps */}

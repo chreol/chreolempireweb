@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { MOMO_OPERATORS } from "@/lib/services";
 import { savePaymentMethod, loadPaymentMethod } from "@/lib/clientInfo";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 // Les 3 opérateurs proposés en chips (les 2 principaux + Gimac CEMAC)
 const SELECTABLE = MOMO_OPERATORS.filter(o => ["orange", "mtn", "gimac"].includes(o.id));
@@ -28,6 +29,7 @@ interface Props {
 
 export default function PaymentMethodSelector({ value, onChange }: Props) {
   const [hydrated, setHydrated] = useState(false);
+  const { t } = useLanguage();
 
   // Pré-sélection depuis localStorage au montage (sans forcer)
   useEffect(() => {
@@ -48,7 +50,7 @@ export default function PaymentMethodSelector({ value, onChange }: Props) {
   return (
     <div className="flex flex-col gap-2">
       <p className="text-xs font-bold" style={{ color: "var(--text-muted)" }}>
-        💳 Mode de paiement préféré <span style={{ opacity: 0.7 }}>(optionnel)</span>
+        {t("pms.label")} <span style={{ opacity: 0.7 }}>{t("f.optional")}</span>
       </p>
 
       <div className="grid grid-cols-3 gap-2">
@@ -85,18 +87,18 @@ export default function PaymentMethodSelector({ value, onChange }: Props) {
       {/* Instructions Gimac (transfert CEMAC) */}
       {hydrated && value === "gimac" && (
         <div className="rounded-2xl p-4 mt-1 text-xs" style={{ background: "#006B3D14", border: "1px solid #006B3D44" }}>
-          <p className="font-black mb-2" style={{ color: "#00A65A" }}>🌍 Paiement Gimac (transfert CEMAC)</p>
+          <p className="font-black mb-2" style={{ color: "#00A65A" }}>{t("pms.gimac_title")}</p>
           <p className="mb-2" style={{ color: "var(--text-secondary)" }}>
-            Pour payer depuis le Gabon, Congo, Tchad… via votre Mobile Money :
+            {t("pms.gimac_intro")}
           </p>
           <div className="flex flex-col gap-1.5" style={{ color: "var(--text-secondary)" }}>
             {[
-              "Ouvrez le menu de votre service Mobile Money",
-              "Cherchez « Transfert international » ou « Zone CEMAC »",
-              "Pays de destination : Cameroun 🇨🇲",
-              "Numéro destinataire : communiqué par l'agent sur WhatsApp",
-              "Saisissez le montant, confirmez avec votre code PIN",
-              "Envoyez la capture de confirmation sur WhatsApp",
+              t("pms.gimac_1"),
+              t("pms.gimac_2"),
+              t("pms.gimac_3"),
+              t("pms.gimac_4"),
+              t("pms.gimac_5"),
+              t("pms.gimac_6"),
             ].map((step, i) => (
               <div key={i} className="flex items-start gap-2">
                 <span className="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-black shrink-0 mt-0.5"

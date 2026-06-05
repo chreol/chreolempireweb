@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const ALL_SERVICES = [
   { id: "cartes-cadeaux", label: "Cartes Cadeaux",    emoji: "🎮", href: "/services/cartes-cadeaux", color: "#C9A84C" },
@@ -11,13 +12,14 @@ const ALL_SERVICES = [
 
 export default function RelatedServices({ current }: { current: string }) {
   const related = ALL_SERVICES.filter(s => s.id !== current).slice(0, 3);
+  const { t } = useLanguage();
 
   return (
     <section className="mt-14 mb-4">
       <div className="flex items-center gap-3 mb-5">
         <div className="h-px flex-1" style={{ background: "var(--border)" }} />
         <p className="text-xs font-black uppercase tracking-widest shrink-0" style={{ color: "var(--text-muted)" }}>
-          Vous pourriez aussi aimer
+          {t("common.also_like")}
         </p>
         <div className="h-px flex-1" style={{ background: "var(--border)" }} />
       </div>
