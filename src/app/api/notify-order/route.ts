@@ -23,9 +23,10 @@ async function buildMarkDoneUrl(
 
   // Compact summary for order recap in delivery/cancel emails
   const summary = JSON.stringify({
-    it: p.items.map(i => ({ n: i.name.slice(0, 35), t: i.price * i.qty, q: i.qty })),
+    it: p.items.map(i => ({ n: i.name.slice(0, 50), t: i.price * i.qty, q: i.qty, d: i.details?.slice(0, 80) ?? "" })),
     tot: p.total,
     pm: p.paymentMethod,
+    ph: p.clientPhone,
   });
   const s = btoa(Array.from(new TextEncoder().encode(summary)).map(b => String.fromCharCode(b)).join(""));
 
@@ -37,6 +38,7 @@ async function buildMarkDoneUrl(
     sig: token,
     act: action,
     s,
+    src: p.sourceUrl ?? "",
   });
   return `${base}/api/mark-done?${params}`;
 }
@@ -91,6 +93,66 @@ function payColor(method: string): string {
   if (method.toLowerCase().includes("mtn"))    return "#F59E0B";
   if (method.toLowerCase().includes("orange")) return "#F97316";
   return "#22C55E";
+}
+
+function getMomoPaymentBlock(method: string, total: number): string {
+  const lower = method.toLowerCase();
+  type MomoInfo = { icon: string; name: string; merchant: string; merchantName: string; ussd: string; color: string };
+  let info: MomoInfo | null = null;
+  if (lower.includes("mtn")) info = {
+    icon: "🟡", name: "MTN Mobile Money", merchant: "672416141",
+    merchantName: "ETS Content", color: "#F59E0B",
+    ussd: `*126*14*672416141*${total}#`,
+  };
+  else if (lower.includes("orange")) info = {
+    icon: "🟠", name: "Orange Money", merchant: "692251299",
+    merchantName: "Ets Tagny", color: "#FF6600",
+    ussd: `#150*14*518554*692251299*${total}#`,
+  };
+  if (!info) return "";
+  const waProof = `https://wa.me/237697657734?text=${encodeURIComponent(`Bonjour, voici ma preuve de paiement — Montant : ${total.toLocaleString("fr-FR")} FCFA`)}`;
+  return `
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0A0A0A;border:2px solid ${info.color};border-radius:12px;margin-bottom:20px">
+    <tr><td style="padding:16px 20px">
+      <p style="margin:0 0 12px;font-size:10px;font-weight:900;letter-spacing:2px;color:${info.color}">💳 PROCÉDER AU PAIEMENT</p>
+      <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:12px">
+        <tr>
+          <td style="background:rgba(255,255,255,0.06);border-radius:8px;padding:10px 14px;width:48%">
+            <p style="margin:0;font-size:10px;color:#9CA3AF">Opérateur</p>
+            <p style="margin:4px 0 0;font-size:14px;font-weight:900;color:#FFFFFF">${info.icon} ${info.name}</p>
+          </td>
+          <td width="8"></td>
+          <td style="background:rgba(255,255,255,0.06);border-radius:8px;padding:10px 14px;width:48%">
+            <p style="margin:0;font-size:10px;color:#9CA3AF">Code Marchand</p>
+            <p style="margin:4px 0 0;font-size:18px;font-weight:900;color:${info.color};letter-spacing:2px">${info.merchant}</p>
+            <p style="margin:2px 0 0;font-size:10px;color:#6B7280">${info.merchantName}</p>
+          </td>
+        </tr>
+      </table>
+      <table width="100%" cellpadding="0" cellspacing="0" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;margin-bottom:12px">
+        <tr><td style="padding:12px 14px">
+          <p style="margin:0;font-size:10px;color:#9CA3AF;letter-spacing:1px">CODE USSD À COMPOSER</p>
+          <p style="margin:6px 0 4px;font-size:20px;font-weight:900;color:#FFFFFF;font-family:monospace;letter-spacing:1px">${info.ussd}</p>
+          <p style="margin:0;font-size:11px;color:#6B7280">Remplacez <strong style="color:#9CA3AF">${total}</strong> par le montant exact si différent</p>
+        </td></tr>
+      </table>
+      <table width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+          <td style="background:${info.color};border-radius:8px;padding:10px 14px;text-align:center;font-size:16px;font-weight:900;color:#0A0A0A">
+            Montant à régler : ${total.toLocaleString("fr-FR")} FCFA
+          </td>
+        </tr>
+      </table>
+      <p style="margin:12px 0 8px;font-size:11px;font-weight:700;color:#D1D5DB;text-align:center">Après paiement, envoyez la preuve ici :</p>
+      <table width="100%" cellpadding="0" cellspacing="0">
+        <tr><td style="text-align:center">
+          <a href="${waProof}" style="display:inline-block;background:#25D366;color:#FFFFFF;text-decoration:none;padding:10px 24px;border-radius:8px;font-weight:900;font-size:13px">
+            📱 Envoyer la preuve via WhatsApp
+          </a>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>`;
 }
 
 // ── Admin email ───────────────────────────────────────────────────────────────
@@ -294,8 +356,11 @@ function buildClientEmail(p: NotifyPayload): string {
 
   <!-- Header -->
   <table width="100%" cellpadding="0" cellspacing="0">
-    <tr><td style="background:#0A0A0A;border-radius:12px 12px 0 0;padding:24px 32px;text-align:center">
-      <p style="margin:0;font-size:26px;font-weight:900;letter-spacing:-0.5px">
+    <tr><td style="background:#0A0A0A;border-radius:12px 12px 0 0;padding:20px 32px;text-align:center">
+      <img src="https://shop.chreolempire.com/assets/chreolempire%20logo%20avec%20contact%20m.webp"
+        alt="Chreol Empire" width="52" height="52"
+        style="border-radius:12px;margin-bottom:8px;display:block;margin-left:auto;margin-right:auto" />
+      <p style="margin:0;font-size:22px;font-weight:900;letter-spacing:-0.5px">
         <span style="color:#DAA520">Chreol</span><span style="color:#FFFFFF">Empire</span>
       </p>
       <p style="margin:4px 0 0;font-size:11px;color:#6B7280;letter-spacing:0.5px">Le monde digital, à portée de Mobile Money</p>
@@ -368,6 +433,17 @@ function buildClientEmail(p: NotifyPayload): string {
         <tr>
           <td style="padding:14px 20px;font-size:14px;font-weight:900;color:#78350F">TOTAL À RÉGLER</td>
           <td style="padding:14px 20px;font-size:24px;font-weight:900;color:#B45309;text-align:right;white-space:nowrap">${p.total.toLocaleString("fr-FR")} FCFA</td>
+        </tr>
+      </table>
+
+      <!-- Payment instructions (MTN/Orange only) -->
+      ${getMomoPaymentBlock(p.paymentMethod, p.total)}
+
+      <!-- Canal de commande -->
+      <table width="100%" cellpadding="0" cellspacing="0" style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;margin-bottom:16px">
+        <tr>
+          <td style="padding:10px 16px;font-size:12px;color:#64748B">Canal de commande</td>
+          <td style="padding:10px 16px;font-size:12px;font-weight:900;color:#25D366;text-align:right">💬 Via WhatsApp</td>
         </tr>
       </table>
 

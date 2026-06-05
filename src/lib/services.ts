@@ -199,6 +199,7 @@ export const PAYPAL_LIMITS = {
 export const MOMO_OPERATORS = [
   { id: "orange", name: "Orange Money",  color: "#FF6600", image: IMAGES.orange },
   { id: "mtn",    name: "MTN MoMo",      color: "#FFC107", image: IMAGES.mtn },
+  { id: "gimac",  name: "Gimac",         color: "#006B3D", image: "" },
   { id: "eu",     name: "Express Union", color: "#0066CC", image: IMAGES.expressUnion },
   { id: "yoomee", name: "Yoomee Money",  color: "#9B59B6", image: IMAGES.yoomee },
 ];

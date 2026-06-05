@@ -1,9 +1,10 @@
 export const runtime = "edge";
 
 interface OrderSummary {
-  it: { n: string; t: number; q: number }[];
+  it: { n: string; t: number; q: number; d?: string }[];
   tot: number;
   pm: string;
+  ph?: string;
 }
 
 function decodeSummary(s: string): OrderSummary | null {
@@ -15,11 +16,18 @@ function decodeSummary(s: string): OrderSummary | null {
   } catch { return null; }
 }
 
+function esc(s: string): string {
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
 function orderRecapHtml(summary: OrderSummary | null): string {
   if (!summary) return "";
   const rows = summary.it.map(i =>
     `<tr>
-      <td style="padding:9px 14px;font-size:13px;color:#1F2937;border-bottom:1px solid #F3F4F6">${i.n}${i.q > 1 ? ` ×${i.q}` : ""}</td>
+      <td style="padding:9px 14px;border-bottom:1px solid #F3F4F6">
+        <p style="margin:0;font-size:13px;color:#1F2937;font-weight:700">${esc(i.n)}${i.q > 1 ? ` ×${i.q}` : ""}</p>
+        ${i.d ? `<p style="margin:2px 0 0;font-size:11px;color:#6B7280">${esc(i.d)}</p>` : ""}
+      </td>
       <td style="padding:9px 14px;font-size:13px;font-weight:700;color:#B45309;text-align:right;border-bottom:1px solid #F3F4F6;white-space:nowrap">${i.t.toLocaleString("fr-FR")} FCFA</td>
     </tr>`
   ).join("");
@@ -66,8 +74,11 @@ function buildCancelEmail(name: string, ref: string, summary: OrderSummary | nul
 <div style="max-width:580px;margin:0 auto;padding:20px 12px">
 
   <table width="100%" cellpadding="0" cellspacing="0">
-    <tr><td style="background:#0A0A0A;border-radius:12px 12px 0 0;padding:24px 32px;text-align:center">
-      <p style="margin:0;font-size:26px;font-weight:900">
+    <tr><td style="background:#0A0A0A;border-radius:12px 12px 0 0;padding:20px 32px;text-align:center">
+      <img src="https://shop.chreolempire.com/assets/chreolempire%20logo%20avec%20contact%20m.webp"
+        alt="Chreol Empire" width="52" height="52"
+        style="border-radius:12px;margin-bottom:8px;display:block;margin-left:auto;margin-right:auto" />
+      <p style="margin:0;font-size:22px;font-weight:900">
         <span style="color:#DAA520">Chreol</span><span style="color:#FFFFFF">Empire</span>
       </p>
       <p style="margin:4px 0 0;font-size:11px;color:#6B7280">Le monde digital, à portée de Mobile Money</p>
@@ -138,10 +149,21 @@ function buildCancelEmail(name: string, ref: string, summary: OrderSummary | nul
 </body></html>`;
 }
 
-function buildDeliveryEmail(name: string, ref: string, summary: OrderSummary | null): string {
+function buildDeliveryEmail(name: string, ref: string, summary: OrderSummary | null, sourceUrl = ""): string {
   const year = new Date().getFullYear();
   const reviewUrl = "https://g.page/r/CQaaC7b5Jbg_EAE/review";
   const displayName = name || "cher client";
+  const base = "https://shop.chreolempire.com";
+
+  // Reorder URL : vers la page service si sourceUrl disponible, sinon WA
+  const servicePageUrl = sourceUrl && sourceUrl.startsWith("/services")
+    ? `${base}${sourceUrl}`
+    : (sourceUrl && sourceUrl.startsWith("http") ? sourceUrl : null);
+
+  // Support WA avec détails de commande pré-remplis
+  const itemsSummary = summary?.it.map(i => `- ${i.n}${i.q > 1 ? ` ×${i.q}` : ""}`).join("\n") ?? "";
+  const supportMsg = `Bonjour Chreol Empire 👋\nJ'ai une question concernant ma commande :\n\n📦 Commande #${ref}\n${itemsSummary}\n💰 Total : ${summary?.tot.toLocaleString("fr-FR") ?? "—"} FCFA\n\nMa question : `;
+  const supportWaUrl = `https://wa.me/237697657734?text=${encodeURIComponent(supportMsg)}`;
 
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -150,8 +172,11 @@ function buildDeliveryEmail(name: string, ref: string, summary: OrderSummary | n
 <div style="max-width:580px;margin:0 auto;padding:20px 12px">
 
   <table width="100%" cellpadding="0" cellspacing="0">
-    <tr><td style="background:#0A0A0A;border-radius:12px 12px 0 0;padding:24px 32px;text-align:center">
-      <p style="margin:0;font-size:26px;font-weight:900">
+    <tr><td style="background:#0A0A0A;border-radius:12px 12px 0 0;padding:20px 32px;text-align:center">
+      <img src="https://shop.chreolempire.com/assets/chreolempire%20logo%20avec%20contact%20m.webp"
+        alt="Chreol Empire" width="52" height="52"
+        style="border-radius:12px;margin-bottom:8px;display:block;margin-left:auto;margin-right:auto" />
+      <p style="margin:0;font-size:22px;font-weight:900">
         <span style="color:#DAA520">Chreol</span><span style="color:#FFFFFF">Empire</span>
       </p>
       <p style="margin:4px 0 0;font-size:11px;color:#6B7280">Le monde digital, à portée de Mobile Money</p>
@@ -195,13 +220,22 @@ function buildDeliveryEmail(name: string, ref: string, summary: OrderSummary | n
 
       <!-- Reorder -->
       <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px">
-        <tr><td style="text-align:center">
-          <a href="${reorderUrl(summary, ref)}" target="_blank" rel="noopener noreferrer"
-            style="display:inline-block;background:#0A0A0A;color:#DAA520;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:900;font-size:13px;border:2px solid #DAA520">
-            🔄 Repasser la même commande
-          </a>
-          <p style="margin:6px 0 0;font-size:11px;color:#9CA3AF">Ouvre WhatsApp avec votre commande pré-remplie</p>
-        </td></tr>
+        <tr>
+          <td style="text-align:center;padding-right:6px">
+            ${servicePageUrl
+              ? `<a href="${servicePageUrl}" target="_blank" rel="noopener noreferrer"
+                style="display:inline-block;background:#0A0A0A;color:#DAA520;text-decoration:none;padding:12px 20px;border-radius:8px;font-weight:900;font-size:12px;border:2px solid #DAA520">
+                🔄 Repasser la commande
+              </a>
+              <p style="margin:4px 0 0;font-size:10px;color:#9CA3AF">Modifiez ou confirmez vos infos</p>`
+              : `<a href="${reorderUrl(summary, ref)}" target="_blank" rel="noopener noreferrer"
+                style="display:inline-block;background:#0A0A0A;color:#DAA520;text-decoration:none;padding:12px 20px;border-radius:8px;font-weight:900;font-size:12px;border:2px solid #DAA520">
+                🔄 Repasser via WhatsApp
+              </a>
+              <p style="margin:4px 0 0;font-size:10px;color:#9CA3AF">Commande pré-remplie</p>`
+            }
+          </td>
+        </tr>
       </table>
 
       <!-- Guarantee badges -->
@@ -238,8 +272,9 @@ function buildDeliveryEmail(name: string, ref: string, summary: OrderSummary | n
       <!-- Support -->
       <table width="100%" cellpadding="0" cellspacing="0" style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:10px">
         <tr><td style="padding:14px;text-align:center">
-          <p style="margin:0 0 8px;font-size:12px;color:#065F46;font-weight:700">Un problème avec votre commande ? On est là 7j/7</p>
-          <a href="https://wa.me/237697657734" style="display:inline-block;background:#25D366;color:#FFFFFF;text-decoration:none;padding:10px 24px;border-radius:8px;font-weight:900;font-size:13px">
+          <p style="margin:0 0 4px;font-size:13px;color:#065F46;font-weight:900">Un problème avec votre commande ? On est là 7j/7</p>
+          <p style="margin:0 0 10px;font-size:11px;color:#047857">Le lien ci-dessous contient les détails de votre commande.</p>
+          <a href="${supportWaUrl}" style="display:inline-block;background:#25D366;color:#FFFFFF;text-decoration:none;padding:10px 24px;border-radius:8px;font-weight:900;font-size:13px">
             💬 Contacter le support WhatsApp
           </a>
         </td></tr>
@@ -299,14 +334,15 @@ const CANCEL_TTL_S = 60 * 60; // 60 minutes
 
 export async function GET(request: Request): Promise<Response> {
   const { searchParams } = new URL(request.url);
-  const orderId = searchParams.get("id")   ?? "";
-  const email   = searchParams.get("to")   ?? "";
-  const name    = searchParams.get("n")    ?? "";
-  const ts      = searchParams.get("ts")   ?? "";
-  const sig     = searchParams.get("sig")  ?? "";
-  const action  = searchParams.get("act")  ?? "done";
-  const sRaw    = searchParams.get("s")    ?? "";
-  const summary = sRaw ? decodeSummary(sRaw) : null;
+  const orderId    = searchParams.get("id")   ?? "";
+  const email      = searchParams.get("to")   ?? "";
+  const name       = searchParams.get("n")    ?? "";
+  const ts         = searchParams.get("ts")   ?? "";
+  const sig        = searchParams.get("sig")  ?? "";
+  const action     = searchParams.get("act")  ?? "done";
+  const sRaw       = searchParams.get("s")    ?? "";
+  const sourceUrl  = searchParams.get("src")  ?? "";
+  const summary    = sRaw ? decodeSummary(sRaw) : null;
 
   if (!orderId || !email || !sig) {
     return new Response(ERROR_HTML("Paramètres manquants."), { status: 400, headers: { "Content-Type": "text/html" } });
@@ -355,7 +391,7 @@ export async function GET(request: Request): Promise<Response> {
   const subject  = isCancel
     ? `❌ Votre commande #${ref} a été annulée — Chreol Empire`
     : `✅ Votre commande #${ref} a été livrée — Chreol Empire`;
-  const html = isCancel ? buildCancelEmail(name, ref, summary) : buildDeliveryEmail(name, ref, summary);
+  const html = isCancel ? buildCancelEmail(name, ref, summary) : buildDeliveryEmail(name, ref, summary, sourceUrl);
 
   const res = await fetch("https://api.brevo.com/v3/smtp/email", {
     method: "POST",

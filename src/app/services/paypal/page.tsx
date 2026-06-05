@@ -384,15 +384,20 @@ export default function PaypalPage() {
 
           <Field label={direction === "sell" ? "Réception MoMo" : "Paiement MoMo (optionnel)"} error={errors?.momoPhone}>
             <div className="flex flex-col gap-2">
-              <div className="flex gap-2">
-                {MOMO_OPERATORS.slice(0, 2).map(o => (
+              <div className="grid grid-cols-3 gap-2">
+                {MOMO_OPERATORS.map(o => (
                   <button type="button" key={o.id} onClick={() => setMomoOp(o.id)}
-                    className="flex-1 flex items-center gap-2 p-2.5 rounded-xl transition-all"
+                    className="flex items-center gap-2 p-2.5 rounded-xl transition-all"
                     style={{ background: momoOp === o.id ? o.color + "20" : "var(--bg-card)", border: `2px solid ${momoOp === o.id ? o.color : "var(--border)"}` }}>
-                    <div className="relative w-8 h-8 rounded-lg overflow-hidden shrink-0">
-                      <Image src={o.image} alt={o.name} fill style={{ objectFit: "cover" }} unoptimized />
-                    </div>
-                    <span className="text-xs font-bold leading-tight" style={{ color: momoOp === o.id ? o.color : "var(--text-secondary)" }}>{o.name}</span>
+                    {o.image ? (
+                      <div className="relative w-7 h-7 rounded-lg overflow-hidden shrink-0">
+                        <Image src={o.image} alt={o.name} fill style={{ objectFit: "cover" }} unoptimized />
+                      </div>
+                    ) : (
+                      <div className="w-7 h-7 rounded-lg flex items-center justify-center font-black text-white text-[11px] shrink-0"
+                        style={{ background: o.color }}>G</div>
+                    )}
+                    <span className="text-[10px] font-bold leading-tight" style={{ color: momoOp === o.id ? o.color : "var(--text-secondary)" }}>{o.name}</span>
                   </button>
                 ))}
               </div>
