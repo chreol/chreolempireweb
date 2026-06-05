@@ -16,15 +16,8 @@ import FAQ from "@/components/FAQ";
 import StepGuide from "@/components/StepGuide";
 import { Field } from "@/components/FormField";
 
-const STEPS_COUPONS = [
-  { icon: "🎫", title: "Sélectionnez le type de coupon", description: "Choisissez entre PCS Mastercard (7% commission) ou Transcash (0% commission). Entrez la valeur en euros (minimum 20€)." },
-  { icon: "🔑", title: "Entrez le code du coupon", description: "PCS Mastercard : 8 caractères alphanumériques (ex: AB123456). Transcash : 12 chiffres. Ne partagez jamais votre code avant d'avoir confirmé l'échange.", tip: "Grattez délicatement la zone de sécurité pour révéler le code." },
-  { icon: "📱", title: "Renseignez vos coordonnées MoMo", description: "Indiquez votre opérateur (MTN ou Orange), votre numéro, votre nom complet et votre email pour la confirmation." },
-  { icon: "💬", title: "Envoyez la demande via WhatsApp", description: "Notre agent vérifie le code en temps réel. Le processus prend 5 à 15 minutes. Restez disponible sur WhatsApp pendant cette période.", tip: "Un coupon utilisé ou invalide sera détecté immédiatement — nous vous informerons sans délai." },
-  { icon: "💰", title: "Recevez vos FCFA sur MoMo", description: "Après validation du coupon, le montant net en FCFA est viré sur votre compte Mobile Money en moins de 15 minutes.", tip: "PCS 100€ → 93€ × 480 = 44 640 FCFA nets reçus." },
-];
-
-const PAGE_FAQ = [
+// FAQ en français pour le JSON-LD SEO
+const FAQ_FR = [
   { q: "Comment échanger un coupon Transcash en FCFA au Cameroun ?", a: "Envoyez votre code Transcash sur WhatsApp avec le montant en €. Nous vérifions le code et vous virons le FCFA équivalent au taux de 480 FCFA/€ sur MTN MoMo ou Orange Money en 15 minutes. Minimum 20€ par échange." },
   { q: "Quel est le taux de change PCS Mastercard en FCFA ?", a: "Le taux PCS Mastercard est de 480 FCFA/€ après déduction de la commission de 7%. Formule : (montant − 7%) × 480 FCFA. Exemple : coupon de 100€ → 93€ × 480 = 44 640 FCFA reçus sur votre Mobile Money." },
   { q: "Y a-t-il un minimum pour échanger un coupon au Cameroun ?", a: "Oui, le minimum est de 20€ par transaction. Pas de maximum fixe — des conditions spéciales s'appliquent pour les gros montants (500€ et plus). Contactez-nous via WhatsApp pour les transactions importantes." },
@@ -34,7 +27,7 @@ const PAGE_FAQ = [
 const PAGE_FAQ_SCHEMA = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
-  mainEntity: PAGE_FAQ.map(f => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+  mainEntity: FAQ_FR.map(f => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
 };
 
 type CouponType = keyof typeof COUPON_RATES;
@@ -44,7 +37,7 @@ export default function CouponsPage() {
   const { addItem } = useCart();
   const { addEntry } = useHistory();
   const { showToast } = useToast();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
 
   const orderIdRef = useRef("");
   const [type, setType]         = useState<CouponType>("pcs");
@@ -57,6 +50,20 @@ export default function CouponsPage() {
   const [email, setEmail]       = useState("");
   const [errors, setErrors]     = useState<Record<string, string>>({});
   const [showCalc, setShowCalc] = useState(false);
+
+  const STEPS_COUPONS = [
+    { icon: "🎫", title: t("cp.step1.t"), description: t("cp.step1.d") },
+    { icon: "🔑", title: t("cp.step2.t"), description: t("cp.step2.d"), tip: t("cp.step2.tip") },
+    { icon: "📱", title: t("cp.step3.t"), description: t("cp.step3.d") },
+    { icon: "💬", title: t("cp.step4.t"), description: t("cp.step4.d"), tip: t("cp.step4.tip") },
+    { icon: "💰", title: t("cp.step5.t"), description: t("cp.step5.d"), tip: t("cp.step5.tip") },
+  ];
+  const PAGE_FAQ = [
+    { q: t("cp.faq1.q"), a: t("cp.faq1.a") },
+    { q: t("cp.faq2.q"), a: t("cp.faq2.a") },
+    { q: t("cp.faq3.q"), a: t("cp.faq3.a") },
+    { q: t("cp.faq4.q"), a: t("cp.faq4.a") },
+  ];
 
   function formatTranscash(raw: string): string {
     const digits = raw.replace(/\D/g, "").slice(0, 12);
@@ -71,17 +78,17 @@ export default function CouponsPage() {
 
   function validate() {
     const e: Record<string, string> = {};
-    if (!amount || numAmt <= 0) { e.amount = "Montant requis"; }
-    else if (numAmt < 20)       { e.amount = "Minimum 20€"; }
+    if (!amount || numAmt <= 0) { e.amount = t("err.amount_required"); }
+    else if (numAmt < 20)       { e.amount = t("cp.min20"); }
     const codeDigits = code.replace(/\D/g, "");
-    if (!code.trim()) e.code = "Code requis";
-    else if (type === "transcash" && codeDigits.length !== 12) e.code = "12 chiffres requis";
-    else if (type === "pcs" && code.trim().length !== 8)       e.code = "8 caractères requis";
-    if (!name.trim()) e.name = "Nom requis";
-    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = "Email valide requis";
+    if (!code.trim()) e.code = t("cp.code_required");
+    else if (type === "transcash" && codeDigits.length !== 12) e.code = t("cp.code12");
+    else if (type === "pcs" && code.trim().length !== 8)       e.code = t("cp.code8");
+    if (!name.trim()) e.name = t("err.name_required");
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = t("err.email_valid");
     const phoneD = phone.replace(/\D/g, "");
     const minLen = dialCode === "+237" ? 9 : 6;
-    if (phoneD.length < minLen) e.phone = dialCode === "+237" ? "Numéro invalide (9 chiffres)" : "Numéro trop court";
+    if (phoneD.length < minLen) e.phone = dialCode === "+237" ? t("err.phone_invalid") : t("cp.phone_short");
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -127,7 +134,7 @@ export default function CouponsPage() {
   }
 
   function handleAddToCart() {
-    if (!validate()) { showToast("Corrigez les erreurs avant d'ajouter au panier", "error"); return; }
+    if (!validate()) { showToast(t("err.fix_before_cart"), "error"); return; }
     saveClientInfo({ name, email, phone, dialCode });
     const op = MOMO_OPERATORS.find(o => o.id === momoOp)?.name ?? momoOp;
     addItem({
@@ -145,7 +152,7 @@ export default function CouponsPage() {
       currency: "FCFA",
       status: "pending",
     });
-    showToast("Coupon ajouté au panier !", "success");
+    showToast(t("toast.added_cart"), "success");
   }
 
 
@@ -156,9 +163,9 @@ export default function CouponsPage() {
   return (
     <div className="max-w-xl lg:max-w-2xl mx-auto px-4 sm:px-6 py-10">
       <div className="flex items-center gap-2 text-xs mb-6" style={{ color: "var(--text-muted)" }}>
-        <a href="/services" className="hover:text-white transition-colors">Services</a>
+        <a href="/services" className="hover:text-white transition-colors">{t("nav.services")}</a>
         <span>›</span>
-        <span style={{ color: "var(--gold)" }}>Échange Coupons</span>
+        <span style={{ color: "var(--gold)" }}>{t("cp.breadcrumb")}</span>
       </div>
 
       <h1 className="text-3xl font-black text-white mb-1">{t("p.coupons.title")}</h1>
@@ -180,17 +187,17 @@ export default function CouponsPage() {
           >
             <p className="font-black text-white text-sm">{k === "pcs" ? "PCS Mastercard" : "Transcash"}</p>
             <p className="text-xs mt-1" style={{ color: "var(--text-secondary)" }}>
-              {r.rate} FCFA/€ · {r.commission > 0 ? `${r.commission}% commission` : "0% commission"}
+              {r.rate} FCFA/€ · {r.commission > 0 ? `${r.commission}% commission` : t("common.commission_0")}
             </p>
             <p className="text-[11px] mt-1" style={{ color: "var(--text-muted)" }}>
-              Code : {r.codeLength} {r.codeType === "alphanumérique" ? "chars" : "chiffres"}
+              Code : {r.codeLength} {r.codeType === "alphanumérique" ? "chars" : (lang === "en" ? "digits" : "chiffres")}
             </p>
           </button>
         ))}
       </div>
 
       <div className="flex flex-col gap-5">
-        <Field label="Valeur du coupon (€ — minimum 20€)" error={errors.amount}>
+        <Field label={t("cp.value")} error={errors.amount}>
           <input
             type="number" min="20" placeholder="ex: 50"
             value={amount}
@@ -209,7 +216,7 @@ export default function CouponsPage() {
               className="flex items-center gap-2 text-xs font-bold px-3 py-2 rounded-xl transition-all"
               style={{ background: showCalc ? "#1B5E2022" : "var(--bg-card)", border: "1px solid #25D36633", color: "#25D366" }}
             >
-              📊 {showCalc ? "Masquer" : "Voir"} le tableau de calcul
+              {showCalc ? t("cp.hide_calc") : t("cp.show_calc")}
             </button>
             {showCalc && (
               <motion.div
@@ -219,18 +226,18 @@ export default function CouponsPage() {
                 style={{ background: "#1B5E2022", border: "1px solid #25D36644" }}
               >
                 <p className="text-xs font-black uppercase tracking-wider mb-3" style={{ color: "#25D366" }}>
-                  Tableau de calcul
+                  {t("common.calc_table")}
                 </p>
                 <div className="flex flex-col">
                   {[
-                    ["Valeur du coupon", `${numAmt}€`],
+                    [t("cp.coupon_value"), `${numAmt}€`],
                     ...(rate.commission > 0
                       ? [
-                        [`Commission ${type.toUpperCase()} (${rate.commission}%)`, `− ${commission.toFixed(2)}€`],
-                        ["Valeur nette", `${netAmt.toFixed(2)}€`],
+                        [t("cp.commission_lbl", { type: type.toUpperCase(), pct: rate.commission }), `− ${commission.toFixed(2)}€`],
+                        [t("cp.net_value"), `${netAmt.toFixed(2)}€`],
                       ]
                       : [["Commission", "0€ (0%)"]]),
-                    ["Taux d'échange", `${rate.rate} FCFA/€`],
+                    [t("cp.exch_rate"), `${rate.rate} FCFA/€`],
                   ].map(([label, value]) => (
                     <div key={label} className="flex justify-between items-center py-2" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
                       <span className="text-xs" style={{ color: "var(--text-muted)" }}>{label}</span>
@@ -238,7 +245,7 @@ export default function CouponsPage() {
                     </div>
                   ))}
                   <div className="flex justify-between items-center pt-3 mt-1">
-                    <span className="text-xs font-black uppercase tracking-wider" style={{ color: "#25D366" }}>Vous recevez</span>
+                    <span className="text-xs font-black uppercase tracking-wider" style={{ color: "#25D366" }}>{t("common.you_receive")}</span>
                     <span className="text-xl font-black tabular-nums" style={{ color: "var(--gold)" }}>
                       {fcfaResult.toLocaleString("fr-FR")} FCFA
                     </span>
@@ -249,7 +256,7 @@ export default function CouponsPage() {
           </div>
         )}
 
-        <Field label={`Code ${type === "pcs" ? "PCS (8 caractères alphanumériques)" : "Transcash (12 chiffres)"}`} error={errors.code}>
+        <Field label={type === "pcs" ? t("cp.code_pcs") : t("cp.code_transcash")} error={errors.code}>
           <input
             type={type === "transcash" ? "tel" : "text"}
             inputMode={type === "transcash" ? "numeric" : undefined}
@@ -269,21 +276,21 @@ export default function CouponsPage() {
           />
         </Field>
 
-        <Field label="Nom du bénéficiaire" error={errors.name}>
-          <input type="text" placeholder="Votre nom complet" value={name}
+        <Field label={t("cp.beneficiary")} error={errors.name}>
+          <input type="text" placeholder={t("f.fullname.ph")} value={name}
             onChange={e => { setName(e.target.value); setErrors(p => ({ ...p, name: "" })); }}
             className={inputCls} style={errors.name ? inputErr : inputBase}
           />
         </Field>
 
-        <Field label="Adresse email" error={errors.email}>
-          <input type="email" placeholder="votre@email.com" value={email}
+        <Field label={t("f.email")} error={errors.email}>
+          <input type="email" placeholder={t("f.email.ph")} value={email}
             onChange={e => { setEmail(e.target.value); setErrors(p => ({ ...p, email: "" })); }}
             className={inputCls} style={errors.email ? inputErr : inputBase}
           />
         </Field>
 
-        <Field label="Réception Mobile Money" error={errors.phone}>
+        <Field label={t("f.momo_receive")} error={errors.phone}>
           <div className="flex flex-col gap-2">
             {/* Tous les opérateurs — grille 2×2 */}
             <div className="grid grid-cols-2 gap-2">
@@ -315,7 +322,7 @@ export default function CouponsPage() {
               />
               <input
                 type="tel"
-                placeholder={dialCode === "+237" ? "6XXXXXXXX" : "Votre numéro"}
+                placeholder={dialCode === "+237" ? "6XXXXXXXX" : t("pp.your_number")}
                 value={phone}
                 maxLength={dialCode === "+237" ? 9 : 15}
                 onChange={e => { setPhone(e.target.value.replace(/\D/g, "")); setErrors(p => ({ ...p, phone: "" })); }}
@@ -334,23 +341,23 @@ export default function CouponsPage() {
           className="w-full py-4 rounded-full font-black text-black text-sm transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
           style={{ background: "var(--gold)" }}
         >
-          🛒 Ajouter au panier
+          {t("btn.add_to_cart")}
         </button>
         <WAPopover
-          onBeforeOpen={() => { const ok = validate(); if (!ok) { showToast("Corrigez les erreurs", "error"); return false; } sendNotification(); return true; }}
+          onBeforeOpen={() => { const ok = validate(); if (!ok) { showToast(t("err.fix"), "error"); return false; } sendNotification(); return true; }}
           getMsg={buildMsgPlain}
           prefillPrenom={name}
           className="w-full py-3 rounded-full font-black text-white text-sm flex items-center justify-center gap-2 transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
           style={{ background: "#25D366" }}
         >
           <Image src={IMAGES.whatsapp} alt="" width={20} height={20} unoptimized className="shrink-0" />
-          Démarrer directement via WhatsApp
+          {t("cp.wa_start")}
         </WAPopover>
       </div>
 
       <div className="mt-8 rounded-2xl p-5" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
-        <p className="font-bold text-white text-sm mb-4">Comment ça marche ?</p>
-        {["Remplissez le formulaire et vérifiez le calcul", "Cliquez sur Ajouter au panier ou WhatsApp", "Notre agent vérifie votre code coupon", "Recevez vos FCFA sur Mobile Money en quelques minutes"].map((s, i) => (
+        <p className="font-bold text-white text-sm mb-4">{t("cp.how_title")}</p>
+        {[t("cp.how_1"), t("cp.how_2"), t("cp.how_3"), t("cp.how_4")].map((s, i) => (
           <div key={i} className="flex items-start gap-3 text-xs mb-3 last:mb-0" style={{ color: "var(--text-secondary)" }}>
             <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black shrink-0" style={{ background: "var(--gold)", color: "#0A0A0A" }}>
               {i + 1}
@@ -359,7 +366,7 @@ export default function CouponsPage() {
           </div>
         ))}
       </div>
-      <StepGuide title="Comment échanger un coupon PCS / Transcash — Étape par étape" steps={STEPS_COUPONS} />
+      <StepGuide title={t("cp.guide_title")} steps={STEPS_COUPONS} />
       <FAQ items={PAGE_FAQ} />
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(PAGE_FAQ_SCHEMA) }} />
       <RelatedServices current="coupons" />
