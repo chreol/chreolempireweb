@@ -17,25 +17,18 @@ import FAQ from "@/components/FAQ";
 import StepGuide from "@/components/StepGuide";
 import { Field, CalcRow } from "@/components/FormField";
 
-const STEPS_PAYPAL = [
-  { icon: "💸", title: "Choisissez l'opération — Vente ou Achat", description: "Vente : vous vendez votre solde PayPal contre FCFA (580 FCFA/€). Achat : vous achetez du solde PayPal avec vos FCFA (700 FCFA/€).", tip: "Votre compte PayPal doit être européen (France, Belgique, Suisse…)." },
-  { icon: "💶", title: "Entrez le montant et votre email PayPal", description: "Saisissez le montant, votre email de compte PayPal, votre numéro MoMo et votre email de contact pour la confirmation." },
-  { icon: "💬", title: "Confirmez via WhatsApp", description: "Envoyez le message pré-rempli à notre agent. Il vous répond sous 15–30 min avec les instructions précises." },
-  { icon: "🔄", title: "Effectuez le transfert PayPal ou MoMo", description: "Vente : envoyez le montant à notre compte PayPal communiqué, puis partagez la capture de confirmation. Achat : réglez via MoMo selon les instructions." },
-  { icon: "✅", title: "Recevez vos FCFA ou votre solde PayPal", description: "Après confirmation du transfert, les fonds sont envoyés dans les 15–30 minutes. Taux garanti au moment de la transaction.", tip: "Gardez la capture de confirmation PayPal jusqu'à réception des fonds." },
-];
-
-const PAGE_FAQ = [
+// FAQ en français pour le JSON-LD SEO
+const FAQ_FR = [
   { q: "Comment vendre son solde PayPal en FCFA au Cameroun ?", a: "3 étapes simples : (1) envoyez le montant en € à notre compte PayPal communiqué sur WhatsApp, (2) partagez la capture de confirmation d'envoi, (3) recevez votre FCFA sur MTN MoMo ou Orange Money en moins de 30 minutes. Taux garanti au moment de la transaction." },
   { q: "Quel est le taux de change PayPal en FCFA en 2026 ?", a: "Nous achetons votre solde PayPal à 580 FCFA par euro et vendons à 700 FCFA par euro. Ces taux sont mis à jour régulièrement selon le marché. Consultez notre ticker en haut de page pour le cours en temps réel." },
-  { q: "Peut-on acheter du solde PayPal avec Orange Money au Cameroun ?", a: "Oui, minimum 10 000 FCFA (environ 14€). Payez via Orange Money, MTN MoMo ou Express Union et recevez le solde PayPal correspondant dans les 30 minutes. Votre compte PayPal doit être européen (France, Belgique, Suisse…)." },
+  { q: "Peut-on acheter du solde PayPal avec Orange Money au Cameroun ?", a: "Oui, minimum 3 500 FCFA (environ 5€). Payez via Orange Money, MTN MoMo ou Express Union et recevez le solde PayPal correspondant dans les 30 minutes. Votre compte PayPal doit être européen (France, Belgique, Suisse…)." },
   { q: "Chreol Empire travaille-t-il avec les comptes PayPal camerounais ?", a: "Non. Nous travaillons uniquement avec des comptes PayPal européens (France, Belgique, Italie, Espagne, Suisse…). Les comptes africains ou camerounais ne sont pas éligibles en raison des restrictions PayPal sur les transferts internationaux." },
 ];
 
 const PAGE_FAQ_SCHEMA = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
-  mainEntity: PAGE_FAQ.map(f => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+  mainEntity: FAQ_FR.map(f => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
 };
 
 type IdFormat = "email" | "phone" | "paypalme";
@@ -129,12 +122,26 @@ export default function PaypalPage() {
   const [errors, setErrors]           = useState<Record<string, string>>();
 
   const ID_FORMATS = [
-    { id: "email",    label: "Email",      placeholder: "exemple@email.com",  icon: "✉️" },
-    { id: "phone",    label: "Téléphone",  placeholder: "+33 6 XX XX XX XX",  icon: "📱" },
-    { id: "paypalme", label: "PayPal.me",  placeholder: "PayPal.me/monlien",  icon: "🔗" },
+    { id: "email",    label: "Email",         placeholder: "exemple@email.com",  icon: "✉️" },
+    { id: "phone",    label: t("pp.id_phone"), placeholder: "+33 6 XX XX XX XX",  icon: "📱" },
+    { id: "paypalme", label: "PayPal.me",     placeholder: "PayPal.me/monlien",  icon: "🔗" },
   ] as const;
 
   const { sellRate, buyRate } = PAYPAL_RATES;
+
+  const STEPS_PAYPAL = [
+    { icon: "💸", title: t("pp.step1.t"), description: t("pp.step1.d"), tip: t("pp.step1.tip") },
+    { icon: "💶", title: t("pp.step2.t"), description: t("pp.step2.d") },
+    { icon: "💬", title: t("pp.step3.t"), description: t("pp.step3.d") },
+    { icon: "🔄", title: t("pp.step4.t"), description: t("pp.step4.d") },
+    { icon: "✅", title: t("pp.step5.t"), description: t("pp.step5.d"), tip: t("pp.step5.tip") },
+  ];
+  const PAGE_FAQ = [
+    { q: t("pp.faq1.q"), a: t("pp.faq1.a") },
+    { q: t("pp.faq2.q"), a: t("pp.faq2.a") },
+    { q: t("pp.faq3.q"), a: t("pp.faq3.a") },
+    { q: t("pp.faq4.q"), a: t("pp.faq4.a") },
+  ];
 
   function switchDirection(d: "sell" | "buy") {
     setDirection(d); setAmount(""); setErrors(undefined);
@@ -162,24 +169,24 @@ export default function PaypalPage() {
   function validate() {
     const e: Record<string, string> = {};
     if (!amount || numAmount <= 0) {
-      e.amount = "Montant requis";
+      e.amount = t("err.amount_required");
     } else if (direction === "sell") {
       const inEur = inputCurrency === "EUR" ? numAmount : numAmount / sellRate;
-      if (inEur < PAYPAL_LIMITS.sell.min) e.amount = `Minimum ${PAYPAL_LIMITS.sell.min}€ (≈ ${Math.ceil(PAYPAL_LIMITS.sell.min * sellRate).toLocaleString("fr-FR")} FCFA)`;
-      else if (inEur > PAYPAL_LIMITS.sell.max) e.amount = `Maximum ${PAYPAL_LIMITS.sell.max}€`;
+      if (inEur < PAYPAL_LIMITS.sell.min) e.amount = t("pp.min", { v: `${PAYPAL_LIMITS.sell.min}€ (≈ ${Math.ceil(PAYPAL_LIMITS.sell.min * sellRate).toLocaleString("fr-FR")} FCFA)` });
+      else if (inEur > PAYPAL_LIMITS.sell.max) e.amount = t("pp.max", { v: PAYPAL_LIMITS.sell.max });
     } else {
       const inFcfa = inputCurrency === "FCFA" ? numAmount : numAmount * buyRate;
-      if (inFcfa < PAYPAL_LIMITS.buy.min) e.amount = `Minimum ${PAYPAL_LIMITS.buy.min.toLocaleString("fr-FR")} FCFA (≈ ${+(PAYPAL_LIMITS.buy.min / buyRate).toFixed(0)}€)`;
+      if (inFcfa < PAYPAL_LIMITS.buy.min) e.amount = t("pp.min", { v: `${PAYPAL_LIMITS.buy.min.toLocaleString("fr-FR")} FCFA (≈ ${+(PAYPAL_LIMITS.buy.min / buyRate).toFixed(0)}€)` });
     }
-    if (!paypalId.trim()) e.paypalId = "Identifiant PayPal requis";
-    else if (idFormat === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(paypalId)) e.paypalId = "Email invalide";
-    if (!contactEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) e.contactEmail = "Email de contact valide requis";
+    if (!paypalId.trim()) e.paypalId = t("pp.id_required");
+    else if (idFormat === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(paypalId)) e.paypalId = t("pp.email_invalid");
+    if (!contactEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) e.contactEmail = t("err.email_valid");
     const cpD = contactPhone.replace(/\D/g, "");
-    if (direction === "sell" && cpD.length < 6) e.contactPhone = "Numéro trop court";
-    if (direction === "buy" && contactPhone && cpD.length < 6) e.contactPhone = "Numéro trop court";
+    if (direction === "sell" && cpD.length < 6) e.contactPhone = t("pp.phone_short");
+    if (direction === "buy" && contactPhone && cpD.length < 6) e.contactPhone = t("pp.phone_short");
     const mpD = momoPhone.replace(/\D/g, "").replace(/^237/, "");
-    if (direction === "sell" && mpD.length < 9) e.momoPhone = "Numéro invalide (9 chiffres)";
-    if (direction === "buy" && momoPhone && mpD.length < 9) e.momoPhone = "Numéro invalide (9 chiffres)";
+    if (direction === "sell" && mpD.length < 9) e.momoPhone = t("err.phone_invalid");
+    if (direction === "buy" && momoPhone && mpD.length < 9) e.momoPhone = t("err.phone_invalid");
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -229,7 +236,7 @@ export default function PaypalPage() {
   }
 
   function handleAddToCart() {
-    if (!validate()) { showToast("Corrigez les erreurs", "error"); return; }
+    if (!validate()) { showToast(t("err.fix"), "error"); return; }
     saveClientInfo({ email: contactEmail, phone: contactPhone, dialCode: contactDialCode, name: contactEmail.split("@")[0] });
     const op = MOMO_OPERATORS.find(o => o.id === momoOp)?.name ?? momoOp;
     addItem({
@@ -260,9 +267,9 @@ export default function PaypalPage() {
   return (
     <div className="max-w-xl lg:max-w-2xl mx-auto px-4 sm:px-6 py-10">
       <div className="flex items-center gap-2 text-xs mb-6" style={{ color: "var(--text-muted)" }}>
-        <a href="/services" className="hover:text-white transition-colors">Services</a>
+        <a href="/services" className="hover:text-white transition-colors">{t("nav.services")}</a>
         <span>›</span>
-        <span style={{ color: "var(--gold)" }}>PayPal Europe</span>
+        <span style={{ color: "var(--gold)" }}>{t("pp.breadcrumb")}</span>
       </div>
 
       <h1 className="text-3xl font-black text-white mb-1">{t("p.paypal.title")}</h1>
@@ -282,7 +289,7 @@ export default function PaypalPage() {
               color: direction === d ? "#0A0A0A" : "var(--text-secondary)",
             }}
           >
-            {d === "sell" ? "💰 Je vends mon PayPal" : "💳 J'achète du solde"}
+            {d === "sell" ? t("pp.sell_tab") : t("pp.buy_tab")}
           </button>
         ))}
       </div>
@@ -291,11 +298,11 @@ export default function PaypalPage() {
       <div className="rounded-2xl p-4 mb-6" style={{ background: "#003087" + "22", border: "1px solid #003087" + "55" }}>
         <div className="flex justify-between items-center text-sm">
           <div>
-            <p className="text-xs font-bold mb-1" style={{ color: "var(--text-muted)" }}>Taux applicable</p>
+            <p className="text-xs font-bold mb-1" style={{ color: "var(--text-muted)" }}>{t("pp.rate_label")}</p>
             <p className="font-black tabular-nums" style={{ color: "var(--text-primary)" }}>1€ = {direction === "sell" ? sellRate : buyRate} FCFA</p>
           </div>
           <div className="text-right">
-            <p className="text-xs font-bold mb-1" style={{ color: "var(--text-muted)" }}>Saisie en</p>
+            <p className="text-xs font-bold mb-1" style={{ color: "var(--text-muted)" }}>{t("pp.input_in")}</p>
             <div className="flex rounded-xl overflow-hidden" style={{ border: "1px solid var(--border)" }}>
               {(["EUR", "FCFA"] as const).map(c => (
                 <button key={c} type="button" onClick={() => { setInputCurrency(c); setAmount(""); setErrors(undefined); }}
@@ -320,8 +327,8 @@ export default function PaypalPage() {
         >
           <Field
             label={direction === "sell"
-              ? (inputCurrency === "EUR" ? "Montant à vendre (€)" : "Montant à vendre (FCFA)")
-              : (inputCurrency === "FCFA" ? "Montant à payer (FCFA)" : "Montant à payer (€)")}
+              ? (inputCurrency === "EUR" ? t("pp.amount_sell_eur") : t("pp.amount_sell_fcfa"))
+              : (inputCurrency === "FCFA" ? t("pp.amount_buy_fcfa") : t("pp.amount_buy_eur"))}
             error={errors?.amount}
           >
             <div className="relative">
@@ -352,21 +359,21 @@ export default function PaypalPage() {
               style={{ background: "#003087" + "18", border: "1px solid #003087" + "55" }}
             >
               <p className="text-xs font-black uppercase tracking-wider mb-3" style={{ color: "#5B8FE8" }}>
-                Tableau de calcul
+                {t("common.calc_table")}
               </p>
               {direction === "sell" ? (
                 <>
-                  <CalcRow label="Solde PayPal vendu" value={`${displayEur.toFixed(2)}€`} />
-                  <CalcRow label="Taux d'achat" value={`1€ = ${sellRate} FCFA`} />
-                  <CalcRow label="Commission" value="0 FCFA (0%)" />
-                  <CalcRow label="Vous recevez" value={`${fcfaResult.toLocaleString("fr-FR")} FCFA`} highlight />
+                  <CalcRow label={t("pp.sold")} value={`${displayEur.toFixed(2)}€`} />
+                  <CalcRow label={t("pp.buy_rate")} value={`1€ = ${sellRate} FCFA`} />
+                  <CalcRow label="Commission" value={t("common.commission_0")} />
+                  <CalcRow label={t("common.you_receive")} value={`${fcfaResult.toLocaleString("fr-FR")} FCFA`} highlight />
                 </>
               ) : (
                 <>
-                  <CalcRow label="FCFA à payer" value={`${displayFcfa.toLocaleString("fr-FR")} FCFA`} />
-                  <CalcRow label="Taux de vente" value={`1€ = ${buyRate} FCFA`} />
-                  <CalcRow label="Commission" value="0 FCFA (0%)" />
-                  <CalcRow label="Vous recevez" value={`${eurResult}€`} highlight />
+                  <CalcRow label={t("pp.fcfa_to_pay")} value={`${displayFcfa.toLocaleString("fr-FR")} FCFA`} />
+                  <CalcRow label={t("pp.sell_rate")} value={`1€ = ${buyRate} FCFA`} />
+                  <CalcRow label="Commission" value={t("common.commission_0")} />
+                  <CalcRow label={t("common.you_receive")} value={`${eurResult}€`} highlight />
                 </>
               )}
             </motion.div>
@@ -377,12 +384,12 @@ export default function PaypalPage() {
             idFormat={idFormat} setIdFormat={setIdFormat}
             paypalId={paypalId} setPaypalId={setPaypalId}
             errors={errors} setErrors={setErrors}
-            label="Identifiant du compte PayPal (que vous vendez)"
+            label={t("pp.id_sell")}
             inputBase={inputBase} inputErr={inputErr} inputCls={inputCls}
             ID_FORMATS={ID_FORMATS}
           />}
 
-          <Field label={direction === "sell" ? "Réception MoMo" : "Paiement MoMo (optionnel)"} error={errors?.momoPhone}>
+          <Field label={direction === "sell" ? t("f.momo_receive") : `${t("f.momo_pay")} ${t("f.optional")}`} error={errors?.momoPhone}>
             <div className="flex flex-col gap-2">
               <div className="grid grid-cols-3 gap-2">
                 {MOMO_OPERATORS.map(o => (
@@ -413,7 +420,7 @@ export default function PaypalPage() {
           </Field>
 
           {/* ── Numéro WhatsApp contact avec indicatif éditable ── */}
-          <Field label={`Votre numéro WhatsApp${direction === "buy" ? " (optionnel)" : ""}`} error={errors?.contactPhone}>
+          <Field label={direction === "buy" ? `${t("f.phone_wa")} ${t("f.optional")}` : t("f.phone_wa")} error={errors?.contactPhone}>
             <div className="flex gap-2">
               {/* Indicatif — champ indépendant, toujours cliquable */}
               <input
@@ -436,7 +443,7 @@ export default function PaypalPage() {
               {/* Numéro */}
               <input
                 type="tel"
-                placeholder={contactDialCode === "+237" ? "6XXXXXXXX" : "Votre numéro"}
+                placeholder={contactDialCode === "+237" ? "6XXXXXXXX" : t("pp.your_number")}
                 value={contactPhone}
                 maxLength={contactDialCode === "+237" ? 9 : 15}
                 onChange={e => { setContactPhone(e.target.value.replace(/\D/g, "")); setErrors(p => p ? { ...p, contactPhone: "" } : undefined); }}
@@ -451,15 +458,15 @@ export default function PaypalPage() {
             idFormat={idFormat} setIdFormat={setIdFormat}
             paypalId={paypalId} setPaypalId={setPaypalId}
             errors={errors} setErrors={setErrors}
-            label="Compte PayPal à recharger (où recevoir les fonds)"
+            label={t("pp.id_buy")}
             inputBase={inputBase} inputErr={inputErr} inputCls={inputCls}
             ID_FORMATS={ID_FORMATS}
           />}
 
-          <Field label="Votre email (pour confirmation de commande)" error={errors?.contactEmail}>
+          <Field label={t("f.email.contact")} error={errors?.contactEmail}>
             <input
               type="email"
-              placeholder="votre@email.com"
+              placeholder={t("f.email.ph")}
               value={contactEmail}
               onChange={e => { setContactEmail(e.target.value); setErrors(p => p ? { ...p, contactEmail: "" } : undefined); }}
               className={inputCls}
@@ -476,38 +483,38 @@ export default function PaypalPage() {
           className="w-full py-4 rounded-full font-black text-black text-sm transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
           style={{ background: "var(--gold)" }}
         >
-          🛒 Ajouter au panier
+          {t("btn.add_to_cart")}
         </button>
         {direction === "sell" ? (
           <WAPopover
-            onBeforeOpen={() => { const ok = validate(); if (!ok) { showToast("Corrigez les erreurs", "error"); return false; } sendNotification(); return true; }}
+            onBeforeOpen={() => { const ok = validate(); if (!ok) { showToast(t("err.fix"), "error"); return false; } sendNotification(); return true; }}
             getMsg={buildMsgPlain}
             className="w-full py-3 rounded-full font-black text-white text-sm flex items-center justify-center gap-2 transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
             style={{ background: "#25D366" }}
           >
             <Image src={IMAGES.whatsapp} alt="" width={20} height={20} unoptimized className="shrink-0" />
-            Commander directement via WhatsApp
+            {t("btn.order_wa_direct")}
           </WAPopover>
         ) : (
           <USSDOrderFlow
             total={buyFcfa}
             getMsg={buildMsgPlain}
-            onBeforeOpen={() => { const ok = validate(); if (!ok) { showToast("Corrigez les erreurs", "error"); return false; } sendNotification(); return true; }}
+            onBeforeOpen={() => { const ok = validate(); if (!ok) { showToast(t("err.fix"), "error"); return false; } sendNotification(); return true; }}
             className="w-full py-3 rounded-full font-black text-white text-sm flex items-center justify-center gap-2 transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
             style={{ background: "#25D366" }}
           >
             <Image src={IMAGES.whatsapp} alt="" width={20} height={20} unoptimized className="shrink-0" />
-            Commander via WhatsApp
+            {t("btn.order_wa")}
           </USSDOrderFlow>
         )}
       </div>
 
       <div className="mt-6 rounded-2xl p-4 text-xs flex flex-col gap-1.5" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
-        {["PayPal Europe uniquement (France, Belgique, Italie…)", "Comptes Cameroun ou USA non acceptés", "Transfert vers Mobile Money MTN / Orange", "Traitement en 15–30 min"].map(s => (
+        {[t("pp.notes_1"), t("pp.notes_2"), t("pp.notes_3"), t("pp.notes_4")].map(s => (
           <p key={s} style={{ color: "var(--text-secondary)" }}>✅ {s}</p>
         ))}
       </div>
-      <StepGuide title="Comment vendre / acheter du solde PayPal — Étape par étape" steps={STEPS_PAYPAL} />
+      <StepGuide title={t("pp.guide_title")} steps={STEPS_PAYPAL} />
       <FAQ items={PAGE_FAQ} />
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(PAGE_FAQ_SCHEMA) }} />
       <RelatedServices current="paypal" />
