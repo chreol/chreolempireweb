@@ -17,15 +17,8 @@ import FAQ from "@/components/FAQ";
 import StepGuide from "@/components/StepGuide";
 import { Field } from "@/components/FormField";
 
-const STEPS_FACTURES = [
-  { icon: "📋", title: "Choisissez l'onglet — Facture ou Échange MoMo", description: "Facture : payez Canal+, Eneo, Camwater, StarTimes. Échange MoMo : transférez entre MTN MoMo et Orange Money (ou autres opérateurs) sans frais." },
-  { icon: "🔢", title: "Entrez l'identifiant et le montant", description: "Pour les factures : votre numéro de téléphone abonné ou numéro de décodeur. Pour l'échange MoMo : les numéros source et destination avec les opérateurs respectifs.", tip: "Le numéro est généralement imprimé sur votre facture papier ou contrat." },
-  { icon: "📧", title: "Renseignez votre email", description: "Votre email pour recevoir la confirmation automatique de paiement de la facture ou d'exécution de l'échange." },
-  { icon: "💬", title: "Confirmez via WhatsApp", description: "Notre agent traite votre demande dès la réception. Délai de traitement : 5 à 15 minutes pendant les heures de service (7h–23h, 7j/7)." },
-  { icon: "✅", title: "Paiement effectué — Confirmation reçue", description: "Vous recevez un email de confirmation et une notification WhatsApp. Commission fixe : 200 FCFA par facture. Échange MoMo : 0% de frais.", tip: "Le paiement de votre facture apparaîtra dans votre espace client dans les 24h." },
-];
-
-const PAGE_FAQ = [
+// FAQ en français pour le JSON-LD SEO
+const FAQ_FR = [
   { q: "Comment payer sa facture Eneo sans se déplacer à Douala ?", a: "Envoyez le montant + 200 FCFA de commission via MTN MoMo ou Orange Money, puis transmettez votre numéro de compteur sur WhatsApp. Nous réglons votre facture Eneo sous 15 minutes et vous envoyons la confirmation de paiement." },
   { q: "Peut-on payer Canal+ avec MTN MoMo via Chreol Empire ?", a: "Oui, nous prenons en charge Canal+, Eneo, Camwater et StarTimes. Commission unique de 200 FCFA par facture, quel que soit le montant. Paiement accepté par MTN MoMo, Orange Money ou Express Union." },
   { q: "Quel est le coût du service de paiement de factures ?", a: "200 FCFA fixe par facture, quel que soit le montant. Pas de pourcentage, pas de frais cachés. Pour 5 000 FCFA de facture, vous payez 5 200 FCFA au total. Service disponible 7j/7 de 7h à 23h." },
@@ -35,7 +28,7 @@ const PAGE_FAQ = [
 const PAGE_FAQ_SCHEMA = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
-  mainEntity: PAGE_FAQ.map(f => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+  mainEntity: FAQ_FR.map(f => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
 };
 
 type Tab = "factures" | "momo";
@@ -47,6 +40,20 @@ export default function FacturesPage() {
   const { showToast } = useToast();
   const { t } = useLanguage();
   const { addItem } = useCart();
+
+  const STEPS_FACTURES = [
+    { icon: "📋", title: t("fa.step1.t"), description: t("fa.step1.d") },
+    { icon: "🔢", title: t("fa.step2.t"), description: t("fa.step2.d"), tip: t("fa.step2.tip") },
+    { icon: "📧", title: t("fa.step3.t"), description: t("fa.step3.d") },
+    { icon: "💬", title: t("fa.step4.t"), description: t("fa.step4.d") },
+    { icon: "✅", title: t("fa.step5.t"), description: t("fa.step5.d"), tip: t("fa.step5.tip") },
+  ];
+  const PAGE_FAQ = [
+    { q: t("fa.faq1.q"), a: t("fa.faq1.a") },
+    { q: t("fa.faq2.q"), a: t("fa.faq2.a") },
+    { q: t("fa.faq3.q"), a: t("fa.faq3.a") },
+    { q: t("fa.faq4.q"), a: t("fa.faq4.a") },
+  ];
 
   const orderIdRef = useRef("");
   const [tab, setTab]       = useState<Tab>("factures");
@@ -77,12 +84,12 @@ export default function FacturesPage() {
 
   function validateFacture() {
     const e: Record<string, string> = {};
-    if (!biller) e.biller = "Choisissez un fournisseur";
+    if (!biller) e.biller = t("fa.choose_biller");
     const idD = identifier.replace(/\D/g, "").replace(/^237/, "");
-    if (idType === "phone" && idD.length < 9) e.identifier = "Numéro invalide (9 chiffres)";
-    if (idType === "decoder" && idD.length < 14) e.identifier = "Numéro décodeur invalide (14 chiffres)";
-    if (!amount || numFacAmt < 500) e.amount = "Montant minimum 500 FCFA";
-    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = "Email valide requis";
+    if (idType === "phone" && idD.length < 9) e.identifier = t("fa.id_phone_err");
+    if (idType === "decoder" && idD.length < 14) e.identifier = t("fa.id_decoder_err");
+    if (!amount || numFacAmt < 500) e.amount = t("fa.amount_min500");
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = t("err.email_valid");
     setFacErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -96,7 +103,7 @@ export default function FacturesPage() {
 
   function handleFactureBeforeOpen() {
     const ok = validateFacture();
-    if (!ok) { showToast("Corrigez les erreurs", "error"); return false; }
+    if (!ok) { showToast(t("err.fix"), "error"); return false; }
     const billerName = FACTURE_BILLERS.find(b => b.id === biller)?.name ?? "";
     addEntry({
       service: `Facture — ${billerName}`,
@@ -135,13 +142,13 @@ export default function FacturesPage() {
 
   function validateMomo() {
     const e: Record<string, string> = {};
-    if (srcOp === dstOp) e.dstOp = "L'opérateur source et destination doivent être différents";
+    if (srcOp === dstOp) e.dstOp = t("fa.momo_diff_op");
     const spD = srcPhone.replace(/\D/g, "").replace(/^237/, "");
     const dpD = dstPhone.replace(/\D/g, "").replace(/^237/, "");
-    if (spD.length < 9) e.srcPhone = "Numéro source invalide (9 chiffres)";
-    if (dpD.length < 9) e.dstPhone = "Numéro destination invalide (9 chiffres)";
-    if (!momoAmt || numMomoAmt < 1000 || numMomoAmt > 500000) e.momoAmt = "Montant entre 1 000 et 500 000 FCFA";
-    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = "Email valide requis";
+    if (spD.length < 9) e.srcPhone = t("fa.momo_src_err");
+    if (dpD.length < 9) e.dstPhone = t("fa.momo_dst_err");
+    if (!momoAmt || numMomoAmt < 1000 || numMomoAmt > 500000) e.momoAmt = t("fa.momo_min");
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = t("err.email_valid");
     setMomoErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -155,7 +162,7 @@ export default function FacturesPage() {
 
   function handleMomoBeforeOpen() {
     const ok = validateMomo();
-    if (!ok) { showToast("Corrigez les erreurs", "error"); return false; }
+    if (!ok) { showToast(t("err.fix"), "error"); return false; }
     const srcName = MOMO_OPERATORS.find(o => o.id === srcOp)?.name ?? srcOp;
     const dstName = MOMO_OPERATORS.find(o => o.id === dstOp)?.name ?? dstOp;
     addEntry({
@@ -195,9 +202,9 @@ export default function FacturesPage() {
   return (
     <div className="max-w-2xl lg:max-w-3xl mx-auto px-4 sm:px-6 py-10">
       <div className="flex items-center gap-2 text-xs mb-6" style={{ color: "var(--text-muted)" }}>
-        <a href="/services" className="hover:text-white transition-colors">Services</a>
+        <a href="/services" className="hover:text-white transition-colors">{t("nav.services")}</a>
         <span>›</span>
-        <span style={{ color: "var(--gold)" }}>Factures & Échange MoMo</span>
+        <span style={{ color: "var(--gold)" }}>{t("fa.breadcrumb")}</span>
       </div>
 
       <h1 className="text-3xl font-black text-white mb-1">{t("p.factures.title")}</h1>
@@ -207,14 +214,14 @@ export default function FacturesPage() {
 
       {/* Tab toggle */}
       <div className="flex rounded-2xl p-1 mb-8" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
-        {([["factures", "📋 Paiement Factures"], ["momo", "🔄 Échange MoMo"]] as [Tab, string][]).map(([t, label]) => (
+        {([["factures", t("fa.tab_bills")], ["momo", t("fa.tab_momo")]] as [Tab, string][]).map(([tk, label]) => (
           <button
-            key={t}
-            onClick={() => { setTab(t); }}
+            key={tk}
+            onClick={() => { setTab(tk); }}
             className="flex-1 py-3 rounded-xl font-black text-sm transition-all"
             style={{
-              background: tab === t ? "var(--gold)" : "transparent",
-              color: tab === t ? "#0A0A0A" : "var(--text-secondary)",
+              background: tab === tk ? "var(--gold)" : "transparent",
+              color: tab === tk ? "#0A0A0A" : "var(--text-secondary)",
             }}
           >
             {label}
@@ -228,7 +235,7 @@ export default function FacturesPage() {
 
             {/* Biller selection */}
             <div>
-              <p className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: "var(--text-muted)" }}>Fournisseur</p>
+              <p className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: "var(--text-muted)" }}>{t("fa.choose_biller")}</p>
               {facErrors.biller && <p className="text-xs font-semibold mb-2" style={{ color: "#EF4444" }}>{facErrors.biller}</p>}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {FACTURE_BILLERS.map(b => (
@@ -254,17 +261,17 @@ export default function FacturesPage() {
 
             {/* Identifier type */}
             <div>
-              <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "var(--text-muted)" }}>Type d'identifiant</p>
+              <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "var(--text-muted)" }}>{t("fa.identifier")}</p>
               <div className="flex gap-2">
-                {([["phone", "Numéro téléphone (9 chiffres)"], ["decoder", "Numéro décodeur (14 chiffres)"]] as [IdType, string][]).map(([t, label]) => (
+                {([["phone", t("fa.id_phone")], ["decoder", t("fa.id_decoder")]] as [IdType, string][]).map(([idt, label]) => (
                   <button
-                    key={t}
-                    onClick={() => { setIdType(t); setIdentifier(""); setFacErrors(p => ({ ...p, identifier: "" })); }}
+                    key={idt}
+                    onClick={() => { setIdType(idt); setIdentifier(""); setFacErrors(p => ({ ...p, identifier: "" })); }}
                     className="flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all"
                     style={{
-                      background: idType === t ? "var(--gold)" : "var(--bg-card)",
-                      color: idType === t ? "#0A0A0A" : "var(--text-secondary)",
-                      border: `1px solid ${idType === t ? "var(--gold)" : "var(--border)"}`,
+                      background: idType === idt ? "var(--gold)" : "var(--bg-card)",
+                      color: idType === idt ? "#0A0A0A" : "var(--text-secondary)",
+                      border: `1px solid ${idType === idt ? "var(--gold)" : "var(--border)"}`,
                     }}
                   >
                     {label}
@@ -274,7 +281,7 @@ export default function FacturesPage() {
             </div>
 
             {/* Identifier input */}
-            <Field label="Identifiant" error={facErrors.identifier}>
+            <Field label={t("fa.identifier")} error={facErrors.identifier}>
               <div className="flex items-center rounded-2xl overflow-hidden" style={facErrors.identifier ? inputErr : inputBase}>
                 {idType === "phone" && (
                   <span className="px-3 text-sm font-bold shrink-0" style={{ color: "var(--text-muted)" }}>+237</span>
@@ -292,7 +299,7 @@ export default function FacturesPage() {
             </Field>
 
             {/* Amount */}
-            <Field label="Montant de la facture (min 500 FCFA)" error={facErrors.amount}>
+            <Field label={t("fa.bill_amount")} error={facErrors.amount}>
               <input
                 type="number"
                 min="500"
@@ -304,10 +311,10 @@ export default function FacturesPage() {
               />
             </Field>
 
-            <Field label="Adresse email" error={facErrors.email}>
+            <Field label={t("f.email")} error={facErrors.email}>
               <input
                 type="email"
-                placeholder="votre@email.com"
+                placeholder={t("f.email.ph")}
                 value={email}
                 onChange={e => { setEmail(e.target.value); setFacErrors(p => ({ ...p, email: "" })); }}
                 className={inputCls}
@@ -324,15 +331,15 @@ export default function FacturesPage() {
                 style={{ background: "#FF6B00" + "18", border: "1px solid #FF6B0044" }}
               >
                 <div className="flex justify-between text-sm mb-1">
-                  <span style={{ color: "var(--text-secondary)" }}>Facture</span>
+                  <span style={{ color: "var(--text-secondary)" }}>{t("fa.bill_word")}</span>
                   <span className="text-white font-bold tabular-nums">{numFacAmt.toLocaleString("fr-FR")} FCFA</span>
                 </div>
                 <div className="flex justify-between text-sm mb-2">
-                  <span style={{ color: "var(--text-secondary)" }}>Commission fixe</span>
+                  <span style={{ color: "var(--text-secondary)" }}>{t("fa.commission_fixed")}</span>
                   <span className="text-white font-bold tabular-nums">{FACTURE_COMMISSION} FCFA</span>
                 </div>
                 <div className="flex justify-between text-base pt-2" style={{ borderTop: "1px solid #FF6B0033" }}>
-                  <span className="font-black text-white">Total</span>
+                  <span className="font-black text-white">{t("cart.total")}</span>
                   <span className="font-black tabular-nums" style={{ color: "var(--gold)" }}>{totalFacture.toLocaleString("fr-FR")} FCFA</span>
                 </div>
               </motion.div>
@@ -346,13 +353,13 @@ export default function FacturesPage() {
               <div className="relative flex-1">
                 <button
                   onClick={() => {
-                    if (!validateFacture()) { showToast("Corrigez les erreurs", "error"); return; }
+                    if (!validateFacture()) { showToast(t("err.fix"), "error"); return; }
                     setCartDialog(true);
                   }}
                   className="w-full h-full py-4 rounded-full font-black text-sm transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
                   style={{ background: "var(--bg-elevated)", color: "var(--text-secondary)", border: "1px solid var(--border)" }}
                 >
-                  🛒 Panier
+                  {t("fa.cart")}
                 </button>
 
                 {/* Mini confirmation dialog */}
@@ -361,17 +368,17 @@ export default function FacturesPage() {
                     <div className="fixed inset-0 z-40" onClick={() => setCartDialog(false)} />
                     <div className="absolute bottom-full mb-3 left-0 right-0 z-50 rounded-2xl p-4 flex flex-col gap-3"
                       style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)", boxShadow: "0 8px 32px rgba(0,0,0,0.6)", minWidth: 220 }}>
-                      <p className="text-xs font-black uppercase tracking-wider" style={{ color: "var(--gold)" }}>Ajouter au panier</p>
+                      <p className="text-xs font-black uppercase tracking-wider" style={{ color: "var(--gold)" }}>{t("fa.add_to_cart")}</p>
                       <div className="text-xs flex flex-col gap-1" style={{ color: "var(--text-secondary)" }}>
                         <p><span style={{ color: "var(--text-primary)" }} className="font-bold">{FACTURE_BILLERS.find(b => b.id === biller)?.name}</span></p>
-                        <p>Identifiant : {identifier}</p>
+                        <p>{t("fa.identifier")} : {identifier}</p>
                         <p className="font-black" style={{ color: "var(--gold)" }}>{totalFacture.toLocaleString("fr-FR")} FCFA</p>
                       </div>
                       <div className="flex gap-2">
                         <button onClick={() => setCartDialog(false)}
                           className="flex-1 py-2 rounded-xl text-xs font-bold"
                           style={{ background: "var(--bg-card)", color: "var(--text-muted)" }}>
-                          Annuler
+                          {t("fa.cancel")}
                         </button>
                         <button
                           onClick={() => {
@@ -385,11 +392,11 @@ export default function FacturesPage() {
                               type: "buy",
                             });
                             setCartDialog(false);
-                            showToast("Ajouté au panier !", "success");
+                            showToast(t("toast.added_cart"), "success");
                           }}
                           className="flex-1 py-2 rounded-xl text-xs font-black text-white"
                           style={{ background: "var(--gold)", color: "#0A0A0A" }}>
-                          ✓ Confirmer
+                          {t("fa.confirm")}
                         </button>
                       </div>
                     </div>
@@ -405,7 +412,7 @@ export default function FacturesPage() {
                 style={{ background: "#25D366" }}
               >
                 <Image src={IMAGES.whatsapp} alt="" width={18} height={18} unoptimized className="shrink-0" />
-                Commander
+                {t("fa.order")}
               </USSDOrderFlow>
             </div>
           </motion.div>
@@ -414,12 +421,12 @@ export default function FacturesPage() {
 
             {/* Info banner */}
             <div className="rounded-2xl p-4 text-xs font-semibold" style={{ background: "#1A1500", border: "1px solid var(--gold)" + "44", color: "var(--gold)" }}>
-              🔄 Échange 1:1 — 0% commission · Taux appliqué : 1 FCFA = 1 FCFA
+              {t("fa.momo_info")}
             </div>
 
             {/* Source */}
             <div>
-              <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "var(--text-muted)" }}>Opérateur source (vous envoyez)</p>
+              <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "var(--text-muted)" }}>{t("fa.src_op")}</p>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
                 {MOMO_OPERATORS.map(o => (
                   <button
@@ -439,7 +446,7 @@ export default function FacturesPage() {
                   </button>
                 ))}
               </div>
-              <Field label="Numéro source (+237)" error={momoErrors.srcPhone}>
+              <Field label={t("fa.src_num")} error={momoErrors.srcPhone}>
                 <div className="flex items-center rounded-2xl overflow-hidden" style={momoErrors.srcPhone ? inputErr : inputBase}>
                   <span className="px-3 text-sm font-bold shrink-0" style={{ color: "var(--text-muted)" }}>+237</span>
                   <input
@@ -459,7 +466,7 @@ export default function FacturesPage() {
 
             {/* Destination */}
             <div>
-              <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "var(--text-muted)" }}>Opérateur destination (vous recevez)</p>
+              <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "var(--text-muted)" }}>{t("fa.dst_op")}</p>
               {momoErrors.dstOp && <p className="text-xs font-semibold mb-2" style={{ color: "#EF4444" }}>{momoErrors.dstOp}</p>}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
                 {MOMO_OPERATORS.map(o => (
@@ -480,7 +487,7 @@ export default function FacturesPage() {
                   </button>
                 ))}
               </div>
-              <Field label="Numéro destination (+237)" error={momoErrors.dstPhone}>
+              <Field label={t("fa.dst_num")} error={momoErrors.dstPhone}>
                 <div className="flex items-center rounded-2xl overflow-hidden" style={momoErrors.dstPhone ? inputErr : inputBase}>
                   <span className="px-3 text-sm font-bold shrink-0" style={{ color: "var(--text-muted)" }}>+237</span>
                   <input
@@ -496,7 +503,7 @@ export default function FacturesPage() {
             </div>
 
             {/* Amount */}
-            <Field label="Montant (1 000 – 500 000 FCFA)" error={momoErrors.momoAmt}>
+            <Field label={t("fa.momo_amount_lbl")} error={momoErrors.momoAmt}>
               <input
                 type="number"
                 min="1000"
@@ -509,10 +516,10 @@ export default function FacturesPage() {
               />
             </Field>
 
-            <Field label="Adresse email" error={momoErrors.email}>
+            <Field label={t("f.email")} error={momoErrors.email}>
               <input
                 type="email"
-                placeholder="votre@email.com"
+                placeholder={t("f.email.ph")}
                 value={email}
                 onChange={e => { setEmail(e.target.value); setMomoErrors(p => ({ ...p, email: "" })); }}
                 className={inputCls}
@@ -529,7 +536,7 @@ export default function FacturesPage() {
                 style={{ background: "var(--gold)" + "15", border: `1px solid var(--gold)` + "44" }}
               >
                 <div>
-                  <p className="text-xs font-bold mb-1" style={{ color: "var(--gold)" }}>Vous recevez (0% commission)</p>
+                  <p className="text-xs font-bold mb-1" style={{ color: "var(--gold)" }}>{t("fa.you_receive_0")}</p>
                   <p className="text-2xl font-black text-white tabular-nums">{numMomoAmt.toLocaleString("fr-FR")} FCFA</p>
                 </div>
                 <span className="text-3xl">✓</span>
@@ -544,12 +551,12 @@ export default function FacturesPage() {
               style={{ background: "#25D366" }}
             >
               <Image src={IMAGES.whatsapp} alt="" width={20} height={20} unoptimized className="shrink-0" />
-              Initier l&apos;échange via WhatsApp
+              {t("fa.exchange_wa")}
             </USSDOrderFlow>
           </motion.div>
         )}
       </AnimatePresence>
-      <StepGuide title="Comment payer une facture ou échanger du MoMo — Étape par étape" steps={STEPS_FACTURES} />
+      <StepGuide title={t("fa.guide_title")} steps={STEPS_FACTURES} />
       <FAQ items={PAGE_FAQ} />
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(PAGE_FAQ_SCHEMA) }} />
       <RelatedServices current="factures" />
