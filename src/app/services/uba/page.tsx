@@ -18,15 +18,8 @@ import FAQ from "@/components/FAQ";
 import StepGuide from "@/components/StepGuide";
 import { Field } from "@/components/FormField";
 
-const STEPS_UBA = [
-  { icon: "💳", title: "Choisissez votre segment de carte", description: "Segment I (10 500 F · limite 2,5M/mois) · Segment II (17 500 F · limite 5M/mois) · Segment III (25 000 F · limite 10M/mois). Choisissez selon votre usage (shopping, Netflix, Amazon…).", tip: "Le Segment I est parfait pour débuter — utilisable sur tous les sites internationaux." },
-  { icon: "📋", title: "Fournissez vos documents", description: "Notre agent vous demandera : photocopie CNI ou passeport, plan de localisation, demi-photo type passeport (fond blanc) et votre NUI. Envoyez-les via WhatsApp.", tip: "Nous vous aidons à retrouver votre NUI si vous l'avez perdu (service 1 500 FCFA)." },
-  { icon: "💰", title: "Effectuez le paiement MoMo", description: "Réglez le montant du segment choisi via MTN MoMo ou Orange Money selon les instructions de l'agent. Envoyez la capture de confirmation.", tip: "Paiement sécurisé — aucun frais supplémentaire caché." },
-  { icon: "🏦", title: "Traitement de votre dossier UBA", description: "Notre équipe soumet votre dossier à la banque UBA pour l'activation de votre carte. Le traitement prend 1 à 24+ heures ouvrables. Vous serez notifié à chaque étape." },
-  { icon: "📦", title: "Réception de votre carte", description: "La carte est disponible immédiatement à retrait dans notre boutique Vallée 3 Boutique, Deido, Douala. Ou livraison à domicile sur Douala (frais supplémentaires) — cependant la documentation est nécessaire au préalable.", tip: "Activez votre carte sur le site UBA ou en composant le code fourni." },
-];
-
-const PAGE_FAQ = [
+// FAQ en français pour le JSON-LD SEO
+const FAQ_FR = [
   { q: "Comment obtenir une carte UBA Cameroun pour payer sur Amazon ?", a: "Commandez votre carte UBA Cameroun via WhatsApp en fournissant : CNI, plan de localisation, demi-photo et NUI. Activation rapide en 1 à 24h+ ouvrables après dossier complet. La carte Visa UBA est acceptée sur Amazon, Alibaba, Airbnb et tous les sites internationaux." },
   { q: "Quel est le plafond de la carte UBA Cameroun ?", a: "De 2 500 000 FCFA/mois pour le segment Classic à 10 000 000 FCFA/mois pour le segment Gold. La carte est utilisable pour les paiements en ligne et en magasin partout où Visa est accepté dans le monde." },
   { q: "La carte UBA Cameroun fonctionne-t-elle à l'international ?", a: "Oui, c'est une carte Visa prépayée internationale. Utilisable sur tous les sites e-commerce mondiaux (Amazon, Netflix, PayPal, Booking…) et dans les terminaux physiques Visa à l'étranger." },
@@ -36,7 +29,7 @@ const PAGE_FAQ = [
 const PAGE_FAQ_SCHEMA = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
-  mainEntity: PAGE_FAQ.map(f => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+  mainEntity: FAQ_FR.map(f => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
 };
 
 function calcFee(amount: number) {
@@ -45,19 +38,32 @@ function calcFee(amount: number) {
   return tier.type === "fixed" ? tier.fee : Math.round(amount * tier.fee / 100);
 }
 
-const REQUIRED_DOCS = [
-  { icon: "🪪", label: "Photocopie CNI ou Passeport" },
-  { icon: "📍", label: "Plan de localisation" },
-  { icon: "📸", label: "Demi-photo type passeport (fond blanc)" },
-  { icon: "🔢", label: "NUI (Si perdu ou égaré — nous vous le retrouvons pour 1 500 FCFA)" },
-];
-
 export default function UBAPage() {
   useEffect(() => { track("service_view", { service: "uba" }); }, []);
   const { addItem } = useCart();
   const { addEntry } = useHistory();
   const { t } = useLanguage();
   const { showToast } = useToast();
+
+  const STEPS_UBA = [
+    { icon: "💳", title: t("u.step1.t"), description: t("u.step1.d"), tip: t("u.step1.tip") },
+    { icon: "📋", title: t("u.step2.t"), description: t("u.step2.d"), tip: t("u.step2.tip") },
+    { icon: "💰", title: t("u.step3.t"), description: t("u.step3.d"), tip: t("u.step3.tip") },
+    { icon: "🏦", title: t("u.step4.t"), description: t("u.step4.d") },
+    { icon: "📦", title: t("u.step5.t"), description: t("u.step5.d"), tip: t("u.step5.tip") },
+  ];
+  const PAGE_FAQ = [
+    { q: t("u.faq1.q"), a: t("u.faq1.a") },
+    { q: t("u.faq2.q"), a: t("u.faq2.a") },
+    { q: t("u.faq3.q"), a: t("u.faq3.a") },
+    { q: t("u.faq4.q"), a: t("u.faq4.a") },
+  ];
+  const REQUIRED_DOCS = [
+    { icon: "🪪", label: t("u.doc_1") },
+    { icon: "📍", label: t("u.doc_2") },
+    { icon: "📸", label: t("u.doc_3") },
+    { icon: "🔢", label: t("u.doc_4") },
+  ];
 
   const orderIdRef = useRef("");
   const [mode, setMode]         = useState<"buy" | "recharge">("buy");
@@ -95,17 +101,17 @@ export default function UBAPage() {
   /* ── Buy validation ── */
   function validateBuy() {
     const e: Record<string, string> = {};
-    if (!selectedSeg)                           e.seg      = "Sélectionnez un segment de carte";
-    if (!buyName.trim())                        e.buyName  = "Nom requis (tel qu'il apparaîtra sur la carte)";
+    if (!selectedSeg)                           e.seg      = t("u.select_seg");
+    if (!buyName.trim())                        e.buyName  = t("u.name_required");
     const bpD = buyPhone.replace(/\D/g, "").replace(/^237/, "");
-    if (bpD.length < 9) e.buyPhone = "Numéro invalide (9 chiffres)";
-    if (!buyAccepted)                           e.accepted = "Vous devez accepter les conditions";
+    if (bpD.length < 9) e.buyPhone = t("err.phone_invalid");
+    if (!buyAccepted)                           e.accepted = t("u.accept_required");
     setBuyErrors(e);
     return Object.keys(e).length === 0;
   }
 
   function handleBuyAddToCart() {
-    if (!validateBuy()) { showToast("Corrigez les erreurs", "error"); return; }
+    if (!validateBuy()) { showToast(t("err.fix"), "error"); return; }
     saveClientInfo({ name: buyName, phone: buyPhone });
     const card = UBA_CARDS.find(c => c.segment === selectedSeg)!;
     addItem({
@@ -123,20 +129,20 @@ export default function UBAPage() {
       currency: "FCFA",
       status: "pending",
     });
-    showToast("Carte UBA ajoutée au panier !", "success");
+    showToast(t("u.added_buy"), "success");
   }
 
   /* ── Recharge validation ── */
   function validate() {
     const e: Record<string, string> = {};
-    if (card6.length !== 6)                             e.card6    = "6 chiffres requis";
-    if (card4.length !== 4)                             e.card4    = "4 chiffres requis";
-    if (!clientId || clientId.length > 10)              e.clientId = "Client ID requis (max 10 chiffres)";
-    if (!fullName.trim())                               e.fullName = "Nom requis (tel qu'il apparaît sur la carte)";
+    if (card6.length !== 6)                             e.card6    = t("u.card6_err");
+    if (card4.length !== 4)                             e.card4    = t("u.card4_err");
+    if (!clientId || clientId.length > 10)              e.clientId = t("u.client_id_err");
+    if (!fullName.trim())                               e.fullName = t("u.name_required");
     const phD = phone.replace(/\D/g, "").replace(/^237/, "");
-    if (phD.length < 9) e.phone = "Numéro invalide (9 chiffres)";
-    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = "Email valide requis";
-    if (!amount || numAmount < 1500 || numAmount > 500000) e.amount = "Montant entre 1 500 et 500 000 FCFA";
+    if (phD.length < 9) e.phone = t("err.phone_invalid");
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = t("err.email_valid");
+    if (!amount || numAmount < 1500 || numAmount > 500000) e.amount = t("u.amount_err");
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -148,7 +154,7 @@ export default function UBAPage() {
   }
 
   function handleAddToCart() {
-    if (!validate()) { showToast("Corrigez les erreurs", "error"); return; }
+    if (!validate()) { showToast(t("err.fix"), "error"); return; }
     saveClientInfo({ name: fullName, email, phone });
     addItem({
       id: `uba-recharge-${Date.now()}`,
@@ -165,12 +171,12 @@ export default function UBAPage() {
       currency: "FCFA",
       status: "pending",
     });
-    showToast("Recharge UBA ajoutée au panier !", "success");
+    showToast(t("u.added_recharge"), "success");
   }
 
   function handleRechargeBeforeOpen() {
     const ok = validate();
-    if (!ok) { showToast("Corrigez les erreurs", "error"); return false; }
+    if (!ok) { showToast(t("err.fix"), "error"); return false; }
     fetch("/api/notify-order", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -203,9 +209,9 @@ export default function UBAPage() {
   return (
     <div className="max-w-2xl lg:max-w-3xl mx-auto px-4 sm:px-6 py-10">
       <div className="flex items-center gap-2 text-xs mb-6" style={{ color: "var(--text-muted)" }}>
-        <a href="/services" className="hover:text-white transition-colors">Services</a>
+        <a href="/services" className="hover:text-white transition-colors">{t("nav.services")}</a>
         <span>›</span>
-        <span style={{ color: "var(--gold)" }}>UBA Cameroun</span>
+        <span style={{ color: "var(--gold)" }}>{t("u.breadcrumb")}</span>
       </div>
 
       <h1 className="text-3xl font-black mb-1" style={{ color: "var(--text-primary)" }}>{t("p.uba.title")}</h1>
@@ -223,7 +229,7 @@ export default function UBAPage() {
               color: mode === m ? "#0A0A0A" : "var(--text-secondary)",
             }}
           >
-            {m === "buy" ? "🏦 Acheter une carte" : "⚡ Recharger ma carte"}
+            {m === "buy" ? t("u.tab_buy") : t("u.tab_recharge")}
           </button>
         ))}
       </div>
@@ -248,13 +254,13 @@ export default function UBAPage() {
                 >
                   {card.popular && (
                     <div className="text-center py-1 text-[10px] font-black" style={{ background: "var(--gold)", color: "#0A0A0A" }}>
-                      ⭐ POPULAIRE
+                      {t("u.popular")}
                     </div>
                   )}
                   <div className="p-5 flex flex-col gap-3 flex-1">
                     <div>
-                      <p className="font-black text-lg" style={{ color: "var(--text-primary)" }}>Segment {card.segment}</p>
-                      <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>Limite : {card.limit}</p>
+                      <p className="font-black text-lg" style={{ color: "var(--text-primary)" }}>{t("u.segment")} {card.segment}</p>
+                      <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>{t("u.limit")} : {card.limit}</p>
                     </div>
                     <p className="text-xl font-black" style={{ color: "var(--gold)" }}>
                       {card.price.toLocaleString("fr-FR")} FCFA
@@ -268,7 +274,7 @@ export default function UBAPage() {
                     </div>
                     {selectedSeg === card.segment && (
                       <div className="mt-1 text-center text-xs font-black py-1 rounded-lg" style={{ background: "var(--gold)", color: "#0A0A0A" }}>
-                        ✓ Sélectionné
+                        {t("u.selected")}
                       </div>
                     )}
                   </div>
@@ -286,7 +292,7 @@ export default function UBAPage() {
               >
                 {/* Required documents list */}
                 <div className="rounded-2xl p-4" style={{ background: "var(--bg-card)", border: "1px solid var(--border-strong)" }}>
-                  <p className="text-sm font-black mb-3" style={{ color: "var(--gold)" }}>📋 Informations requises</p>
+                  <p className="text-sm font-black mb-3" style={{ color: "var(--gold)" }}>{t("u.docs_title")}</p>
                   <div className="flex flex-col gap-2">
                     {REQUIRED_DOCS.map((doc, i) => (
                       <div key={i} className="flex items-start gap-2.5">
@@ -296,14 +302,14 @@ export default function UBAPage() {
                     ))}
                   </div>
                   <p className="text-[11px] mt-3 font-semibold" style={{ color: "var(--text-muted)" }}>
-                    Un agent Chreol Empire vous contactera pour collecter ces documents.
+                    {t("u.docs_note")}
                   </p>
                 </div>
 
-                <Field label="Nom complet (tel qu'il apparaîtra sur la carte)" error={buyErrors.buyName}>
+                <Field label={t("u.name_card")} error={buyErrors.buyName}>
                   <input
                     type="text"
-                    placeholder="ex : JEAN DUPONT"
+                    placeholder={t("u.name_ph")}
                     value={buyName}
                     onChange={e => { setBuyName(e.target.value); setBuyErrors(p => ({ ...p, buyName: "" })); }}
                     onKeyDown={e => e.key === "Enter" && refBuyPhone.current?.focus({ preventScroll: true })}
@@ -341,7 +347,7 @@ export default function UBAPage() {
                     className="mt-0.5 shrink-0 w-4 h-4 accent-amber-400"
                   />
                   <span className="text-xs leading-relaxed" style={{ color: buyErrors.accepted ? "#EF4444" : "var(--text-secondary)" }}>
-                    J&apos;ai lu et j&apos;accepte de fournir les éléments nécessaires au bureau Chreol Empire pour obtenir ma carte UBA Cameroun (pièce d&apos;identité, photo, plan de localisation).
+                    {t("u.accept")}
                   </span>
                 </label>
                 {buyErrors.accepted && (
@@ -353,7 +359,7 @@ export default function UBAPage() {
                   className="w-full py-4 rounded-full font-black text-black text-sm transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
                   style={{ background: "var(--gold)" }}
                 >
-                  🛒 Ajouter au panier
+                  {t("btn.add_to_cart")}
                 </button>
               </motion.div>
             )}
@@ -363,7 +369,7 @@ export default function UBAPage() {
 
             {/* Card digits — chiffres uniquement + auto-avance */}
             <div className="grid grid-cols-2 gap-3">
-              <Field label="6 premiers chiffres" error={errors.card6}>
+              <Field label={t("u.card6")} error={errors.card6}>
                 <input
                   type="tel"
                   placeholder="123456"
@@ -381,7 +387,7 @@ export default function UBAPage() {
                   style={errors.card6 ? inputErr : inputBase}
                 />
               </Field>
-              <Field label="4 derniers chiffres" error={errors.card4}>
+              <Field label={t("u.card4")} error={errors.card4}>
                 <input
                   ref={refCard4}
                   type="tel"
@@ -402,11 +408,11 @@ export default function UBAPage() {
               </Field>
             </div>
 
-            <Field label="Client ID (au dos de la carte, max 10 chiffres)" error={errors.clientId}>
+            <Field label={t("u.client_id")} error={errors.clientId}>
               <input
                 ref={refClientId}
                 type="tel"
-                placeholder="Votre Client ID"
+                placeholder={t("u.client_id_ph")}
                 value={clientId}
                 maxLength={10}
                 inputMode="numeric"
@@ -422,11 +428,11 @@ export default function UBAPage() {
               />
             </Field>
 
-            <Field label="Nom complet (tel qu'il apparaît sur la carte)" error={errors.fullName}>
+            <Field label={t("u.name_appears")} error={errors.fullName}>
               <input
                 ref={refFullName}
                 type="text"
-                placeholder="ex : JEAN DUPONT"
+                placeholder={t("u.name_ph")}
                 value={fullName}
                 onChange={e => { setFullName(e.target.value); setErrors(p => ({ ...p, fullName: "" })); }}
                 onKeyDown={e => e.key === "Enter" && refPhone.current?.focus({ preventScroll: true })}
@@ -435,7 +441,7 @@ export default function UBAPage() {
               />
             </Field>
 
-            <Field label="Téléphone (+237)" error={errors.phone}>
+            <Field label={t("u.phone")} error={errors.phone}>
               <div className="flex items-center rounded-2xl overflow-hidden" style={errors.phone ? inputErr : inputBase}>
                 <span className="px-3 text-sm font-bold shrink-0" style={{ color: "var(--text-muted)" }}>+237</span>
                 <input
@@ -458,10 +464,10 @@ export default function UBAPage() {
               </div>
             </Field>
 
-            <Field label="Adresse email" error={errors.email}>
+            <Field label={t("f.email")} error={errors.email}>
               <input
                 type="email"
-                placeholder="votre@email.com"
+                placeholder={t("f.email.ph")}
                 value={email}
                 onChange={e => { setEmail(e.target.value); setErrors(p => ({ ...p, email: "" })); }}
                 className={inputCls}
@@ -469,7 +475,7 @@ export default function UBAPage() {
               />
             </Field>
 
-            <Field label="Montant à recharger (1 500 – 500 000 FCFA)" error={errors.amount}>
+            <Field label={t("u.amount_recharge")} error={errors.amount}>
               <input
                 ref={refAmount}
                 type="tel"
@@ -499,15 +505,15 @@ export default function UBAPage() {
                 style={{ background: "#8B000018", border: "1px solid #8B000055" }}
               >
                 <div className="flex justify-between text-sm mb-2">
-                  <span style={{ color: "var(--text-secondary)" }}>Recharge</span>
+                  <span style={{ color: "var(--text-secondary)" }}>{t("u.recharge")}</span>
                   <span className="font-bold tabular-nums" style={{ color: "var(--text-primary)" }}>{numAmount.toLocaleString("fr-FR")} FCFA</span>
                 </div>
                 <div className="flex justify-between text-sm mb-2">
-                  <span style={{ color: "var(--text-secondary)" }}>Frais de service</span>
+                  <span style={{ color: "var(--text-secondary)" }}>{t("u.service_fee")}</span>
                   <span className="font-bold tabular-nums" style={{ color: "var(--text-primary)" }}>{fee.toLocaleString("fr-FR")} FCFA</span>
                 </div>
                 <div className="flex justify-between text-base pt-2" style={{ borderTop: "1px solid #8B000033" }}>
-                  <span className="font-black" style={{ color: "var(--text-primary)" }}>Total à payer</span>
+                  <span className="font-black" style={{ color: "var(--text-primary)" }}>{t("u.total_pay")}</span>
                   <span className="font-black tabular-nums" style={{ color: "var(--gold)" }}>{total.toLocaleString("fr-FR")} FCFA</span>
                 </div>
               </motion.div>
@@ -516,13 +522,13 @@ export default function UBAPage() {
             {/* Fee table */}
             <details className="rounded-2xl overflow-hidden" style={{ border: "1px solid var(--border)" }}>
               <summary className="px-4 py-3 text-xs font-bold cursor-pointer" style={{ background: "var(--bg-card)", color: "var(--text-secondary)", listStyle: "none" }}>
-                📋 Grille des frais de recharge
+                {t("u.fees_grid")}
               </summary>
               <div className="p-4" style={{ background: "var(--bg-elevated)" }}>
-                {UBA_RECHARGE_FEES.map((t, i) => (
+                {UBA_RECHARGE_FEES.map((tier, i) => (
                   <div key={i} className="flex justify-between text-xs py-1.5" style={{ borderBottom: i < UBA_RECHARGE_FEES.length - 1 ? "1px solid var(--border)" : "none", color: "var(--text-secondary)" }}>
-                    <span>{t.min.toLocaleString("fr-FR")} – {t.max.toLocaleString("fr-FR")} FCFA</span>
-                    <span className="font-bold" style={{ color: "var(--text-primary)" }}>{t.type === "fixed" ? `${t.fee.toLocaleString("fr-FR")} FCFA` : `${t.fee}%`}</span>
+                    <span>{tier.min.toLocaleString("fr-FR")} – {tier.max.toLocaleString("fr-FR")} FCFA</span>
+                    <span className="font-bold" style={{ color: "var(--text-primary)" }}>{tier.type === "fixed" ? `${tier.fee.toLocaleString("fr-FR")} FCFA` : `${tier.fee}%`}</span>
                   </div>
                 ))}
               </div>
@@ -547,12 +553,12 @@ export default function UBAPage() {
               style={{ background: "#25D366" }}
             >
               <Image src={IMAGES.whatsapp} alt="" width={20} height={20} unoptimized className="shrink-0" />
-              Commander directement via WhatsApp
+              {t("btn.order_wa_direct")}
             </USSDOrderFlow>
           </motion.div>
         )}
       </AnimatePresence>
-      <StepGuide title="Comment obtenir ou recharger une carte UBA — Étape par étape" steps={STEPS_UBA} />
+      <StepGuide title={t("u.guide_title")} steps={STEPS_UBA} />
       <FAQ items={PAGE_FAQ} />
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(PAGE_FAQ_SCHEMA) }} />
       <RelatedServices current="uba" />
