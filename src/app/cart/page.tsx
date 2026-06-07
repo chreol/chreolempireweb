@@ -88,7 +88,7 @@ export default function CartPage() {
 
   async function handleOrderClick(force = false) {
     if (!email) {
-      setEmailError("Email requis pour recevoir la confirmation de commande");
+      setEmailError(t("cart.email_required"));
       return;
     }
     setEmailError("");
@@ -209,16 +209,16 @@ export default function CartPage() {
 
         {/* ── Envoyer la preuve de paiement ── */}
         <div className="rounded-2xl p-5 mb-6 text-left" style={{ background: "var(--bg-card)", border: "1.5px solid var(--gold)44" }}>
-          <p className="font-black text-white text-sm mb-1">📎 Envoyez votre preuve de paiement</p>
+          <p className="font-black text-white text-sm mb-1">{t("cart.proof_title")}</p>
           <p className="text-xs mb-4" style={{ color: "var(--text-secondary)" }}>
-            Uploadez la capture d&apos;écran de votre paiement MoMo pour que notre agent puisse traiter votre commande immédiatement.
+            {t("cart.proof_desc")}
           </p>
           <Link
             href={`/confirmer-paiement?order=${done}`}
             className="w-full flex items-center justify-center py-3 rounded-xl font-black text-black text-sm transition-opacity hover:opacity-85"
             style={{ background: "var(--gold)" }}
           >
-            📤 Envoyer ma capture d&apos;écran →
+            {t("cart.proof_btn")}
           </Link>
         </div>
 
@@ -333,7 +333,7 @@ export default function CartPage() {
                     className="text-xs font-bold shrink-0 transition-opacity hover:opacity-70"
                     style={{ color: "var(--gold)" }}
                   >
-                    Modifier
+                    {t("cart.edit")}
                   </button>
                 </div>
               </div>
@@ -347,7 +347,7 @@ export default function CartPage() {
                 <input type="tel" placeholder={t("cart.phone")} value={phone} onChange={e => setPhone(e.target.value)} className="w-full px-4 py-3 rounded-2xl text-white text-sm outline-none" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }} />
                 {infoConfirmed && (
                   <button type="button" onClick={() => setEditingInfo(false)} className="text-xs font-bold text-left transition-opacity hover:opacity-70" style={{ color: "var(--text-muted)" }}>
-                    ← Annuler
+                    {t("cart.cancel")}
                   </button>
                 )}
               </div>
@@ -418,7 +418,7 @@ export default function CartPage() {
                 className="w-full text-xs py-2 rounded-xl transition-opacity hover:opacity-70"
                 style={{ color: "var(--text-muted)" }}
               >
-                ← Annuler
+                {t("cart.cancel")}
               </button>
             </div>
           )}
@@ -527,7 +527,7 @@ export default function CartPage() {
                 className="flex items-center justify-center gap-2 w-full py-4 rounded-full font-black text-white text-sm transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96] disabled:opacity-50"
                 style={{ background: "#25D366" }}
               >
-                {dupChecking ? "⏳ Vérification…" : loading ? t("cart.loading") : (
+                {dupChecking ? t("cart.checking") : loading ? t("cart.loading") : (
                   <><Image src={IMAGES.whatsapp} alt="" width={20} height={20} unoptimized className="shrink-0" /> {t("cart.wa.order")}</>
                 )}
               </button>
@@ -551,15 +551,15 @@ export default function CartPage() {
             style={{ background: "var(--bg-card)", border: "1.5px solid #F59E0B55" }}>
             <div className="text-center">
               <p className="text-3xl mb-2">⚠️</p>
-              <p className="font-black text-white text-lg">Commande déjà en cours</p>
+              <p className="font-black text-white text-lg">{t("cart.dup_title")}</p>
               <p className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>
-                Vous avez une commande similaire en attente.
+                {t("cart.dup_desc")}
               </p>
             </div>
 
             <div className="rounded-2xl p-4" style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)" }}>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Commande</span>
+                <span className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>{t("cart.dup_order")}</span>
                 <span className="font-black text-sm" style={{ color: "var(--gold)" }}>
                   #{dupModal.orderId.slice(-8).toUpperCase()}
                 </span>
@@ -568,7 +568,7 @@ export default function CartPage() {
                 <p className="text-base font-black text-white">{dupModal.total.toLocaleString("fr-FR")} FCFA</p>
               )}
               <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>
-                {new Date(dupModal.created_at).toLocaleString("fr-FR", { hour: "2-digit", minute: "2-digit" })} · En attente
+                {new Date(dupModal.created_at).toLocaleString("fr-FR", { hour: "2-digit", minute: "2-digit" })} · {t("cart.dup_pending")}
               </p>
             </div>
 
@@ -579,7 +579,7 @@ export default function CartPage() {
                 style={{ background: "var(--gold)" }}
                 onClick={() => setDupModal(null)}
               >
-                Voir ma commande →
+                {t("cart.dup_view")}
               </Link>
               <button
                 type="button"
@@ -587,7 +587,7 @@ export default function CartPage() {
                 className="w-full py-3 rounded-full font-black text-sm transition-opacity hover:opacity-85"
                 style={{ background: "var(--bg-elevated)", color: "var(--text-secondary)", border: "1px solid var(--border)" }}
               >
-                Refaire une nouvelle commande
+                {t("cart.dup_redo")}
               </button>
             </div>
           </div>

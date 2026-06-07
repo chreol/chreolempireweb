@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { IMAGES } from "@/lib/services";
 import WAPopover from "@/components/WAPopover";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface OrderInfo {
   id: string;
@@ -27,6 +28,7 @@ function formatDate(d: string) {
 function ConfirmerPaiementContent() {
   const params  = useSearchParams();
   const orderId = params.get("order") ?? "";
+  const { t } = useLanguage();
 
   const [order,    setOrder]    = useState<OrderInfo | null>(null);
   const [loading,  setLoading]  = useState(true);
@@ -67,7 +69,7 @@ function ConfirmerPaiementContent() {
 
   async function handleUpload() {
     if (!file || !orderId) return;
-    if (file.size > 5 * 1024 * 1024) { setError("Fichier trop lourd (max 5 Mo)"); return; }
+    if (file.size > 5 * 1024 * 1024) { setError(t("cp2.too_large")); return; }
 
     setUploading(true);
     setError(null);
@@ -79,13 +81,13 @@ function ConfirmerPaiementContent() {
     try {
       const res  = await fetch("/api/upload-proof", { method: "POST", body: fd });
       const data = await res.json();
-      if (!res.ok) { setError(data.error ?? "Erreur lors de l'envoi"); }
+      if (!res.ok) { setError(data.error ?? t("cp2.send_error")); }
       else {
         setUploaded(true);
         setOrder(prev => prev ? { ...prev, proof_url: data.url } : prev);
       }
     } catch {
-      setError("Erreur réseau — réessayez");
+      setError(t("cp2.net_error"));
     } finally {
       setUploading(false);
     }
@@ -96,7 +98,7 @@ function ConfirmerPaiementContent() {
     return (
       <div className="max-w-lg mx-auto px-4 py-20 text-center">
         <p className="text-4xl mb-4 animate-pulse">⏳</p>
-        <p style={{ color: "var(--text-muted)" }}>Chargement…</p>
+        <p style={{ color: "var(--text-muted)" }}>{t("cp2.loading")}</p>
       </div>
     );
   }
@@ -106,9 +108,9 @@ function ConfirmerPaiementContent() {
     return (
       <div className="max-w-lg mx-auto px-4 py-20 text-center">
         <p className="text-4xl mb-4">❓</p>
-        <h1 className="text-xl font-black text-white mb-2">Commande introuvable</h1>
+        <h1 className="text-xl font-black text-white mb-2">{t("cp2.not_found")}</h1>
         <p className="mb-6 text-sm" style={{ color: "var(--text-secondary)" }}>
-          Vérifiez le lien reçu ou contactez notre équipe.
+          {t("cp2.not_found_sub")}
         </p>
         <WAPopover
           prefill="Bonjour, j'ai un problème avec ma confirmation de paiement."
@@ -116,7 +118,7 @@ function ConfirmerPaiementContent() {
           style={{ background: "#25D366" }}
         >
           <Image src={IMAGES.whatsapp} alt="" width={18} height={18} unoptimized />
-          Nous contacter
+          {t("cp2.contact_us")}
         </WAPopover>
       </div>
     );
@@ -129,19 +131,19 @@ function ConfirmerPaiementContent() {
 
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-xs mb-6" style={{ color: "var(--text-muted)" }}>
-        <Link href="/" className="hover:text-white transition-colors">Accueil</Link>
+        <Link href="/" className="hover:text-white transition-colors">{t("nav.home")}</Link>
         <span>›</span>
-        <span style={{ color: "var(--gold)" }}>Confirmer paiement</span>
+        <span style={{ color: "var(--gold)" }}>{t("cp2.breadcrumb")}</span>
       </div>
 
       {/* Header */}
       <div className="mb-8">
         <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-black mb-4" style={{ background: "var(--gold)", color: "#0A0A0A" }}>
-          📎 Preuve de paiement
+          {t("cp2.badge")}
         </span>
-        <h1 className="text-2xl font-black text-white mb-1">Confirmer votre paiement</h1>
+        <h1 className="text-2xl font-black text-white mb-1">{t("cp2.title")}</h1>
         <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
-          Envoyez la capture d&apos;écran de votre paiement Mobile Money pour valider votre commande.
+          {t("cp2.subtitle")}
         </p>
       </div>
 
@@ -149,7 +151,7 @@ function ConfirmerPaiementContent() {
       <div className="rounded-2xl p-5 mb-6" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
         <div className="flex items-start justify-between mb-3">
           <div>
-            <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color: "var(--text-muted)" }}>Référence</p>
+            <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color: "var(--text-muted)" }}>{t("cp2.ref")}</p>
             <p className="text-xl font-black" style={{ color: "var(--gold)" }}>#{ref}</p>
           </div>
           <span className={`px-2.5 py-1 rounded-full text-[11px] font-black ${
@@ -157,7 +159,7 @@ function ConfirmerPaiementContent() {
           }`} style={{
             background: order.status === "done" ? "#10B98122" : "#F59E0B22",
           }}>
-            {order.status === "done" ? "✅ Traité" : "⏳ En attente"}
+            {order.status === "done" ? t("cp2.done_badge") : t("cp2.pending_badge")}
           </span>
         </div>
         <p className="text-xs mb-3" style={{ color: "var(--text-secondary)" }}>{order.summary}</p>
@@ -172,15 +174,15 @@ function ConfirmerPaiementContent() {
         /* ── Déjà envoyée ── */
         <div className="rounded-2xl p-6 text-center mb-6" style={{ background: "#10B98114", border: "1.5px solid #10B98144" }}>
           <p className="text-3xl mb-3">✅</p>
-          <p className="font-black text-white text-base mb-1">Preuve envoyée avec succès</p>
+          <p className="font-black text-white text-base mb-1">{t("cp2.success")}</p>
           <p className="text-xs mb-4" style={{ color: "var(--text-secondary)" }}>
-            Notre agent a été notifié et va traiter votre commande dans les 15–30 minutes.
+            {t("cp2.success_sub")}
           </p>
           {order.proof_url && (
             <a href={order.proof_url} target="_blank" rel="noopener noreferrer"
               className="inline-block text-xs font-bold underline mb-4"
               style={{ color: "#10B981" }}>
-              Voir ma capture d&apos;écran →
+              {t("cp2.view_proof")}
             </a>
           )}
           <div className="flex flex-col gap-2">
@@ -190,12 +192,12 @@ function ConfirmerPaiementContent() {
               style={{ background: "#25D366" }}
             >
               <Image src={IMAGES.whatsapp} alt="" width={18} height={18} unoptimized />
-              Contacter l&apos;agent
+              {t("cp2.contact_agent")}
             </WAPopover>
             <Link href="/services"
               className="w-full flex items-center justify-center py-3 rounded-full font-black text-sm"
               style={{ background: "var(--bg-elevated)", color: "var(--text-secondary)" }}>
-              Retour aux services
+              {t("cp2.back_services")}
             </Link>
           </div>
         </div>
@@ -213,14 +215,14 @@ function ConfirmerPaiementContent() {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={preview} alt="Prévisualisation" className="max-h-48 rounded-xl object-contain" />
                 <p className="text-xs font-bold" style={{ color: "var(--gold)" }}>{file?.name}</p>
-                <p className="text-xs" style={{ color: "var(--text-muted)" }}>Cliquez pour changer</p>
+                <p className="text-xs" style={{ color: "var(--text-muted)" }}>{t("cp2.change_image")}</p>
               </div>
             ) : (
               <div className="flex flex-col items-center gap-3">
                 <p className="text-4xl">📷</p>
-                <p className="font-bold text-white text-sm">Cliquez pour choisir une image</p>
+                <p className="font-bold text-white text-sm">{t("cp2.choose_image")}</p>
                 <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                  Screenshot MoMo · JPG, PNG, WEBP · Max 5 Mo
+                  {t("cp2.image_hint")}
                 </p>
               </div>
             )}
@@ -246,7 +248,7 @@ function ConfirmerPaiementContent() {
             className="w-full py-4 rounded-full font-black text-sm transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96] disabled:opacity-40 disabled:cursor-not-allowed"
             style={{ background: file ? "var(--gold)" : "var(--bg-elevated)", color: file ? "#0A0A0A" : "var(--text-muted)" }}
           >
-            {uploading ? "⏳ Envoi en cours…" : "📤 Envoyer ma preuve de paiement"}
+            {uploading ? t("cp2.uploading") : t("cp2.send_proof")}
           </button>
         </div>
       )}
@@ -254,11 +256,11 @@ function ConfirmerPaiementContent() {
       {/* Instructions rapides */}
       {!uploaded && (
         <div className="rounded-2xl p-4 text-xs" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
-          <p className="font-black text-white mb-3">Comment obtenir la capture d&apos;écran ?</p>
+          <p className="font-black text-white mb-3">{t("cp2.how_title")}</p>
           {[
-            "Après votre paiement MTN ou Orange, une notification de confirmation apparaît",
-            "Faites une capture d'écran (bouton Volume ↓ + Power sur la plupart des téléphones)",
-            "Sélectionnez cette image ici et cliquez Envoyer",
+            t("cp2.how_1"),
+            t("cp2.how_2"),
+            t("cp2.how_3"),
           ].map((s, i) => (
             <div key={i} className="flex items-start gap-2.5 mb-2 last:mb-0">
               <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black shrink-0"

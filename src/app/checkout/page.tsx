@@ -5,6 +5,7 @@ import { useState, Suspense, useRef } from "react";
 import Image from "next/image";
 import { CONTACT, IMAGES } from "@/lib/services";
 import GoogleReviewsOptIn from "@/components/GoogleReviewsOptIn";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const PRODUCT_IMAGE: Record<string, string> = {
   psn:          IMAGES.psn,
@@ -53,6 +54,7 @@ const OPERATORS = [
 function CheckoutInner() {
   const params = useSearchParams();
   const router = useRouter();
+  const { t } = useLanguage();
 
   const label    = params.get("label")  ?? "Commande Chreol Empire";
   const amountRaw = params.get("amount") ?? "0";
@@ -113,7 +115,7 @@ function CheckoutInner() {
           </div>
         )}
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-bold uppercase tracking-wider mb-0.5" style={{ color: "var(--text-muted)" }}>Votre commande</p>
+          <p className="text-xs font-bold uppercase tracking-wider mb-0.5" style={{ color: "var(--text-muted)" }}>{t("co.your_order")}</p>
           <p className="text-sm font-black text-white truncate mb-0.5">{label}</p>
           <p className="text-2xl font-black" style={{ color: "var(--gold)" }}>
             {amount.toLocaleString("fr-FR")} <span className="text-sm font-bold">FCFA</span>
@@ -124,20 +126,20 @@ function CheckoutInner() {
       {/* ── Étape 1 : choisir opérateur ── */}
       {step === "choose" && (
         <div>
-          <h1 className="text-xl font-black text-white mb-2">💳 Instructions de Paiement</h1>
+          <h1 className="text-xl font-black text-white mb-2">{t("co.title")}</h1>
           <p className="text-sm mb-6" style={{ color: "var(--text-secondary)" }}>
-            Choisissez votre opérateur pour recevoir le code USSD de paiement.
+            {t("co.subtitle")}
           </p>
           {/* Email requis pour Google Avis */}
           <div className="mb-5">
             <label className="block text-xs font-bold mb-1.5" style={{ color: "var(--text-secondary)" }}>
-              Adresse email <span style={{ color: "#EF4444" }}>*</span>
+              {t("co.email")} <span style={{ color: "#EF4444" }}>*</span>
             </label>
             <input
               type="email"
               value={email}
               onChange={e => { setEmail(e.target.value); setEmailError(false); }}
-              placeholder="votre@email.com"
+              placeholder={t("f.email.ph")}
               className="w-full rounded-xl px-4 py-2.5 text-sm outline-none transition-all"
               style={{
                 background: "var(--bg-elevated)",
@@ -147,11 +149,11 @@ function CheckoutInner() {
             />
             {emailError && (
               <p className="text-xs mt-1.5" style={{ color: "#EF4444" }}>
-                Veuillez saisir votre email pour continuer.
+                {t("co.email_err")}
               </p>
             )}
             <p className="text-[11px] mt-1.5" style={{ color: "var(--text-muted)" }}>
-              Utilisé uniquement pour vous inviter à laisser un avis Google après livraison.
+              {t("co.email_note")}
             </p>
           </div>
 
@@ -183,7 +185,7 @@ function CheckoutInner() {
           </div>
 
           <div className="mt-6 text-center">
-            <p className="text-xs mb-2" style={{ color: "var(--text-muted)" }}>Vous préférez un agent ?</p>
+            <p className="text-xs mb-2" style={{ color: "var(--text-muted)" }}>{t("co.prefer_agent")}</p>
             <a
               href={`https://wa.me/${CONTACT.whatsapp}?text=${buildWAMsg()}`}
               target="_blank" rel="noopener noreferrer"
@@ -191,7 +193,7 @@ function CheckoutInner() {
               style={{ color: "#25D366" }}
             >
               <Image src={IMAGES.whatsapp} alt="" width={16} height={16} unoptimized />
-              Commander via WhatsApp
+              {t("co.order_wa")}
             </a>
           </div>
         </div>
@@ -219,9 +221,9 @@ function CheckoutInner() {
             <div className="flex items-start gap-3">
               <span className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-black shrink-0" style={{ background: opConfig.color, color: "#000" }}>1</span>
               <div>
-                <p className="text-sm font-bold text-white">Code Marchand</p>
+                <p className="text-sm font-bold text-white">{t("co.merchant_code")}</p>
                 <p className="text-lg font-black tabular-nums mt-1" style={{ color: opConfig.color }}>{opConfig.merchant}</p>
-                <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>Nom : {opConfig.merchantName}</p>
+                <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>{t("co.name_label")} : {opConfig.merchantName}</p>
               </div>
             </div>
 
@@ -229,7 +231,7 @@ function CheckoutInner() {
             <div className="flex items-start gap-3">
               <span className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-black shrink-0" style={{ background: opConfig.color, color: "#000" }}>2</span>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-white mb-2">Composez directement</p>
+                <p className="text-sm font-bold text-white mb-2">{t("co.dial_direct")}</p>
                 <div
                   className="rounded-xl px-4 py-3 font-mono text-base font-black break-all"
                   style={{ background: "#0A0A0A", color: opConfig.color, border: `1px solid ${opConfig.color}44` }}
@@ -243,7 +245,7 @@ function CheckoutInner() {
             <div className="flex items-start gap-3">
               <span className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-black shrink-0" style={{ background: opConfig.color, color: "#000" }}>3</span>
               <div>
-                <p className="text-sm font-bold text-white">Montant à régler</p>
+                <p className="text-sm font-bold text-white">{t("co.amount_due")}</p>
                 <p className="text-3xl font-black tabular-nums mt-1" style={{ color: opConfig.color }}>
                   {amount.toLocaleString("fr-FR")} FCFA
                 </p>
@@ -252,7 +254,7 @@ function CheckoutInner() {
 
             {/* Alerte */}
             <div className="rounded-xl p-4 text-sm" style={{ background: "#EF444415", border: "1px solid #EF444433", color: "#FCA5A5" }}>
-              ⚠️ Une fois payé, envoyez la <strong>capture d&apos;écran</strong> de confirmation sur WhatsApp pour déclencher la livraison immédiate.
+              ⚠️ {t("co.alert")}
             </div>
           </div>
 
@@ -264,7 +266,7 @@ function CheckoutInner() {
             style={{ background: "#25D366" }}
           >
             <Image src={IMAGES.whatsapp} alt="" width={22} height={22} unoptimized />
-            J&apos;ai payé — Contacter l&apos;agent WhatsApp
+            {t("co.paid_contact")}
           </a>
           <div className="flex gap-2">
             <button
@@ -272,14 +274,14 @@ function CheckoutInner() {
               className="flex-1 py-3 rounded-full text-sm font-bold transition-opacity hover:opacity-70"
               style={{ background: "var(--bg-elevated)", color: "var(--text-secondary)" }}
             >
-              ← Changer d&apos;opérateur
+              {t("co.change_op")}
             </button>
             <button
               onClick={() => router.back()}
               className="flex-1 py-3 rounded-full text-sm font-bold transition-opacity hover:opacity-70"
               style={{ color: "#EF4444", background: "#EF444415" }}
             >
-              ✕ Annuler
+              {t("co.cancel")}
             </button>
           </div>
         </div>
@@ -296,7 +298,7 @@ function CheckoutInner() {
 
       {/* Trust */}
       <div className="mt-8 pt-6 flex flex-wrap items-center justify-center gap-4" style={{ borderTop: "1px solid var(--border)" }}>
-        {["🔒 Paiement sécurisé", "⚡ Livraison 15–30 min", "✅ Codes garantis"].map(b => (
+        {[t("co.proof_done"), t("co.proof_delivery"), t("co.proof_codes")].map(b => (
           <span key={b} className="text-xs" style={{ color: "var(--text-muted)" }}>{b}</span>
         ))}
       </div>
