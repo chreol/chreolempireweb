@@ -14,15 +14,8 @@ import FAQ from "@/components/FAQ";
 import StepGuide from "@/components/StepGuide";
 import RelatedServices from "@/components/RelatedServices";
 
-const STEPS_CADEAUX = [
-  { icon: "🎮", title: "Choisissez votre carte et le montant", description: "Sélectionnez la carte cadeau souhaitée (PSN, Roblox, Steam, iTunes…) et le montant désiré. Choisissez aussi la région (Europe, USA, France…) selon votre compte de jeu.", tip: "Pour PSN : la région doit correspondre à votre compte PlayStation." },
-  { icon: "📧", title: "Entrez votre email de confirmation", description: "Renseignez votre adresse email pour recevoir la confirmation de commande et le suivi de livraison automatiquement.", tip: "Utilisez une adresse que vous consultez régulièrement." },
-  { icon: "💬", title: "Finalisez via WhatsApp", description: "Cliquez sur 'Commander via WhatsApp'. Un message pré-rempli s'ouvre avec votre commande. Envoyez-le directement à notre équipe." },
-  { icon: "💰", title: "Effectuez le paiement MoMo", description: "Notre agent vous envoie les instructions de paiement MTN MoMo ou Orange Money. Réglez le montant et envoyez la capture d'écran de confirmation." },
-  { icon: "✅", title: "Recevez votre code instantanément", description: "Dès réception du paiement, nous vous envoyons le code de la carte cadeau sur WhatsApp. Activez-le directement sur la plateforme correspondante.", tip: "Délai moyen : 15 à 30 minutes après paiement confirmé." },
-];
-
-const PAGE_FAQ = [
+// FAQ en français pour le JSON-LD SEO
+const FAQ_FR = [
   { q: "Où acheter des cartes cadeaux PSN en FCFA à Douala ?", a: "Chreol Empire est votre boutique locale à Douala (Vallée 3, Deido). Commandez vos cartes PSN, Steam, Nintendo, Roblox ou iTunes directement via WhatsApp — livraison du code en 15 minutes, paiement MTN MoMo ou Orange Money." },
   { q: "Peut-on payer une carte Steam avec MTN MoMo au Cameroun ?", a: "Oui, tous nos modes de paiement Mobile Money sont acceptés : MTN MoMo, Orange Money, Express Union et Yoomee Money. Aucune carte bancaire requise. Commande et livraison 100% via WhatsApp." },
   { q: "Combien coûte une carte PSN 20€ en FCFA ?", a: "Environ 14 500 FCFA au taux actuel. Le prix exact est fixé au moment de la commande selon le taux du jour. Consultez notre ticker de taux en haut de page pour les cours en temps réel." },
@@ -32,7 +25,7 @@ const PAGE_FAQ = [
 const PAGE_FAQ_SCHEMA = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
-  mainEntity: PAGE_FAQ.map(f => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+  mainEntity: FAQ_FR.map(f => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
 };
 
 const TABS = [
@@ -74,6 +67,20 @@ export default function CartesCadeauxPage() {
   const [emailError, setEmailError] = useState("");
   const [payOp, setPayOp] = useState<string | null>(null);
 
+  const STEPS_CADEAUX = [
+    { icon: "🎮", title: tl("gc.step1.t"), description: tl("gc.step1.d"), tip: tl("gc.step1.tip") },
+    { icon: "📧", title: tl("gc.step2.t"), description: tl("gc.step2.d"), tip: tl("gc.step2.tip") },
+    { icon: "💬", title: tl("gc.step3.t"), description: tl("gc.step3.d") },
+    { icon: "💰", title: tl("gc.step4.t"), description: tl("gc.step4.d") },
+    { icon: "✅", title: tl("gc.step5.t"), description: tl("gc.step5.d"), tip: tl("gc.step5.tip") },
+  ];
+  const PAGE_FAQ = [
+    { q: tl("gc.faq1.q"), a: tl("gc.faq1.a") },
+    { q: tl("gc.faq2.q"), a: tl("gc.faq2.a") },
+    { q: tl("gc.faq3.q"), a: tl("gc.faq3.a") },
+    { q: tl("gc.faq4.q"), a: tl("gc.faq4.a") },
+  ];
+
   const cards = GIFT_CARDS.filter(c => c.tier === tab);
   const card = GIFT_CARDS.find(c => c.id === cardId);
   const amount = card?.amounts.find(a => a.label === amountLabel);
@@ -87,7 +94,7 @@ export default function CartesCadeauxPage() {
 
   function validateEmail() {
     if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setEmailError("Email valide requis pour la confirmation");
+      setEmailError(tl("gc.email_required"));
       return false;
     }
     setEmailError("");
@@ -138,9 +145,9 @@ export default function CartesCadeauxPage() {
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-2 text-sm mb-3" style={{ color: "var(--text-secondary)" }}>
-          <Link href="/services" className="hover:text-white">Services</Link>
+          <Link href="/services" className="hover:text-white">{tl("nav.services")}</Link>
           <span>›</span>
-          <span className="text-white">Cartes Cadeaux</span>
+          <span className="text-white">{tl("gc.breadcrumb")}</span>
         </div>
         <h1 className="text-3xl font-black text-white mb-1">{tl("p.giftcards.title")}</h1>
         <p style={{ color: "var(--text-secondary)" }}>{tl("p.giftcards.sub")}</p>
@@ -167,7 +174,7 @@ export default function CartesCadeauxPage() {
         {/* Card selector */}
         <div>
           <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "var(--text-muted)" }}>
-            Choisissez une carte
+            {tl("gc.choose_card")}
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {cards.map(c => (
@@ -196,7 +203,7 @@ export default function CartesCadeauxPage() {
         <div className="space-y-5">
           {/* Region */}
           <div>
-            <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "var(--text-muted)" }}>Région</p>
+            <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "var(--text-muted)" }}>{tl("gc.region")}</p>
             <div className="flex flex-wrap gap-2">
               {REGIONS.map(r => (
                 <button
@@ -218,7 +225,7 @@ export default function CartesCadeauxPage() {
           {/* Amounts */}
           {card && (
             <div>
-              <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "var(--text-muted)" }}>Montant</p>
+              <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "var(--text-muted)" }}>{tl("gc.amount")}</p>
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                 {card.amounts.map(a => (
                   <button
@@ -241,7 +248,7 @@ export default function CartesCadeauxPage() {
               {/* Custom amount (not for Robux) */}
               {tab !== "robux" && (
                 <div className="mt-3">
-                  <p className="text-xs font-semibold mb-1" style={{ color: "var(--text-muted)" }}>Ou montant personnalisé (€)</p>
+                  <p className="text-xs font-semibold mb-1" style={{ color: "var(--text-muted)" }}>{tl("gc.custom")}</p>
                   <div className="flex items-center gap-2">
                     <input
                       type="number"
@@ -270,7 +277,7 @@ export default function CartesCadeauxPage() {
             >
               <p className="text-sm font-bold text-white mb-0.5">{card?.name} [{region}]</p>
               <p className="text-xs mb-3" style={{ color: "var(--text-secondary)" }}>
-                {customPrice ? `${customVal}€ personnalisé` : amountLabel}
+                {customPrice ? `${customVal}€ ${tl("gc.custom_suffix")}` : amountLabel}
               </p>
               <p className="text-2xl font-black mb-4" style={{ color: "var(--gold)" }}>
                 {(customPrice ?? amount?.price ?? 0).toLocaleString("fr-FR")} FCFA
@@ -279,11 +286,11 @@ export default function CartesCadeauxPage() {
               {/* Email */}
               <div className="mb-1">
                 <label className="block text-xs font-bold mb-1.5" style={{ color: "var(--text-muted)" }}>
-                  Email <span style={{ color: "var(--text-secondary)", fontWeight: 400 }}>(confirmation de commande)</span>
+                  {tl("gc.email_label")}
                 </label>
                 <input
                   type="email"
-                  placeholder="votre@email.com"
+                  placeholder={tl("f.email.ph")}
                   value={email}
                   onChange={e => { setEmail(e.target.value); if (e.target.value) setEmailError(""); }}
                   className="w-full px-4 py-3 rounded-2xl text-white text-sm outline-none"
@@ -302,7 +309,7 @@ export default function CartesCadeauxPage() {
                   total={customPrice ?? amount?.price ?? 0}
                   getMsg={buildMsgPlain}
                   onBeforeOpen={() => {
-                    if (!validateEmail()) { showToast("Entrez votre email pour la confirmation", "error"); return false; }
+                    if (!validateEmail()) { showToast(tl("gc.enter_email"), "error"); return false; }
                     sendNotification();
                     return true;
                   }}
@@ -310,14 +317,14 @@ export default function CartesCadeauxPage() {
                   style={{ background: "#25D366" }}
                 >
                   <Image src={IMAGES.whatsapp} alt="" width={18} height={18} unoptimized className="shrink-0" />
-                  Commander via WhatsApp
+                  {tl("btn.order_wa")}
                 </USSDOrderFlow>
                 <button
                   onClick={handleAddToCart}
                   className="w-full py-2.5 rounded-full font-black text-xs transition-all"
                   style={{ background: added ? "#10B981" : "var(--bg-elevated)", color: added ? "white" : "var(--text-secondary)", border: "1px solid var(--border)" }}
                 >
-                  {added ? "✅ Ajouté !" : "🛒 Panier"}
+                  {added ? tl("gc.added") : tl("gc.cart")}
                 </button>
               </div>
             </div>
@@ -329,8 +336,8 @@ export default function CartesCadeauxPage() {
               style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
             >
               <p className="text-4xl mb-2">👆</p>
-              <p className="font-bold text-white mb-1">Sélectionnez une carte</p>
-              <p className="text-xs" style={{ color: "var(--text-secondary)" }}>Puis choisissez le montant et la région</p>
+              <p className="font-bold text-white mb-1">{tl("gc.select_card")}</p>
+              <p className="text-xs" style={{ color: "var(--text-secondary)" }}>{tl("gc.then_choose")}</p>
             </div>
           )}
         </div>
@@ -339,10 +346,10 @@ export default function CartesCadeauxPage() {
       {/* Trust badges */}
       <div className="mt-10 grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
-          { icon: "✅", label: "Codes authentiques" },
-          { icon: "⚡", label: "Livraison 15–30 min" },
-          { icon: "🌍", label: "Toutes les régions" },
-          { icon: "💬", label: "Support WhatsApp 7j/7" },
+          { icon: "✅", label: tl("gc.trust_1") },
+          { icon: "⚡", label: tl("gc.trust_2") },
+          { icon: "🌍", label: tl("gc.trust_3") },
+          { icon: "💬", label: tl("gc.trust_4") },
         ].map(b => (
           <div key={b.label} className="flex items-center gap-2 p-3 rounded-xl" style={{ background: "var(--bg-card)" }}>
             <span className="text-xl">{b.icon}</span>
@@ -350,7 +357,7 @@ export default function CartesCadeauxPage() {
           </div>
         ))}
       </div>
-      <StepGuide title="Comment acheter une carte cadeau — 5 étapes simples" steps={STEPS_CADEAUX} />
+      <StepGuide title={tl("gc.guide_title")} steps={STEPS_CADEAUX} />
       <FAQ items={PAGE_FAQ} />
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(PAGE_FAQ_SCHEMA) }} />
       <RelatedServices current="cartes-cadeaux" />

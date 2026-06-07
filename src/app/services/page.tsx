@@ -101,7 +101,7 @@ export default function ServicesPage() {
               type="text"
               value={query}
               onChange={e => setQuery(e.target.value)}
-              placeholder="Rechercher : PSN, USDT, PayPal, Canal+, UBA…"
+              placeholder={t("services.search_ph")}
               className="flex-1 bg-transparent text-white text-sm outline-none placeholder:text-gray-500"
             />
             {query && (
@@ -217,8 +217,8 @@ export default function ServicesPage() {
         {filteredServices.length === 0 && (
           <div className="text-center py-16 rounded-3xl" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
             <p className="text-4xl mb-3">🔍</p>
-            <p className="font-black text-white text-lg mb-1">Aucun service trouvé</p>
-            <p className="text-sm" style={{ color: "var(--text-muted)" }}>Essayez un autre mot-clé ou réinitialisez les filtres</p>
+            <p className="font-black text-white text-lg mb-1">{t("services.no_result")}</p>
+            <p className="text-sm" style={{ color: "var(--text-muted)" }}>{t("services.no_result.sub")}</p>
           </div>
         )}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
