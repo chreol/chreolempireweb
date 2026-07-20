@@ -83,7 +83,7 @@ export default function CouponsPage() {
     const codeDigits = code.replace(/\D/g, "");
     if (!code.trim()) e.code = t("cp.code_required");
     else if (type === "transcash" && codeDigits.length !== 12) e.code = t("cp.code12");
-    else if (type === "pcs" && code.trim().length !== 8)       e.code = t("cp.code8");
+    else if (type === "pcs" && code.trim().length !== 10)       e.code = t("cp.code10");
     if (!name.trim()) e.name = t("err.name_required");
     if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = t("err.email_valid");
     const phoneD = phone.replace(/\D/g, "");
@@ -104,7 +104,7 @@ export default function CouponsPage() {
   function buildMsgPlain() {
     const op = MOMO_OPERATORS.find(o => o.id === momoOp)?.name ?? momoOp;
     const typeName = type === "pcs" ? "PCS Mastercard" : "Transcash";
-    const ref = orderIdRef.current ? `#${orderIdRef.current.slice(-8).toUpperCase()}` : "";
+    const ref = orderIdRef.current ? `#${orderIdRef.current.slice(-10).toUpperCase()}` : "";
     return `🎫 ÉCHANGE COUPON${ref ? ` — Réf ${ref}` : ""}\nType : ${typeName}\nValeur : ${amount}€\nCode : ${codeOut}\nCommission : ${rate.commission}%\nÀ recevoir : ${fcfaResult.toLocaleString("fr-FR")} FCFA\n\n💰 Réception MoMo\nOpérateur : ${op}\nNuméro : ${dialCode} ${phone}\nNom : ${name}`;
   }
 
@@ -260,7 +260,7 @@ export default function CouponsPage() {
           <input
             type={type === "transcash" ? "tel" : "text"}
             inputMode={type === "transcash" ? "numeric" : undefined}
-            placeholder={type === "pcs" ? "XXXXXXXX" : "XXXX-XXXX-XXXX"}
+            placeholder={type === "pcs" ? "XXXXXXXXXX" : "XXXX-XXXX-XXXX"}
             value={code}
             maxLength={type === "transcash" ? 14 : 8}
             onChange={e => {
@@ -322,7 +322,7 @@ export default function CouponsPage() {
               />
               <input
                 type="tel"
-                placeholder={dialCode === "+237" ? "6XXXXXXXX" : t("pp.your_number")}
+                placeholder={dialCode === "00" ? "2376XXXXXXXX" : t("pp.your_number")}
                 value={phone}
                 maxLength={dialCode === "+237" ? 9 : 15}
                 onChange={e => { setPhone(e.target.value.replace(/\D/g, "")); setErrors(p => ({ ...p, phone: "" })); }}

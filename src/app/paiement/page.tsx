@@ -12,6 +12,7 @@ const OM_USSD   = "#150*14*518554*692251299*MONTANT#";
 
 function CopyBtn({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
+  const { t } = useLanguage();
   return (
     <button
       type="button"
@@ -19,7 +20,7 @@ function CopyBtn({ text }: { text: string }) {
       className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black transition-all shrink-0"
       style={{ background: copied ? "#25D366" : "var(--bg-elevated)", color: copied ? "#fff" : "var(--text-muted)", border: "1px solid var(--border)" }}
     >
-      {copied ? "✓ Copié" : "📋 Copier"}
+      {copied ? t("pay2.copied") : t("pay2.copy")}
     </button>
   );
 }
@@ -33,11 +34,11 @@ export default function PaiementPage() {
       {/* Header */}
       <div className="mb-10">
         <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-black mb-4" style={{ background: "var(--gold)", color: "#0A0A0A" }}>
-          💳 Instructions de Paiement
+          {t("pay2.badge")}
         </span>
-        <h1 className="text-3xl font-black text-white mb-2">Modes de paiement acceptés</h1>
+        <h1 className="text-3xl font-black text-white mb-2">{t("pay2.title")}</h1>
         <p style={{ color: "var(--text-secondary)" }}>
-          Pour valider votre transaction, deux options disponibles selon votre préférence.
+          {t("pay2.subtitle")}
         </p>
       </div>
 
@@ -46,15 +47,15 @@ export default function PaiementPage() {
         <div className="flex items-center gap-3 mb-4">
           <span className="w-9 h-9 rounded-xl flex items-center justify-center font-black text-sm shrink-0" style={{ background: "#25D366", color: "#fff" }}>A</span>
           <div>
-            <p className="font-black text-white text-base">Traitement rapide</p>
-            <p className="text-xs" style={{ color: "#25D366" }}>⚡ Recommandé — traitement immédiat</p>
+            <p className="font-black text-white text-base">{t("pay2.optA_title")}</p>
+            <p className="text-xs" style={{ color: "#25D366" }}>{t("pay2.optA_tag")}</p>
           </div>
         </div>
         <p className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-          Donnez votre numéro <strong className="text-white">MTN</strong> ou <strong className="text-white">Orange Money</strong> à notre agent. Nous initions le retrait directement depuis notre côté — vous recevez simplement une demande à valider sur votre téléphone.
+          {t("pay2.optA_desc_1")}<strong className="text-white">MTN</strong>{t("pay2.optA_desc_2")}<strong className="text-white">Orange Money</strong>{t("pay2.optA_desc_3")}
         </p>
         <div className="mt-4 flex flex-col gap-2">
-          {["Communiquez votre numéro MoMo à l'agent", "Nous envoyons la demande de paiement", "Vous recevez une notification — tapez votre code PIN", "Transaction confirmée, livraison immédiate"].map((s, i) => (
+          {[t("pay2.optA_1"), t("pay2.optA_2"), t("pay2.optA_3"), t("pay2.optA_4")].map((s, i) => (
             <div key={i} className="flex items-center gap-2.5 text-xs" style={{ color: "var(--text-secondary)" }}>
               <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black shrink-0" style={{ background: "#25D36622", color: "#25D366" }}>{i + 1}</span>
               {s}
@@ -62,19 +63,19 @@ export default function PaiementPage() {
           ))}
         </div>
         <WAPopover
-          prefill="Bonjour, je souhaite payer via l'option A (retrait initié par vous). Mon numéro MoMo est :"
+          prefill={t("pay2.optA_prefill")}
           className="inline-flex items-center gap-2 mt-5 px-5 py-2.5 rounded-full font-black text-white text-xs transition-opacity hover:opacity-80"
           style={{ background: "#25D366" }}
         >
           <Image src={IMAGES.whatsapp} alt="" width={16} height={16} unoptimized />
-          Choisir l&apos;option A via WhatsApp
+          {t("pay2.optA_btn")}
         </WAPopover>
       </div>
 
       {/* Séparateur OU */}
       <div className="flex items-center gap-3 my-4">
         <div className="h-px flex-1" style={{ background: "var(--border)" }} />
-        <span className="text-xs font-black px-3 py-1 rounded-full" style={{ background: "var(--bg-card)", color: "var(--text-muted)" }}>OU</span>
+        <span className="text-xs font-black px-3 py-1 rounded-full" style={{ background: "var(--bg-card)", color: "var(--text-muted)" }}>{t("pay2.or")}</span>
         <div className="h-px flex-1" style={{ background: "var(--border)" }} />
       </div>
 
@@ -88,7 +89,7 @@ export default function PaiementPage() {
           </div>
         </div>
         <p className="text-sm mb-5" style={{ color: "var(--text-secondary)" }}>
-          Effectuez vous-même le paiement via le code USSD correspondant à votre opérateur.
+          PAssez le numero de téléphone ou effectuez vous-même le paiement via le code USSD correspondant de votre opérateur.
         </p>
 
         {/* MTN */}
@@ -97,7 +98,7 @@ export default function PaiementPage() {
             <div className="relative w-7 h-7 rounded-lg overflow-hidden shrink-0">
               <Image src={IMAGES.mtn} alt="MTN" fill style={{ objectFit: "cover" }} unoptimized />
             </div>
-            <p className="font-black text-white text-sm">🟡 MTN Mobile Money — Flotte</p>
+            <p className="font-black text-white text-sm">🟡 MTN Mobile Money / Flotte</p>
           </div>
           <div className="flex flex-col gap-2 text-xs mb-3" style={{ color: "var(--text-secondary)" }}>
             <div className="flex justify-between"><span>Code Marchand</span><span className="font-black text-white">672416141</span></div>
@@ -119,7 +120,7 @@ export default function PaiementPage() {
             <div className="relative w-7 h-7 rounded-lg overflow-hidden shrink-0">
               <Image src={IMAGES.orange} alt="Orange" fill style={{ objectFit: "cover" }} unoptimized />
             </div>
-            <p className="font-black text-white text-sm">🟠 Orange Money — Transfert UV</p>
+            <p className="font-black text-white text-sm">🟠 Orange Money / Transfert UV</p>
           </div>
           <div className="flex flex-col gap-2 text-xs mb-3" style={{ color: "var(--text-secondary)" }}>
             <div className="flex justify-between"><span>Code</span><span className="font-black text-white">692251299</span></div>

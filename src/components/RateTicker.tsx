@@ -16,7 +16,7 @@ const FALLBACK: Rate[] = [
   { name: "ADA",       buy: "330 FCFA",        sell: "400 FCFA" },
   { name: "PayPal",    buy: "580 FCFA/€",      sell: "700 FCFA/€" },
   { name: "PCS",       buy: "480 FCFA/€" },
-  { name: "Transcash", buy: "480 FCFA/€" },
+  { name: "Transcash", buy: "450 FCFA/€" },
 ];
 
 function buildItems(rates: Rate[]) {
