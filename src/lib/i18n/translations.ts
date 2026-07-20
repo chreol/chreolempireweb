@@ -428,7 +428,7 @@ export const T: TranslationMap = {
 
   // ── Coupons page ──
   "cp.breadcrumb":    { fr: "Échange Coupons", en: "Coupon Exchange" },
-  "cp.code_pcs":      { fr: "Code PCS (8 caractères alphanumériques)", en: "PCS code (8 alphanumeric characters)" },
+  "cp.code_pcs":      { fr: "Code PCS (10 caractères alphanumériques)", en: "PCS code (10 alphanumeric characters)" },
   "cp.code_transcash":{ fr: "Code Transcash (12 chiffres)", en: "Transcash code (12 digits)" },
   "cp.value":         { fr: "Valeur du coupon (€ — minimum 20€)", en: "Coupon value (€ — minimum 20€)" },
   "cp.show_calc":     { fr: "📊 Voir le tableau de calcul", en: "📊 Show calculation breakdown" },
@@ -441,7 +441,7 @@ export const T: TranslationMap = {
   "cp.min20":         { fr: "Minimum 20€", en: "Minimum 20€" },
   "cp.code_required": { fr: "Code requis", en: "Code required" },
   "cp.code12":        { fr: "12 chiffres requis", en: "12 digits required" },
-  "cp.code8":         { fr: "8 caractères requis", en: "8 characters required" },
+  "cp.code10":        { fr: "10 caractères requis", en: "10 characters required" },
   "cp.phone_short":   { fr: "Numéro trop court", en: "Number too short" },
   "cp.how_title":     { fr: "Comment ça marche ?", en: "How does it work?" },
   "cp.how_1":         { fr: "Remplissez le formulaire et vérifiez le calcul", en: "Fill out the form and check the calculation" },
@@ -453,7 +453,7 @@ export const T: TranslationMap = {
   "cp.step1.t": { fr: "Sélectionnez le type de coupon", en: "Select the coupon type" },
   "cp.step1.d": { fr: "Choisissez entre PCS Mastercard (7% commission) ou Transcash (0% commission). Entrez la valeur en euros (minimum 20€).", en: "Choose between PCS Mastercard (7% fee) or Transcash (0% fee). Enter the value in euros (minimum 20€)." },
   "cp.step2.t": { fr: "Entrez le code du coupon", en: "Enter the coupon code" },
-  "cp.step2.d": { fr: "PCS Mastercard : 8 caractères alphanumériques (ex: AB123456). Transcash : 12 chiffres. Ne partagez jamais votre code avant d'avoir confirmé l'échange.", en: "PCS Mastercard: 8 alphanumeric characters (e.g. AB123456). Transcash: 12 digits. Never share your code before confirming the exchange." },
+  "cp.step2.d": { fr: "PCS Mastercard : 10 caractères alphanumériques (ex: AB12345678). Transcash : 12 chiffres. Ne partagez jamais votre code avant d'avoir confirmé l'échange.", en: "PCS Mastercard: 10 alphanumeric characters (e.g. AB12345678). Transcash: 12 digits. Never share your code before confirming the exchange." },
   "cp.step2.tip": { fr: "Grattez délicatement la zone de sécurité pour révéler le code.", en: "Gently scratch the security area to reveal the code." },
   "cp.step3.t": { fr: "Renseignez vos coordonnées MoMo", en: "Enter your MoMo details" },
   "cp.step3.d": { fr: "Indiquez votre opérateur (MTN ou Orange), votre numéro, votre nom complet et votre email pour la confirmation.", en: "Provide your operator (MTN or Orange), your number, your full name and your email for confirmation." },

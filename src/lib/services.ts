@@ -182,7 +182,7 @@ export const CRYPTO_WALLETS: Record<string, Record<string, string>> = {
 };
 
 export const COUPON_RATES = {
-  pcs:       { rate: 480, commission: 7,  formula: "(montant − 7%) × 480", codeLength: 8,  codeType: "alphanumérique" as const },
+  pcs:       { rate: 480, commission: 7,  formula: "(montant − 7%) × 480", codeLength: 10, codeType: "alphanumérique" as const },
   transcash: { rate: 480, commission: 0,  formula: "montant × 480",         codeLength: 12, codeType: "numérique" as const },
 };
 

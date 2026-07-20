@@ -262,7 +262,7 @@ export default function CouponsPage() {
             inputMode={type === "transcash" ? "numeric" : undefined}
             placeholder={type === "pcs" ? "XXXXXXXXXX" : "XXXX-XXXX-XXXX"}
             value={code}
-            maxLength={type === "transcash" ? 14 : 8}
+            maxLength={type === "transcash" ? 14 : 10}
             onChange={e => {
               if (type === "transcash") {
                 setCode(formatTranscash(e.target.value));
