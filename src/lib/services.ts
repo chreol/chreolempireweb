@@ -110,11 +110,11 @@ export const UBA_CARDS = [
 ];
 
 export const UBA_RECHARGE_FEES = [
-  { min: 1500,   max: 20000,  fee: 1500, type: "fixed" as const },
-  { min: 20001,  max: 50000,  fee: 2000, type: "fixed" as const },
-  { min: 50001,  max: 100000, fee: 5,    type: "percent" as const },
-  { min: 100001, max: 350000, fee: 4,    type: "percent" as const },
-  { min: 350001, max: 500000, fee: 3,    type: "percent" as const },
+  { min: 1500,   max: 5000,   fee: 1000, type: "fixed" as const },
+  { min: 5001,   max: 40000,  fee: 2000, type: "fixed" as const },
+  { min: 40001,  max: 100000, fee: 5,    type: "percent" as const },
+  { min: 100001, max: 300000, fee: 4,    type: "percent" as const },
+  { min: 300001, max: 500000, fee: 3.5,  type: "percent" as const },
 ];
 
 export const CRYPTO_RATES = [

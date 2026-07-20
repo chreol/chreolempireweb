@@ -66,7 +66,7 @@ export default function UBAPage() {
   ];
 
   const orderIdRef = useRef("");
-  const [mode, setMode]         = useState<"buy" | "recharge">("buy");
+  const [mode, setMode]         = useState<"buy" | "recharge">("recharge");
   const [payOp, setPayOp]       = useState<string | null>(null);
 
   /* ── Buy mode ── */
@@ -218,20 +218,38 @@ export default function UBAPage() {
       <p className="text-sm mb-8" style={{ color: "var(--text-secondary)" }}>{t("p.uba.sub")}</p>
 
       {/* Tab toggle */}
-      <div className="flex rounded-2xl p-1 mb-8" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
-        {(["buy", "recharge"] as const).map(m => (
-          <button
-            key={m}
-            onClick={() => { setMode(m); setErrors({}); setBuyErrors({}); }}
-            className="flex-1 py-3 rounded-xl font-black text-sm transition-all"
-            style={{
-              background: mode === m ? "var(--gold)" : "transparent",
-              color: mode === m ? "#0A0A0A" : "var(--text-secondary)",
-            }}
-          >
-            {m === "buy" ? t("u.tab_buy") : t("u.tab_recharge")}
-          </button>
-        ))}
+      <div className="rounded-2xl p-1 mb-4" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+        <div className="flex">
+          {(["buy", "recharge"] as const).map(m => {
+            const disabled = m === "buy";
+            return (
+              <button
+                key={m}
+                disabled={disabled}
+                onClick={() => {
+                  if (disabled) return;
+                  setMode(m);
+                  setErrors({});
+                  setBuyErrors({});
+                }}
+                className="flex-1 py-3 rounded-xl font-black text-sm transition-all"
+                style={{
+                  background: mode === m ? "var(--gold)" : "transparent",
+                  color: disabled ? "var(--text-muted)" : (mode === m ? "#0A0A0A" : "var(--text-secondary)"),
+                  opacity: disabled ? 0.7 : 1,
+                  cursor: disabled ? "not-allowed" : "pointer",
+                }}
+              >
+                {disabled ? `${t("u.tab_buy")} — ${t("u.unavailable")}` : (m === "buy" ? t("u.tab_buy") : t("u.tab_recharge"))}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="rounded-2xl p-4 mb-6" style={{ background: "#8B000018", border: "1px solid #8B000055" }}>
+        <p className="text-sm font-black" style={{ color: "var(--gold)" }}>{t("u.buy_unavailable_title")}</p>
+        <p className="text-xs mt-2 leading-relaxed" style={{ color: "var(--text-secondary)" }}>{t("u.buy_unavailable_msg")}</p>
       </div>
 
       <AnimatePresence mode="wait" initial={false}>
