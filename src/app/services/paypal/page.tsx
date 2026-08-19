@@ -118,6 +118,7 @@ export default function PaypalPage() {
   const [contactPhone, setContactPhone] = useState("");
   const [contactEmail, setContactEmail] = useState("");
   const [momoOp, setMomoOp]           = useState("orange");
+  const [momoDialCode, setMomoDialCode] = useState("+237");
   const [momoPhone, setMomoPhone]     = useState("");
   const [errors, setErrors]           = useState<Record<string, string>>();
 
@@ -185,8 +186,9 @@ export default function PaypalPage() {
     if (direction === "sell" && cpD.length < 6) e.contactPhone = t("pp.phone_short");
     if (direction === "buy" && contactPhone && cpD.length < 6) e.contactPhone = t("pp.phone_short");
     const mpD = momoPhone.replace(/\D/g, "").replace(/^237/, "");
-    if (direction === "sell" && mpD.length < 9) e.momoPhone = t("err.phone_invalid");
-    if (direction === "buy" && momoPhone && mpD.length < 9) e.momoPhone = t("err.phone_invalid");
+    const mpLen = momoDialCode === "+237" ? 9 : 6;
+    if (direction === "sell" && momoPhone.replace(/\D/g, "").length < mpLen) e.momoPhone = t("err.phone_invalid");
+    if (direction === "buy" && momoPhone && momoPhone.replace(/\D/g, "").length < mpLen) e.momoPhone = t("err.phone_invalid");
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -197,16 +199,16 @@ export default function PaypalPage() {
     const op = MOMO_OPERATORS.find(o => o.id === momoOp)?.name ?? momoOp;
     const idLine = `PayPal (${idLabel}) : ${paypalId}`;
     if (direction === "sell")
-      return `${idLine} | ${displayEur.toFixed(2)}€ → ${fcfaResult.toLocaleString("fr-FR")} FCFA\n${op} +237 ${momoPhone}\nContact : ${contactDialCode} ${contactPhone}`;
-    return `${idLine} | ${buyFcfa.toLocaleString("fr-FR")} FCFA → ${eurResult}€\n${op} +237 ${momoPhone}\nContact : ${contactDialCode} ${contactPhone}`;
+      return `${idLine} | ${displayEur.toFixed(2)}€ → ${fcfaResult.toLocaleString("fr-FR")} FCFA\n${op} ${momoDialCode} ${momoPhone}\nContact : ${contactDialCode} ${contactPhone}`;
+    return `${idLine} | ${buyFcfa.toLocaleString("fr-FR")} FCFA → ${eurResult}€\n${op} ${momoDialCode} ${momoPhone}\nContact : ${contactDialCode} ${contactPhone}`;
   }
 
   function buildMsgPlain() {
     const op  = MOMO_OPERATORS.find(o => o.id === momoOp)?.name ?? momoOp;
     const ref = orderIdRef.current ? ` — Réf #${orderIdRef.current.slice(-8).toUpperCase()}` : "";
     if (direction === "sell")
-      return `💸 VENTE PAYPAL${ref}\nCompte PayPal (${idLabel}) : ${paypalId}\nMontant : ${displayEur.toFixed(2)}€\nÀ recevoir : ${fcfaResult.toLocaleString("fr-FR")} FCFA\nTaux : 1€ = ${sellRate} FCFA\n\n💰 Réception MoMo\nOpérateur : ${op}\nNuméro : +237 ${momoPhone}\n\n📱 Contact WhatsApp : ${contactDialCode} ${contactPhone}`;
-    return `💳 ACHAT PAYPAL${ref}\nCompte PayPal (${idLabel}) : ${paypalId}\nJe paie : ${buyFcfa.toLocaleString("fr-FR")} FCFA\nÀ recevoir : ${eurResult}€\nTaux : 1€ = ${buyRate} FCFA\n\n💰 Paiement MoMo\nOpérateur : ${op}\nNuméro : +237 ${momoPhone}\n\n📱 Contact WhatsApp : ${contactDialCode} ${contactPhone}`;
+      return `💸 VENTE PAYPAL${ref}\nCompte PayPal (${idLabel}) : ${paypalId}\nMontant : ${displayEur.toFixed(2)}€\nÀ recevoir : ${fcfaResult.toLocaleString("fr-FR")} FCFA\nTaux : 1€ = ${sellRate} FCFA\n\n💰 Réception MoMo\nOpérateur : ${op}\nNuméro : ${momoDialCode} ${momoPhone}\n\n📱 Contact WhatsApp : ${contactDialCode} ${contactPhone}`;
+    return `💳 ACHAT PAYPAL${ref}\nCompte PayPal (${idLabel}) : ${paypalId}\nJe paie : ${buyFcfa.toLocaleString("fr-FR")} FCFA\nÀ recevoir : ${eurResult}€\nTaux : 1€ = ${buyRate} FCFA\n\n💰 Paiement MoMo\nOpérateur : ${op}\nNuméro : ${momoDialCode} ${momoPhone}\n\n📱 Contact WhatsApp : ${contactDialCode} ${contactPhone}`;
   }
 
   function sendNotification() {
@@ -409,9 +411,25 @@ export default function PaypalPage() {
                 ))}
               </div>
               <div className="flex items-center rounded-2xl overflow-hidden" style={errors?.momoPhone ? inputErr : inputBase}>
-                <span className="px-3 text-sm font-bold shrink-0" style={{ color: "var(--text-muted)" }}>+237</span>
-                <input type="tel" placeholder="6XXXXXXXX" value={momoPhone}
-                  maxLength={9}
+                <input
+                  type="text"
+                  value={momoDialCode}
+                  onChange={e => {
+                    let v = e.target.value.replace(/[^0-9+]/g, "");
+                    if (!v.startsWith("+")) v = "+" + v;
+                    setMomoDialCode(v.slice(0, 5));
+                  }}
+                  placeholder="+237"
+                  maxLength={5}
+                  className="px-3 py-3 rounded-2xl text-sm font-bold text-center outline-none w-20 shrink-0"
+                  style={{
+                    background: "var(--bg-elevated)",
+                    border: "2px solid var(--gold)",
+                    color: "var(--text-primary)",
+                  }}
+                />
+                <input type="tel" placeholder={momoDialCode === "+237" ? "6XXXXXXXX" : t("pp.your_number")} value={momoPhone}
+                  maxLength={momoDialCode === "+237" ? 9 : 15}
                   onChange={e => { setMomoPhone(e.target.value.replace(/\D/g, "")); setErrors(p => p ? { ...p, momoPhone: "" } : undefined); }}
                   className="flex-1 py-3 pr-4 bg-transparent text-white text-sm outline-none"
                 />
