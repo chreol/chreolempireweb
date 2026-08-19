@@ -441,6 +441,7 @@ export async function GET(request: Request): Promise<Response> {
   }
 
   console.log(`[mark-done] action=${action} → ${email} (order ${ref})`);
+  return new Response(
     isCancel ? SUCCESS_CANCEL_HTML : SUCCESS_DONE_HTML,
     { status: 200, headers: { "Content-Type": "text/html" } },
   );

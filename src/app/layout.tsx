@@ -121,11 +121,15 @@ const LOCAL_BUSINESS_JSON = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const ANTI_FLICKER = "try{var t=localStorage.getItem('theme');if(t==='light')document.documentElement.setAttribute('data-theme','light');}catch(e){}try{var l=localStorage.getItem('lang');if(l)document.documentElement.lang=l;}catch(e){}";
+  const GA_SNIPPET = GA_MEASUREMENT_ID
+    ? "window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', '" + GA_MEASUREMENT_ID + "', { page_path: window.location.pathname });"
+    : "";
   return (
     <html lang="fr" data-scroll-behavior="smooth" className={`${geist.variable} antialiased`} suppressHydrationWarning>
       <head suppressHydrationWarning>
         {/* Anti-flicker: apply saved theme before first paint */}
-        <script dangerouslySetInnerHTML={{ __html: `try{var t=localStorage.getItem('theme');if(t==='light')document.documentElement.setAttribute('data-theme','light');}catch(e){}try{var l=localStorage.getItem('lang');if(l)document.documentElement.lang=l;}catch(e){}` }} />
+        <script dangerouslySetInnerHTML={{ __html: ANTI_FLICKER }}></script>
         <link rel="preconnect" href="https://wa.me" />
         <link rel="preconnect" href="https://api.brevo.com" />
         <link rel="preconnect" href="https://api.telegram.org" />
@@ -134,8 +138,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script src="https://apis.google.com/js/platform.js?onload=renderOptIn" async defer />
         {GA_MEASUREMENT_ID ? (
           <>
-            <script async src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`} />
-            <script dangerouslySetInnerHTML={{ __html: `window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', '${GA_MEASUREMENT_ID}', { page_path: window.location.pathname });` }} />
+            <script async src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}></script>
+            <script dangerouslySetInnerHTML={{ __html: GA_SNIPPET }}></script>
           </>
         ) : null}
         <script
