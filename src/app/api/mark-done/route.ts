@@ -291,6 +291,37 @@ function buildDeliveryEmail(name: string, ref: string, summary: OrderSummary | n
 </body></html>`;
 }
 
+// ── Telegram status notification ───────────────────────────────────────────
+function buildTelegramStatusMsg(ref: string, action: string, name: string, email: string, sourceUrl = "") {
+  const statusText = action === "cancel" ? "❌ ANNULÉE" : "✅ LIVRÉE";
+  const shopUrl = sourceUrl ? (sourceUrl.startsWith("/") ? `https://shop.chreolempire.com${sourceUrl}` : sourceUrl) : "https://shop.chreolempire.com";
+  return [
+    `${action === "cancel" ? "❌" : "✅"} Commande #${ref} — <b>${statusText}</b>`,
+    `Client : ${esc(name || "(inconnu)")}` ,
+    `Email : ${esc(email)}` ,
+    `Référence : <b>#${ref}</b>`,
+    `Voir la boutique : <a href="${shopUrl}">chreolempire.com</a>`,
+  ].join("\n");
+}
+
+async function sendTelegramStatus(ref: string, action: string, name: string, email: string, sourceUrl = "") {
+  const token  = process.env.TELEGRAM_BOT_TOKEN;
+  const chatId = process.env.TELEGRAM_CHAT_ID;
+  if (!token || !chatId) return 0;
+  const text = buildTelegramStatusMsg(ref, action, name, email, sourceUrl);
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: chatId, text, parse_mode: "HTML", disable_web_page_preview: true }),
+      signal: AbortSignal.timeout(6000),
+    });
+    return res.status;
+  } catch (e) {
+    return 0;
+  }
+}
+
 const SUCCESS_DONE_HTML = `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Commande traitée</title>
@@ -403,6 +434,9 @@ export async function GET(request: Request): Promise<Response> {
     console.error(`[mark-done] Brevo ${res.status} for ${email} action=${action}`);
     return new Response(ERROR_HTML("Échec d'envoi de l'email client."), { status: 502, headers: { "Content-Type": "text/html" } });
   }
+  try {
+    await sendTelegramStatus(ref, action, name ?? "", email ?? "", sourceUrl ?? "");
+  } catch (e) { /* ignore */ }
 
   console.log(`[mark-done] action=${action} → ${email} (order ${ref})`);
   return new Response(

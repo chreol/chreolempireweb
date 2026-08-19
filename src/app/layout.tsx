@@ -20,6 +20,7 @@ import { CONTACT, IMAGES, SOCIAL_LINKS } from "@/lib/services";
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist-sans" });
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://shop.chreolempire.com";
+const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -131,6 +132,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="dns-prefetch" href="https://campay.net" />
         <link rel="dns-prefetch" href="https://maps.app.goo.gl" />
         <script src="https://apis.google.com/js/platform.js?onload=renderOptIn" async defer />
+        {GA_MEASUREMENT_ID ? (
+          <>
+            <script async src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`} />
+            <script dangerouslySetInnerHTML={{ __html: `window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', '${GA_MEASUREMENT_ID}', { page_path: window.location.pathname });` }} />
+          </>
+        ) : null}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(LOCAL_BUSINESS_JSON) }}

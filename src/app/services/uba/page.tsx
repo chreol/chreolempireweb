@@ -240,7 +240,7 @@ export default function UBAPage() {
                   cursor: disabled ? "not-allowed" : "pointer",
                 }}
               >
-                {disabled ? `${t("u.tab_buy")} — ${t("u.unavailable")}` : (m === "buy" ? t("u.tab_buy") : t("u.tab_recharge"))}
+                {disabled ? `${t("u.tab_buy")} — ${t("u.unavailable")}` : t("u.tab_recharge")}
               </button>
             );
           })}
@@ -249,7 +249,9 @@ export default function UBAPage() {
 
       <div className="rounded-2xl p-4 mb-6" style={{ background: "#8B000018", border: "1px solid #8B000055" }}>
         <p className="text-sm font-black" style={{ color: "var(--gold)" }}>{t("u.buy_unavailable_title")}</p>
-        <p className="text-xs mt-2 leading-relaxed" style={{ color: "var(--text-secondary)" }}>{t("u.buy_unavailable_msg")}</p>
+        <p className="text-xs mt-2 leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+          {t("u.buy_unavailable_msg")}
+        </p>
       </div>
 
       <AnimatePresence mode="wait" initial={false}>
@@ -555,24 +557,52 @@ export default function UBAPage() {
             {/* Mode de paiement préféré (optionnel) */}
             <PaymentMethodSelector value={payOp} onChange={setPayOp} />
 
-            <button
-              onClick={handleAddToCart}
-              className="w-full py-4 rounded-full font-black text-black text-sm transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
-              style={{ background: "var(--gold)" }}
-            >
-              🛒 Ajouter au panier
-            </button>
-            <USSDOrderFlow
-              total={total}
-              getMsg={buildRechargeMsgPlain}
-              onBeforeOpen={handleRechargeBeforeOpen}
-              prefillPrenom={fullName}
-              className="w-full py-3 rounded-full font-black text-white text-sm flex items-center justify-center gap-2 transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
-              style={{ background: "#25D366" }}
-            >
-              <Image src={IMAGES.whatsapp} alt="" width={20} height={20} unoptimized className="shrink-0" />
-              {t("btn.order_wa_direct")}
-            </USSDOrderFlow>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="sm:col-span-2 flex flex-col gap-2">
+                <button
+                  onClick={handleAddToCart}
+                  className="w-full py-4 rounded-full font-black text-black text-sm transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
+                  style={{ background: "var(--gold)" }}
+                >
+                  🛒 Ajouter au panier
+                </button>
+                <USSDOrderFlow
+                  total={total}
+                  getMsg={buildRechargeMsgPlain}
+                  onBeforeOpen={handleRechargeBeforeOpen}
+                  prefillPrenom={fullName}
+                  className="w-full py-3 rounded-full font-black text-white text-sm flex items-center justify-center gap-2 transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
+                  style={{ background: "#25D366" }}
+                >
+                  <Image src={IMAGES.whatsapp} alt="" width={20} height={20} unoptimized className="shrink-0" />
+                  {t("btn.order_wa_direct")}
+                </USSDOrderFlow>
+              </div>
+
+              <aside className="rounded-2xl p-4" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+                <p className="text-sm font-bold mb-2" style={{ color: "var(--gold)" }}>{t("u.neero_title")}</p>
+                <p className="text-xs mb-3" style={{ color: "var(--text-secondary)" }}>{t("u.neero_desc")}</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    track("neero_request", { location: "uba_recharge_panel" });
+                    showToast(t("u.neero_request_sent"), "info");
+                  }}
+                  className="w-full inline-block text-center py-2 px-3 rounded-lg font-bold"
+                  style={{ background: "#2563EB", color: "white" }}
+                >
+                  {t("u.neero_button")}
+                </button>
+                <ul className="mt-3 text-[13px]" style={{ color: "var(--text-secondary)" }}>
+                  <li>{t("u.neero_step1")}</li>
+                  <li>{t("u.neero_step2")}</li>
+                  <li>{t("u.neero_step3")}</li>
+                </ul>
+                <p className="text-[12px] mt-3" style={{ color: "var(--text-muted)" }}>
+                  {t("u.neero_advice")}
+                </p>
+              </aside>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

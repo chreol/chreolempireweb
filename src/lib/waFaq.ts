@@ -29,7 +29,7 @@ export const WA_FAQ: FaqEntry[] = [
   },
   {
     keywords: ["coupon", "transcash", "pcs", "mastercard", "echanger coupon", "échanger coupon"],
-    answer: "🎫 Échange Transcash & PCS Mastercard.\n\nTaux : 480 FCFA/€. Transcash 0% commission, PCS 7%. Minimum 20€. Paiement MoMo en 15 min après vérification du code.\n\n👉 https://shop.chreolempire.com/services/coupons",
+    answer: "🎫 Échange Transcash & PCS Mastercard.\n\nTaux : 450 FCFA/€. Transcash 0% commission, PCS 7%. Minimum 20€. Paiement MoMo en 15 min après vérification du code.\n\n👉 https://shop.chreolempire.com/services/coupons",
   },
   {
     keywords: ["facture", "canal", "eneo", "camwater", "startimes", "payer facture", "echange momo", "échange momo"],
@@ -37,7 +37,7 @@ export const WA_FAQ: FaqEntry[] = [
   },
   {
     keywords: ["prix", "tarif", "combien", "cout", "coût", "taux"],
-    answer: "💰 Nos tarifs varient selon le service :\n\n🎮 Cartes cadeaux : selon le montant (taux ~750 F/€)\n₿ Crypto : 580-700 FCFA/$\n💸 PayPal : 580-700 FCFA/€\n🎫 Coupons : 480 FCFA/€\n💳 UBA : dès 10 500 F\n📋 Factures : +200 F\n\nDites-moi quel produit vous intéresse pour un prix exact !",
+    answer: "💰 Nos tarifs varient selon le service :\n\n🎮 Cartes cadeaux : selon le montant (taux ~750 F/€)\n₿ Crypto : 580-700 FCFA/$\n💸 PayPal : 580-700 FCFA/€\n🎫 Coupons : 450 FCFA/€\n💳 UBA : dès 10 500 F\n📋 Factures : +200 F\n\nDites-moi quel produit vous intéresse pour un prix exact !",
   },
   {
     keywords: ["paiement", "payer", "momo", "mtn", "orange money", "moyen de paiement", "comment payer"],

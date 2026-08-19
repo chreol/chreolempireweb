@@ -56,38 +56,59 @@ export const IMAGES = {
   googleAvis: "/assets/google-avis-client-grande.webp",
 };
 
+// Standard EUR amounts (adapted to updated price table; 5€ entries removed)
 const STANDARD_AMOUNTS = [
-  { label: "10€",  price: 7500 },
-  { label: "20€",  price: 14500 },
-  { label: "50€",  price: 34000 },
-  { label: "100€", price: 67000 },
-  { label: "150€", price: 99000 },
-  { label: "200€", price: 132000 },
-  { label: "300€", price: 196000 },
-  { label: "500€", price: 340000 },
-];
-
-const ITUNES_GP_AMOUNTS = [
-  { label: "5€",   price: 4000 },
-  { label: "10€",  price: 7500 },
-  { label: "15€",  price: 11000 },
-  { label: "25€",  price: 18000 },
-  { label: "50€",  price: 35000 },
-  { label: "100€", price: 68500 },
+  { label: "10€",  price: 8900 },
+  { label: "15€",  price: 12900 },
+  { label: "20€",  price: 16800 },
+  { label: "25€",  price: 20500 },
+  { label: "30€",  price: 24500 },
+  { label: "40€",  price: 32000 },
+  { label: "50€",  price: 39500 },
+  { label: "75€",  price: 58500 },
+  { label: "100€", price: 76500 },
+  // keep some larger options for power users
   { label: "150€", price: 102000 },
   { label: "200€", price: 135000 },
   { label: "300€", price: 204000 },
   { label: "500€", price: 340000 },
 ];
 
+// iTunes / Google Play EUR amounts (remove 5€)
+const ITUNES_GP_AMOUNTS = [
+  { label: "10€",  price: 8900 },
+  { label: "15€",  price: 12900 },
+  { label: "25€",  price: 20500 },
+  { label: "50€",  price: 39500 },
+  { label: "100€", price: 76500 },
+  { label: "150€", price: 102000 },
+  { label: "200€", price: 135000 },
+  { label: "300€", price: 204000 },
+  { label: "500€", price: 340000 },
+];
+
+// USD standard amounts (adapted to USD price table; 5$ entries removed)
+export const USD_STANDARD_AMOUNTS = [
+  { label: "10$",  price: 8500 },
+  { label: "15$",  price: 12500 },
+  { label: "20$",  price: 16000 },
+  { label: "25$",  price: 19800 },
+  { label: "30$",  price: 23800 },
+  { label: "40$",  price: 31500 },
+  { label: "50$",  price: 39000 },
+  { label: "75$",  price: 58000 },
+  { label: "80$",  price: 61500 },
+  { label: "100$", price: 76000 },
+];
+
 export const GIFT_CARDS = [
-  { id: "psn",        name: "PSN PlayStation",   image: IMAGES.psn,      color: "#003791", tier: "standard" as const, amounts: STANDARD_AMOUNTS },
-  { id: "steam",      name: "Steam",             image: IMAGES.steam,    color: "#1B2838", tier: "standard" as const, amounts: STANDARD_AMOUNTS },
-  { id: "razer",      name: "Razer Gold",        image: IMAGES.razer,    color: "#44D62C", tier: "standard" as const, amounts: STANDARD_AMOUNTS },
+  { id: "psn",        name: "PSN PlayStation",   image: IMAGES.psn,      color: "#003791", tier: "standard" as const, amounts: STANDARD_AMOUNTS, usAmounts: USD_STANDARD_AMOUNTS },
+  { id: "steam",      name: "Steam",             image: IMAGES.steam,    color: "#1B2838", tier: "standard" as const, amounts: STANDARD_AMOUNTS, usAmounts: USD_STANDARD_AMOUNTS },
+  { id: "razer",      name: "Razer Gold",        image: IMAGES.razer,    color: "#44D62C", tier: "standard" as const, amounts: STANDARD_AMOUNTS, usAmounts: USD_STANDARD_AMOUNTS },
   { id: "roblox-eur", name: "Roblox (€)",        image: IMAGES.roblox,   color: "#E8232A", tier: "standard" as const, amounts: STANDARD_AMOUNTS },
-  { id: "nintendo",   name: "Nintendo eShop",    image: IMAGES.nintendo, color: "#E70012", tier: "standard" as const, amounts: STANDARD_AMOUNTS },
+  { id: "nintendo",   name: "Nintendo eShop",    image: IMAGES.nintendo, color: "#E70012", tier: "standard" as const, amounts: STANDARD_AMOUNTS, usAmounts: USD_STANDARD_AMOUNTS },
   { id: "itunes",     name: "iTunes / App Store",image: IMAGES.itunes,   color: "#0A84FF", tier: "itunes" as const,   amounts: ITUNES_GP_AMOUNTS },
-  { id: "googleplay", name: "Google Play",       image: IMAGES.google,   color: "#34A853", tier: "itunes" as const,   amounts: ITUNES_GP_AMOUNTS },
+  { id: "googleplay", name: "Google Play",       image: IMAGES.google,   color: "#34A853", tier: "itunes" as const,   amounts: ITUNES_GP_AMOUNTS, usAmounts: USD_STANDARD_AMOUNTS },
   {
     id: "robux", name: "Robux", image: IMAGES.robux, color: "#E8232A", tier: "robux" as const,
     amounts: [
@@ -182,8 +203,8 @@ export const CRYPTO_WALLETS: Record<string, Record<string, string>> = {
 };
 
 export const COUPON_RATES = {
-  pcs:       { rate: 480, commission: 7,  formula: "(montant − 7%) × 480", codeLength: 10, codeType: "alphanumérique" as const },
-  transcash: { rate: 480, commission: 0,  formula: "montant × 480",         codeLength: 12, codeType: "numérique" as const },
+  pcs:       { rate: 450, commission: 7,  formula: "(montant − 7%) × 450", codeLength: 10, codeType: "alphanumérique" as const },
+  transcash: { rate: 450, commission: 0,  formula: "montant × 450",         codeLength: 12, codeType: "numérique" as const },
 };
 
 export const PAYPAL_RATES = {

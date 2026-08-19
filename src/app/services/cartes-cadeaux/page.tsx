@@ -83,7 +83,8 @@ export default function CartesCadeauxPage() {
 
   const cards = GIFT_CARDS.filter(c => c.tier === tab);
   const card = GIFT_CARDS.find(c => c.id === cardId);
-  const amount = card?.amounts.find(a => a.label === amountLabel);
+  const displayAmounts = card ? (region === "US" && (card as any).usAmounts ? (card as any).usAmounts : card.amounts) : [];
+  const amount = displayAmounts.find((a: any) => a.label === amountLabel);
   const customNum = parseFloat(customVal.replace(",", "."));
   const customPrice = !isNaN(customNum) && customNum > 0 ? Math.round(customNum * CUSTOM_RATE) : null;
   const canAdd = card && (amount || customPrice);
@@ -151,6 +152,10 @@ export default function CartesCadeauxPage() {
         </div>
         <h1 className="text-3xl font-black text-white mb-1">{tl("p.giftcards.title")}</h1>
         <p style={{ color: "var(--text-secondary)" }}>{tl("p.giftcards.sub")}</p>
+        <div className="mt-4 rounded-2xl p-4" style={{ background: "#1B5E2022", border: "1px solid #25D36633" }}>
+          <p className="text-sm font-black" style={{ color: "#25D366" }}>Codes authentiques · Livraison WhatsApp 15–30 min · Paiement MTN MoMo / Orange Money</p>
+          <p className="text-xs mt-1" style={{ color: "var(--text-secondary)" }}>Cartes européennes et américaines : livraison rapide — idéal pour achats internationaux. Les prix sont mis à jour en temps réel.</p>
+        </div>
       </div>
 
       {/* Tabs */}
@@ -227,7 +232,7 @@ export default function CartesCadeauxPage() {
             <div>
               <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "var(--text-muted)" }}>{tl("gc.amount")}</p>
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                {card.amounts.map(a => (
+                {displayAmounts.map((a: any) => (
                   <button
                     key={a.label}
                     onClick={() => { setAmountLabel(a.label); setCustomVal(""); }}
@@ -281,6 +286,13 @@ export default function CartesCadeauxPage() {
               </p>
               <p className="text-2xl font-black mb-4" style={{ color: "var(--gold)" }}>
                 {(customPrice ?? amount?.price ?? 0).toLocaleString("fr-FR")} FCFA
+              </p>
+
+              <p className="text-xs mb-2" style={{ color: "var(--text-secondary)" }}>
+                <strong>Note :</strong> Le client prend en charge les frais de retrait liés à ces transactions.
+              </p>
+              <p className="text-xs mb-3" style={{ color: "var(--text-secondary)" }}>
+                Cartes européennes et américaines — livraison rapide (généralement 15–30 minutes).
               </p>
 
               {/* Email */}
@@ -360,6 +372,28 @@ export default function CartesCadeauxPage() {
       <StepGuide title={tl("gc.guide_title")} steps={STEPS_CADEAUX} />
       <FAQ items={PAGE_FAQ} />
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(PAGE_FAQ_SCHEMA) }} />
+      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "ItemList",
+        name: "Cartes Cadeaux - Chreol Empire",
+        itemListElement: GIFT_CARDS.slice(0, 10).map((c, i) => ({
+          "@type": "ListItem",
+          position: i + 1,
+          item: {
+            "@type": "Product",
+            name: c.name,
+            image: c.image,
+            url: `https://shop.chreolempire.com/services/cartes-cadeaux/${c.id}`,
+            offers: c.amounts.slice(0, 5).map(a => ({
+              "@type": "Offer",
+              price: a.price,
+              priceCurrency: "XAF",
+              availability: "https://schema.org/InStock",
+              priceSpecification: { "@type": "UnitPriceSpecification", price: a.price, priceCurrency: "XAF" }
+            })),
+          }
+        }))
+      }) }} />
       <RelatedServices current="cartes-cadeaux" />
     </div>
   );

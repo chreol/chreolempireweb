@@ -18,8 +18,8 @@ import { Field } from "@/components/FormField";
 
 // FAQ en français pour le JSON-LD SEO
 const FAQ_FR = [
-  { q: "Comment échanger un coupon Transcash en FCFA au Cameroun ?", a: "Envoyez votre code Transcash sur WhatsApp avec le montant en €. Nous vérifions le code et vous virons le FCFA équivalent au taux de 480 FCFA/€ sur MTN MoMo ou Orange Money en 15 minutes. Minimum 20€ par échange." },
-  { q: "Quel est le taux de change PCS Mastercard en FCFA ?", a: "Le taux PCS Mastercard est de 480 FCFA/€ après déduction de la commission de 7%. Formule : (montant − 7%) × 480 FCFA. Exemple : coupon de 100€ → 93€ × 480 = 44 640 FCFA reçus sur votre Mobile Money." },
+  { q: "Comment échanger un coupon Transcash en FCFA au Cameroun ?", a: "Envoyez votre code Transcash sur WhatsApp avec le montant en €. Nous vérifions le code et vous virons le FCFA équivalent au taux de 450 FCFA/€ sur MTN MoMo ou Orange Money en 15 minutes. Minimum 20€ par échange." },
+  { q: "Quel est le taux de change PCS Mastercard en FCFA ?", a: "Le taux PCS Mastercard est de 450 FCFA/€ après déduction de la commission de 7%. Formule : (montant − 7%) × 450 FCFA. Exemple : coupon de 100€ → 93€ × 450 = 41 850 FCFA reçus sur votre Mobile Money." },
   { q: "Y a-t-il un minimum pour échanger un coupon au Cameroun ?", a: "Oui, le minimum est de 20€ par transaction. Pas de maximum fixe — des conditions spéciales s'appliquent pour les gros montants (500€ et plus). Contactez-nous via WhatsApp pour les transactions importantes." },
   { q: "Comment recevoir son argent après échange de coupon PCS ?", a: "Par MTN MoMo ou Orange Money dans les 15 à 30 minutes après vérification du code. Pour les montants supérieurs à 500€, un paiement en espèces à notre boutique Vallée 3, Deido, Douala est également possible." },
 ];
