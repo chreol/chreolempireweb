@@ -429,17 +429,18 @@ export async function GET(request: Request): Promise<Response> {
     headers: { "Content-Type": "application/json", "api-key": brevoKey },
     body: JSON.stringify({ sender, to: [{ email, name: name || "Client" }], subject, htmlContent: html }),
   });
-
-  if (!res.ok) {
-    console.error(`[mark-done] Brevo ${res.status} for ${email} action=${action}`);
-    return new Response(ERROR_HTML("Échec d'envoi de l'email client."), { status: 502, headers: { "Content-Type": "text/html" } });
-  }
+  // Attempt to notify admin via Telegram regardless of email send result
   try {
     await sendTelegramStatus(ref, action, name ?? "", email ?? "", sourceUrl ?? "");
   } catch (e) { /* ignore */ }
 
+  if (!res.ok) {
+    console.error(`[mark-done] Brevo ${res.status} for ${email} action=${action}`);
+    // Still return success page to the caller (email failed but Telegram sent)
+    return new Response(ERROR_HTML("Échec d'envoi de l'email client."), { status: 502, headers: { "Content-Type": "text/html" } });
+  }
+
   console.log(`[mark-done] action=${action} → ${email} (order ${ref})`);
-  return new Response(
     isCancel ? SUCCESS_CANCEL_HTML : SUCCESS_DONE_HTML,
     { status: 200, headers: { "Content-Type": "text/html" } },
   );
