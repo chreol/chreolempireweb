@@ -127,10 +127,15 @@ function TransferForm() {
   function validateForm(f?: typeof form) {
     const cur = f ?? form;
     const errs: Record<string, string> = {};
+    if (!cur.name || !cur.name.trim()) errs.name = 'Nom requis';
+    if (!cur.email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(cur.email)) errs.email = 'Email invalide';
     if (!cur.phone || !/^\+?\d{7,15}$/.test(cur.phone)) errs.phone = 'Téléphone invalide (ex: +2376...)';
     if (!cur.amount || isNaN(Number(cur.amount)) || Number(cur.amount) <= 0) errs.amount = 'Montant invalide';
     if (!cur.destination) errs.destination = 'Destination requise';
+    if (!cur.payment) errs.payment = 'Mode de paiement requis';
     if (!cur.beneficiaryNumber || !/\d{6,15}/.test(cur.beneficiaryNumber)) errs.beneficiaryNumber = 'Numéro du bénéficiaire invalide';
+    if (!cur.beneficiaryName || !cur.beneficiaryName.trim()) errs.beneficiaryName = 'Nom du bénéficiaire requis';
+    if (!cur.beneficiaryNetwork) errs.beneficiaryNetwork = 'Réseau du bénéficiaire requis';
     return errs;
   }
 
@@ -182,6 +187,26 @@ function TransferForm() {
   const fee = computeFee(amountNum);
   const total = fee === null ? null : amountNum + (fee || 0);
   const isValid = Object.keys(validateForm()).length === 0;
+  // country -> networks mapping (used to populate beneficiary network options)
+  const networkMap: Record<string, string[]> = {
+    'Gabon': ['MTN', 'Orange', 'GIMAC', 'ExpressUnion'],
+    'Congo Brazzaville': ['MTN', 'Orange', 'ExpressUnion'],
+    'RDC Kinshasa': ['Vodacom', 'Airtel', 'Orange'],
+    'Nigeria': ['MTN', 'Airtel', 'Glo', '9Mobile'],
+    'Sénégal': ['Orange', 'Free', 'Tigo'],
+    'Bénin': ['MTN', 'Moov', 'Flooz'],
+    'Togo': ['Moov', 'TogoCell'],
+    'Burkina Faso': ['Orange', 'Telecel'],
+    'Rwanda': ['MTN', 'Airtel'],
+    'Kenya': ['M-Pesa', 'Airtel'],
+    'Ghana': ['MTN', 'Vodafone'],
+    'Mali': ['Orange', 'Orange Money'],
+    'Tanzanie': ['Vodacom', 'Airtel'],
+    'Ouganda': ['MTN', 'Airtel'],
+    'Tunisie': ['Orange', 'Ooredoo'],
+    'Liberia': ['Lonestar', 'MTN']
+  };
+  const networks = networkMap[form.destination] ?? networkMap[form.beneficiaryCountry] ?? ['MTN', 'Orange', 'GIMAC', 'ExpressUnion'];
   function inputClass(name: string) {
     const base = 'p-3 rounded-lg bg-black text-white/90 border';
     const showError = Boolean(errors[name] && (touched[name] || submitAttempted));
@@ -197,7 +222,6 @@ function TransferForm() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <input name="phone" value={form.phone} onChange={onChange} onBlur={() => onBlurField('phone')} placeholder="Téléphone (ex: +2376...)" className={inputClass('phone')} />
         {(errors.phone && (touched.phone || submitAttempted)) ? <p className="text-xs text-red-500 mt-1">{errors.phone}</p> : null}
-        <input name="beneficiaryName" value={form.beneficiaryName} onChange={onChange} placeholder="Nom du bénéficiaire" className="p-3 rounded-lg bg-black text-white/90 border" />
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <input name="amount" value={form.amount} onChange={onChange} onBlur={() => onBlurField('amount')} placeholder="Montant (FCFA)" className={inputClass('amount')} />
@@ -220,13 +244,10 @@ function TransferForm() {
       ) : null}
       <h3 className="font-bold">Informations du bénéficiaire</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <select name="beneficiaryNetwork" value={form.beneficiaryNetwork} onChange={onChange} className="p-3 rounded-lg bg-black text-white/90 border">
-          <option value="MTN">MTN</option>
-          <option value="Orange">Orange</option>
-          <option value="Gimac">GIMAC</option>
-          <option value="ExpressUnion">Express Union</option>
+        <select name="beneficiaryNetwork" value={form.beneficiaryNetwork} onChange={onChange} onBlur={() => onBlurField('beneficiaryNetwork')} className={inputClass('beneficiaryNetwork')}>
+          {networks.map(n => <option key={n} value={n}>{n}</option>)}
         </select>
-        <select name="beneficiaryCountry" value={form.beneficiaryCountry} onChange={onChange} className="p-3 rounded-lg bg-black text-white/90 border">
+        <select name="beneficiaryCountry" value={form.beneficiaryCountry} onChange={onChange} onBlur={() => onBlurField('beneficiaryCountry')} className={inputClass('beneficiaryCountry')}>
           {['Gabon','Congo Brazzaville','RDC Kinshasa','Nigeria','Sénégal','Bénin','Togo','Burkina Faso','Rwanda','Kenya','Ghana','Mali','Tanzanie','Ouganda','Tunisie','Liberia'].map(c => <option key={c} value={c}>{c}</option>)}
         </select>
       </div>
