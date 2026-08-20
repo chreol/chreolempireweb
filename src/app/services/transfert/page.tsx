@@ -108,6 +108,9 @@ function TransferForm() {
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", phone: "", beneficiaryName: "", beneficiaryNetwork: "MTN", beneficiaryCountry: "Gabon", beneficiaryNumber: "", amount: "", destination: "Gabon", payment: "MTN", notes: "", sourceUrl: typeof window !== 'undefined' ? window.location.href : '' });
+  const [errors, setErrors] = useState<Record<string,string>>({});
+  const [touched, setTouched] = useState<Record<string,boolean>>({});
+  const [submitAttempted, setSubmitAttempted] = useState(false);
 
   function computeFee(amountValue: number): number | null {
     if (!amountValue || isNaN(amountValue)) return 0;
@@ -121,36 +124,69 @@ function TransferForm() {
     return null; // ask to contact for large amounts
   }
 
+  function validateForm(f?: typeof form) {
+    const cur = f ?? form;
+    const errs: Record<string, string> = {};
+    if (!cur.phone || !/^\+?\d{7,15}$/.test(cur.phone)) errs.phone = 'Téléphone invalide (ex: +2376...)';
+    if (!cur.amount || isNaN(Number(cur.amount)) || Number(cur.amount) <= 0) errs.amount = 'Montant invalide';
+    if (!cur.destination) errs.destination = 'Destination requise';
+    if (!cur.beneficiaryNumber || !/\d{6,15}/.test(cur.beneficiaryNumber)) errs.beneficiaryNumber = 'Numéro du bénéficiaire invalide';
+    return errs;
+  }
+
   function onChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
     const value = e.target.name === 'amount' ? e.target.value.replace(/[^0-9]/g, '') : e.target.value;
-    setForm(prev => ({ ...prev, [e.target.name]: value }));
+    const newForm = { ...form, [e.target.name]: value };
+    setForm(newForm);
+    setErrors(validateForm(newForm));
+  }
+
+  function onBlurField(name: string) {
+    setTouched(prev => ({ ...prev, [name]: true }));
+    setErrors(validateForm());
   }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     try {
-      // Build WhatsApp message and open it (user action) while submitting request in background
+      setSubmitAttempted(true);
+      const curErrors = validateForm();
+      setErrors(curErrors);
+      if (Object.keys(curErrors).length) {
+        const first = Object.values(curErrors)[0];
+        showToast(first, 'error');
+        setLoading(false);
+        return;
+      }
+
+      // Build WhatsApp message and open it (user gesture) while submitting request in background
       const waAdmin = CONTACT.whatsapp.replace(/\D/g, '');
       const msg = `Demande de transfert:\nNom: ${form.name || '-'}\nTel: ${form.phone || '-'}\nMontant: ${form.amount || '-'} FCFA\nDestination: ${form.destination || '-'}\nBénéficiaire: ${form.beneficiaryName || '-'} (${form.beneficiaryNetwork || '-'}) - ${form.beneficiaryNumber || '-'}\nNotes: ${form.notes || '-'}`;
       const waLink = `https://wa.me/${waAdmin}?text=${encodeURIComponent(msg)}`;
       // open WhatsApp first (user gesture)
       window.open(waLink, '_blank');
 
-      // Submit request to server (do not await before opening WA)
+      // Submit request to server
       const res = await fetch('/api/transfert-request', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) });
       const j = await res.json();
       if (!res.ok) throw new Error(j?.error || 'Erreur serveur');
       showToast('Demande envoyée — nous vous contacterons bientôt', 'success');
       setForm({ name: "", email: "", phone: "", beneficiaryName: "", beneficiaryNetwork: "MTN", beneficiaryCountry: "Gabon", beneficiaryNumber: "", amount: "", destination: "Gabon", payment: "MTN", notes: "", sourceUrl: typeof window !== 'undefined' ? window.location.href : '' });
-    } catch (err: any) {
-      showToast(err?.message || 'Erreur envoi demande', 'error');
+    } catch (err) {
+      showToast((err as any)?.message || 'Erreur envoi demande', 'error');
     } finally { setLoading(false); }
   }
 
   const amountNum = Number(form.amount || 0);
   const fee = computeFee(amountNum);
   const total = fee === null ? null : amountNum + (fee || 0);
+  const isValid = Object.keys(validateForm()).length === 0;
+  function inputClass(name: string) {
+    const base = 'p-3 rounded-lg bg-black text-white/90 border';
+    const showError = Boolean(errors[name] && (touched[name] || submitAttempted));
+    return showError ? `${base} border-red-500` : base;
+  }
 
   return (
     <form onSubmit={submit} className="grid grid-cols-1 gap-3 text-sm">
@@ -159,11 +195,13 @@ function TransferForm() {
           <input name="email" value={form.email} onChange={onChange} placeholder="Email (optionnel)" className="p-3 rounded-lg bg-black text-white/90 border" />
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <input name="phone" value={form.phone} onChange={onChange} placeholder="Téléphone (ex: +2376...)" className="p-3 rounded-lg bg-black text-white/90 border" />
+        <input name="phone" value={form.phone} onChange={onChange} onBlur={() => onBlurField('phone')} placeholder="Téléphone (ex: +2376...)" className={inputClass('phone')} />
+        {(errors.phone && (touched.phone || submitAttempted)) ? <p className="text-xs text-red-500 mt-1">{errors.phone}</p> : null}
         <input name="beneficiaryName" value={form.beneficiaryName} onChange={onChange} placeholder="Nom du bénéficiaire" className="p-3 rounded-lg bg-black text-white/90 border" />
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <input name="amount" value={form.amount} onChange={onChange} placeholder="Montant (FCFA)" className="p-3 rounded-lg bg-black text-white/90 border" />
+        <input name="amount" value={form.amount} onChange={onChange} onBlur={() => onBlurField('amount')} placeholder="Montant (FCFA)" className={inputClass('amount')} />
+        {(errors.amount && (touched.amount || submitAttempted)) ? <p className="text-xs text-red-500 mt-1">{errors.amount}</p> : null}
         <select name="destination" value={form.destination} onChange={onChange} className="p-3 rounded-lg bg-black text-white/90 border">
           {['Gabon','Congo Brazzaville','RDC Kinshasa','Nigeria','Sénégal','Bénin','Togo','Burkina Faso','Rwanda','Kenya','Ghana','Mali','Tanzanie','Ouganda','Tunisie','Liberia'].map(c => <option key={c} value={c}>{c}</option>)}
         </select>
@@ -193,12 +231,13 @@ function TransferForm() {
         </select>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
-        <input name="beneficiaryNumber" value={form.beneficiaryNumber} onChange={onChange} placeholder="Numéro mobile du bénéficiaire" className="p-3 rounded-lg bg-black text-white/90 border" />
+        <input name="beneficiaryNumber" value={form.beneficiaryNumber} onChange={onChange} onBlur={() => onBlurField('beneficiaryNumber')} placeholder="Numéro mobile du bénéficiaire" className={inputClass('beneficiaryNumber')} />
+        {(errors.beneficiaryNumber && (touched.beneficiaryNumber || submitAttempted)) ? <p className="text-xs text-red-500 mt-1">{errors.beneficiaryNumber}</p> : null}
         <input name="beneficiaryName" value={form.beneficiaryName} onChange={onChange} placeholder="Nom sur le compte mobile" className="p-3 rounded-lg bg-black text-white/90 border" />
       </div>
       <textarea name="notes" value={form.notes} onChange={onChange} placeholder="Informations supplémentaires (optionnel)" className="p-3 rounded-lg bg-black text-white/90 border" />
       <div className="flex gap-3">
-        <button type="submit" className="px-4 py-3 rounded-2xl font-black bg-var text-white" disabled={loading}>{loading ? 'Envoi…' : 'Envoyer la demande'}</button>
+        <button type="submit" className="px-4 py-3 rounded-2xl font-black bg-var text-white" disabled={!isValid || loading}>{loading ? 'Envoi…' : 'Envoyer la demande'}</button>
         <button type="button" className="px-4 py-3 rounded-2xl font-black border" onClick={() => { setForm({ name: "", email: "", phone: "", beneficiaryName: "", beneficiaryNetwork: "MTN", beneficiaryCountry: "Gabon", beneficiaryNumber: "", amount: "", destination: "Gabon", payment: "MTN", notes: "", sourceUrl: typeof window !== 'undefined' ? window.location.href : '' }); showToast('Formulaire réinitialisé', 'info'); }}>Réinitialiser</button>
       </div>
     </form>
