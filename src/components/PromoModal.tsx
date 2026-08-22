@@ -89,7 +89,7 @@ export default function PromoModal() {
           <div className="w-full md:w-1/2 flex items-center justify-center">
             <div className="w-56 h-80 relative">
               {/* Placeholder image: if you want a custom image, replace src with the uploaded asset path */}
-              <Image src="/assets/promo-zobo.png" alt="Zobo promo" fill style={{ objectFit: "contain" }} />
+              <Image src="/assets/Promo_Zobo.webp" alt="Zobo promo" fill style={{ objectFit: "contain" }} />
             </div>
           </div>
         </div>
