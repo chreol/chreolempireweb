@@ -32,13 +32,14 @@ export default function TransfertPage() {
               <li>Plus de 1 000 000 FCFA : <strong>Tarif personnalisé</strong></li>
             </ul>
           </div>
-          <div>
-            <p className="mb-2">✅ <strong>Zéro surprise</strong> : Les frais sont affichés avant la validation.</p>
-            <p className="mb-2">✅ <strong>Fiabilité</strong> : Votre transfert est traité en priorité.</p>
-            <p className="mb-2">Nous couvrons les destinations suivantes :</p>
-            <div className="flex flex-wrap gap-2">
-              {[
-                'Gabon 🇬🇦','Congo Brazzaville 🇨🇬','RDC Kinshasa 🇨🇩','Nigeria 🇳🇬','Sénégal 🇸🇳','Bénin 🇧🇯','Togo 🇹🇬','Burkina Faso 🇧🇫','Rwanda 🇷🇼','Kenya 🇰🇪','Ghana 🇬🇭','Mali 🇲🇱','Tanzanie 🇹🇿','Ouganda 🇺🇬','Tunisie 🇹🇳','Liberia 🇱🇷'
+        </div>
+
+        {/* Formulaire placé directement sous NOS TARIFS */}
+        <div id="formulaire" className="mt-6">
+          <h3 className="text-lg font-bold mb-3">Formulaire de demande</h3>
+          <TransferForm />
+        </div>
+      </section>
               ].map(d => (
                 <span key={d} className="px-3 py-1 rounded-full text-xs font-semibold" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid var(--border)" }}>{d}</span>
               ))}
