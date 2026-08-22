@@ -140,7 +140,25 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="dns-prefetch" href="https://campay.net" />
         <link rel="dns-prefetch" href="https://maps.app.goo.gl" />
         <meta name="google-site-verification" content="f4xnHmrVIpddzFQKvb_TRGFigd8dOSciEyPabjA8F1A" />
-        <script src="https://apis.google.com/js/platform.js?onload=renderOptIn" async defer />
+        <Script id="renderOptInFn" strategy="beforeInteractive">
+          {`window.renderOptIn = function() {
+            try {
+              window.gapi.load('surveyoptin', function() {
+                try {
+                  window.gapi.surveyoptin.render({
+                    "merchant_id": 5799933923,
+                    "order_id": "ORDER_ID",
+                    "email": "CUSTOMER_EMAIL",
+                    "delivery_country": "COUNTRY_CODE",
+                    "estimated_delivery_date": "YYYY-MM-DD",
+                    "products": [{"gtin":"GTIN1"}, {"gtin":"GTIN2"}]
+                  });
+                } catch (e) { console.warn('renderOptIn render error', e); }
+              });
+            } catch (e) { console.warn('renderOptIn load error', e); }
+          }`}
+        </Script>
+        <Script src="https://apis.google.com/js/platform.js?onload=renderOptIn" strategy="afterInteractive" />
         {GA_MEASUREMENT_ID ? (
           <>
             <script async src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}></script>
@@ -207,6 +225,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     <Link href="/services/crypto" className="hover:text-white transition-colors">₿ Crypto &amp; MoMo</Link>
                     <Link href="/services/coupons" className="hover:text-white transition-colors">🎫 Coupons PCS / Transcash</Link>
                     <Link href="/services/uba" className="hover:text-white transition-colors">💳 UBA Cameroun</Link>
+                    <Link href="/services/transfert" className="hover:text-white transition-colors">💸 Transfert d'argent</Link>
                     <Link href="/services/paypal" className="hover:text-white transition-colors">💸 PayPal Europe</Link>
                     <Link href="/services/factures" className="hover:text-white transition-colors">🔄 Paiement Factures</Link>
                   </div>
