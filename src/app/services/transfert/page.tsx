@@ -40,16 +40,6 @@ export default function TransfertPage() {
           <TransferForm />
         </div>
       </section>
-              ].map(d => (
-                <span key={d} className="px-3 py-1 rounded-full text-xs font-semibold" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid var(--border)" }}>{d}</span>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-      {/* Formulaire placé directement sous NOS TARIFS */}
-      
-
       <section className="rounded-2xl p-6 mb-6" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
         <h2 className="text-2xl font-bold mb-3">💳 NOS MODES DE PAIEMENT</h2>
         <div className="space-y-4 text-sm">
@@ -138,10 +128,7 @@ export default function TransfertPage() {
         </div>
       </section>
 
-      <section id="formulaire" className="rounded-2xl p-6 mb-6" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
-        <h2 className="text-2xl font-bold mb-3">📥 Demande de transfert — Formulaire</h2>
-        <TransferForm />
-      </section>
+      
     </div>
   );
 }
