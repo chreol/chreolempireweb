@@ -9,13 +9,9 @@ const REFERRAL_CODE = "blonm2wjlqorft";
 export default function PromoModal() {
   const [open, setOpen] = useState(false);
 
+  // Always open on mount so the modal appears on each page refresh
   useEffect(() => {
-    try {
-      const closed = localStorage.getItem("promoClosed_v1");
-      if (!closed) setOpen(true);
-    } catch (e) {
-      setOpen(true);
-    }
+    setOpen(true);
   }, []);
 
   useEffect(() => {
@@ -27,9 +23,7 @@ export default function PromoModal() {
   }, [open]);
 
   function closeAndPersist() {
-    try {
-      localStorage.setItem("promoClosed_v1", "1");
-    } catch (e) {}
+    // Do not persist closure: modal will reappear on next page refresh
     setOpen(false);
   }
 
