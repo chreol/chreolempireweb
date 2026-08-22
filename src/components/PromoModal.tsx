@@ -49,7 +49,7 @@ export default function PromoModal() {
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
       <div className="absolute inset-0 bg-black/60" onClick={closeAndPersist} />
 
-      <div className="relative w-full max-w-3xl bg-gradient-to-br from-white/95 to-white/95 rounded-2xl shadow-xl overflow-hidden">
+      <div className="relative w-full max-w-3xl bg-white rounded-2xl shadow-xl overflow-hidden text-gray-900">
         <div className="flex justify-end p-3">
           <button
             aria-label="Fermer la fenêtre publicitaire"
