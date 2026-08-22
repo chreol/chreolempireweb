@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
+import Script from "next/script";
 import { Analytics } from "@vercel/analytics/react";
 import Link from "next/link";
 import "./globals.css";
@@ -130,7 +131,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="fr" data-scroll-behavior="smooth" className={`${geist.variable} antialiased`} suppressHydrationWarning>
       <head suppressHydrationWarning>
         {/* Anti-flicker: apply saved theme before first paint */}
-        <script dangerouslySetInnerHTML={{ __html: ANTI_FLICKER }}></script>
+        <Script id="anti-flicker" strategy="beforeInteractive">
+          {ANTI_FLICKER}
+        </Script>
         <link rel="preconnect" href="https://wa.me" />
         <link rel="preconnect" href="https://api.brevo.com" />
         <link rel="preconnect" href="https://api.telegram.org" />
