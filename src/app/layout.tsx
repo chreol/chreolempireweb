@@ -72,7 +72,7 @@ export const metadata: Metadata = {
     googleBot: { index: true, follow: true, "max-snippet": -1, "max-image-preview": "large" },
   },
   verification: {
-    google: "c3320b203dc6ddd6",
+    google: "f4xnHmrVIpddzFQKvb_TRGFigd8dOSciEyPabjA8F1A",
   },
 };
 
@@ -135,6 +135,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://api.telegram.org" />
         <link rel="dns-prefetch" href="https://campay.net" />
         <link rel="dns-prefetch" href="https://maps.app.goo.gl" />
+        <meta name="google-site-verification" content="f4xnHmrVIpddzFQKvb_TRGFigd8dOSciEyPabjA8F1A" />
         <script src="https://apis.google.com/js/platform.js?onload=renderOptIn" async defer />
         {GA_MEASUREMENT_ID ? (
           <>
