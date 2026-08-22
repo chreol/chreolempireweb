@@ -225,7 +225,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     <Link href="/services/crypto" className="hover:text-white transition-colors">₿ Crypto &amp; MoMo</Link>
                     <Link href="/services/coupons" className="hover:text-white transition-colors">🎫 Coupons PCS / Transcash</Link>
                     <Link href="/services/uba" className="hover:text-white transition-colors">💳 UBA Cameroun</Link>
-                    <Link href="/services/transfert" className="hover:text-white transition-colors">💸 Transfert d'argent</Link>
+                    <Link href="/services/transfert" className="hover:text-white transition-colors">🌍 Transfert d'argent</Link>
                     <Link href="/services/paypal" className="hover:text-white transition-colors">💸 PayPal Europe</Link>
                     <Link href="/services/factures" className="hover:text-white transition-colors">🔄 Paiement Factures</Link>
                   </div>

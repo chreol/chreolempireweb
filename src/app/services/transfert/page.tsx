@@ -99,6 +99,52 @@ export default function TransfertPage() {
       </section>
 
       <section className="rounded-2xl p-6 mb-6" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+        <h2 className="text-2xl font-bold mb-3">👉 COMMENT INITIER UN TRANSFERT D'ARGENT</h2>
+        <ol className="list-decimal list-inside text-sm space-y-2">
+          <li>Choisissez la destination et le montant dans notre formulaire.</li>
+          <li>Vérifiez les frais estimés affichés sous le champ montant.</li>
+          <li>Fournissez les coordonnées complètes du bénéficiaire (numéro, nom, réseau).</li>
+          <li>Choisissez le mode de paiement (MTN/Orange/Crypto/Virement).</li>
+          <li>Validez la demande — vous recevrez une confirmation et un message pour finaliser le paiement.</li>
+          <li>Après confirmation du paiement, nous traitons le transfert et le bénéficiaire reçoit les fonds.</li>
+        </ol>
+      </section>
+
+      <section className="rounded-2xl p-6 mb-6" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+        <h2 className="text-2xl font-bold mb-3">❓ FAQ — Transfert d'argent</h2>
+        <div className="space-y-3 text-sm">
+          <div>
+            <p className="font-bold">Quels sont les délais de livraison ?</p>
+            <p>Selon la destination et le mode choisi, la livraison prend entre 15 minutes et 24 heures. Les transferts prioritaires sont traités en priorité.</p>
+          </div>
+          <div>
+            <p className="font-bold">Quels documents ou informations sont nécessaires ?</p>
+            <p>Le nom complet du bénéficiaire, son numéro mobile ou coordonnées bancaires et, pour certains pays, une pièce d'identité peuvent être demandés.</p>
+          </div>
+          <div>
+            <p className="font-bold">Puis-je annuler ou modifier une demande ?</p>
+            <p>Avant la validation finale, vous pouvez modifier la demande. Une fois confirmée et traitée, contactez notre support immédiatement pour assistance.</p>
+          </div>
+          <div>
+            <p className="font-bold">Quels sont les modes de réception pour le bénéficiaire ?</p>
+            <p>Le bénéficiaire peut recevoir sur Mobile Money (MTN/Orange), compte bancaire ou retrait chez un partenaire, selon le pays.</p>
+          </div>
+        </div>
+      </section>
+
+      <section className="rounded-2xl p-6 mb-6" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+        <h2 className="text-2xl font-bold mb-3">🔁 Autres services disponibles</h2>
+        <div className="flex flex-wrap gap-3">
+          <a href="/services/cartes-cadeaux" className="px-3 py-2 rounded-full bg-black/10 text-sm">🎮 Cartes Cadeaux</a>
+          <a href="/services/crypto" className="px-3 py-2 rounded-full bg-black/10 text-sm">₿ Crypto &amp; MoMo</a>
+          <a href="/services/coupons" className="px-3 py-2 rounded-full bg-black/10 text-sm">🎫 Coupons PCS / Transcash</a>
+          <a href="/services/uba" className="px-3 py-2 rounded-full bg-black/10 text-sm">💳 UBA Cameroun</a>
+          <a href="/services/paypal" className="px-3 py-2 rounded-full bg-black/10 text-sm">💸 PayPal Europe</a>
+          <a href="/services/factures" className="px-3 py-2 rounded-full bg-black/10 text-sm">🔄 Paiement Factures</a>
+        </div>
+      </section>
+
+      <section id="formulaire" className="rounded-2xl p-6 mb-6" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
         <h2 className="text-2xl font-bold mb-3">📥 Demande de transfert — Formulaire</h2>
         <TransferForm />
       </section>
