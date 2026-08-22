@@ -15,6 +15,7 @@ import GoogleMerchantWidget from "@/components/GoogleMerchantWidget";
 import WAPopover from "@/components/WAPopover";
 import MobileWACTA from "@/components/MobileWACTA";
 import Image from "next/image";
+import PromoModal from "@/components/PromoModal";
 import { CONTACT, IMAGES, SOCIAL_LINKS } from "@/lib/services";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist-sans" });
@@ -149,6 +150,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="min-h-screen flex flex-col">
+        <PromoModal />
         <Providers>
         <ToastProvider>
         <HistoryProvider>
