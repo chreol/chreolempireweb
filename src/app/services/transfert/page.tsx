@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { CONTACT } from '@/lib/services';
 import { useToast } from "@/components/Toast";
+import TransferRatesModal from '@/components/TransferRatesModal';
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function TransfertPage() {
@@ -11,6 +12,7 @@ export default function TransfertPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-10">
+      <TransferRatesModal />
       <h1 className="text-4xl font-black mb-4">CHREOL EMPIRE TRANSFER : Votre argent, notre priorité !</h1>
       <p className="text-lg mb-6" style={{ color: "var(--text-secondary)" }}>Besoin d'envoyer de l'argent en Afrique ? Nous couvrons désormais <strong>16 destinations</strong> avec des frais transparents et une rapidité exemplaire.</p>
 
