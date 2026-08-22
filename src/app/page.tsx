@@ -174,7 +174,7 @@ export default function HomePage() {
 
             {/* Left — Text */}
             <div className="flex-1 text-center lg:text-left">
-              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-black mb-8"
+              <span suppressHydrationWarning className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-black mb-8"
                 style={{ background: "var(--gold)", color: "#0A0A0A" }}>
                 {t("hero.badge")}
               </span>
