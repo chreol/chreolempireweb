@@ -5,6 +5,7 @@ import { CONTACT } from '@/lib/services';
 import { useToast } from "@/components/Toast";
 import TransferRatesModal from '@/components/TransferRatesModal';
 import { useLanguage } from "@/contexts/LanguageContext";
+import faq from '@/data/transfert-faq.json';
 
 export default function TransfertPage() {
   const { showToast } = useToast();
@@ -45,6 +46,8 @@ export default function TransfertPage() {
           </div>
         </div>
       </section>
+      {/* Formulaire placé directement sous NOS TARIFS */}
+      
 
       <section className="rounded-2xl p-6 mb-6" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
         <h2 className="text-2xl font-bold mb-3">💳 NOS MODES DE PAIEMENT</h2>
@@ -113,22 +116,12 @@ export default function TransfertPage() {
       <section className="rounded-2xl p-6 mb-6" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
         <h2 className="text-2xl font-bold mb-3">❓ FAQ — Transfert d'argent</h2>
         <div className="space-y-3 text-sm">
-          <div>
-            <p className="font-bold">Quels sont les délais de livraison ?</p>
-            <p>Selon la destination et le mode choisi, la livraison prend entre 15 minutes et 24 heures. Les transferts prioritaires sont traités en priorité.</p>
-          </div>
-          <div>
-            <p className="font-bold">Quels documents ou informations sont nécessaires ?</p>
-            <p>Le nom complet du bénéficiaire, son numéro mobile ou coordonnées bancaires et, pour certains pays, une pièce d'identité peuvent être demandés.</p>
-          </div>
-          <div>
-            <p className="font-bold">Puis-je annuler ou modifier une demande ?</p>
-            <p>Avant la validation finale, vous pouvez modifier la demande. Une fois confirmée et traitée, contactez notre support immédiatement pour assistance.</p>
-          </div>
-          <div>
-            <p className="font-bold">Quels sont les modes de réception pour le bénéficiaire ?</p>
-            <p>Le bénéficiaire peut recevoir sur Mobile Money (MTN/Orange), compte bancaire ou retrait chez un partenaire, selon le pays.</p>
-          </div>
+          {faq.map((q: any, i: number) => (
+            <div key={i}>
+              <p className="font-bold">{q.question}</p>
+              <p>{q.answer}</p>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -155,7 +148,7 @@ export default function TransfertPage() {
 function TransferForm() {
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState({ name: "", email: "", phone: "", beneficiaryName: "", beneficiaryNetwork: "MTN", beneficiaryCountry: "Gabon", beneficiaryNumber: "", amount: "", destination: "Gabon", payment: "MTN", notes: "", sourceUrl: typeof window !== 'undefined' ? window.location.href : '' });
+  const [form, setForm] = useState({ name: "", email: "", phone: "", beneficiaryName: "", beneficiaryNetwork: "MTN", beneficiaryNumber: "", amount: "", destination: "Cameroun", payment: "MTN", notes: "", sourceUrl: typeof window !== 'undefined' ? window.location.href : '' });
   const [errors, setErrors] = useState<Record<string,string>>({});
   const [touched, setTouched] = useState<Record<string,boolean>>({});
   const [submitAttempted, setSubmitAttempted] = useState(false);
@@ -225,7 +218,7 @@ function TransferForm() {
       const j = await res.json();
       if (!res.ok) throw new Error(j?.error || 'Erreur serveur');
       showToast('Demande envoyée — nous vous contacterons bientôt', 'success');
-      setForm({ name: "", email: "", phone: "", beneficiaryName: "", beneficiaryNetwork: "MTN", beneficiaryCountry: "Gabon", beneficiaryNumber: "", amount: "", destination: "Gabon", payment: "MTN", notes: "", sourceUrl: typeof window !== 'undefined' ? window.location.href : '' });
+      setForm({ name: "", email: "", phone: "", beneficiaryName: "", beneficiaryNetwork: "MTN", beneficiaryNumber: "", amount: "", destination: "Cameroun", payment: "MTN", notes: "", sourceUrl: typeof window !== 'undefined' ? window.location.href : '' });
     } catch (err) {
       showToast((err as any)?.message || 'Erreur envoi demande', 'error');
     } finally { setLoading(false); }
@@ -237,6 +230,7 @@ function TransferForm() {
   const isValid = Object.keys(validateForm()).length === 0;
   // country -> networks mapping (used to populate beneficiary network options)
   const networkMap: Record<string, string[]> = {
+    'Cameroun': ['MTN', 'Orange', 'ExpressUnion'],
     'Gabon': ['MTN', 'Orange', 'GIMAC', 'ExpressUnion'],
     'Congo Brazzaville': ['MTN', 'Orange', 'ExpressUnion'],
     'RDC Kinshasa': ['Vodacom', 'Airtel', 'Orange'],
@@ -254,32 +248,33 @@ function TransferForm() {
     'Tunisie': ['Orange', 'Ooredoo'],
     'Liberia': ['Lonestar', 'MTN']
   };
-  const networks = networkMap[form.destination] ?? networkMap[form.beneficiaryCountry] ?? ['MTN', 'Orange', 'GIMAC', 'ExpressUnion'];
+  const networks = networkMap[form.destination] ?? ['MTN', 'Orange', 'GIMAC', 'ExpressUnion'];
   function inputClass(name: string) {
-    const base = 'p-3 rounded-lg bg-black text-white/90 border';
+    const base = 'p-3 rounded-lg border';
     const showError = Boolean(errors[name] && (touched[name] || submitAttempted));
     return showError ? `${base} border-red-500` : base;
   }
 
   return (
     <form onSubmit={submit} className="grid grid-cols-1 gap-3 text-sm">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <input name="name" value={form.name} onChange={onChange} placeholder="Votre nom" className="p-3 rounded-lg bg-black text-white/90 border" />
-          <input name="email" value={form.email} onChange={onChange} placeholder="Email (optionnel)" className="p-3 rounded-lg bg-black text-white/90 border" />
-      </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <input name="name" value={form.name} onChange={onChange} onBlur={() => onBlurField('name')} placeholder="Ex: Jean Dupont" className={inputClass('name')} style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', borderColor: 'var(--border)' }} />
+          {errors.name && (touched.name || submitAttempted) ? <p className="text-xs text-red-500 mt-1">{errors.name}</p> : null}
+          <input name="email" value={form.email} onChange={onChange} onBlur={() => onBlurField('email')} placeholder="jean@example.com (optionnel)" className={inputClass('email')} style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', borderColor: 'var(--border)' }} />
+          {errors.email && (touched.email || submitAttempted) ? <p className="text-xs text-red-500 mt-1">{errors.email}</p> : null}
+        </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <input name="phone" value={form.phone} onChange={onChange} onBlur={() => onBlurField('phone')} placeholder="Téléphone (ex: +2376...)" className={inputClass('phone')} />
         {(errors.phone && (touched.phone || submitAttempted)) ? <p className="text-xs text-red-500 mt-1">{errors.phone}</p> : null}
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <input name="amount" value={form.amount} onChange={onChange} onBlur={() => onBlurField('amount')} placeholder="Montant (FCFA)" className={inputClass('amount')} />
+        <input name="amount" value={form.amount} onChange={onChange} onBlur={() => onBlurField('amount')} placeholder="Montant (FCFA) — ex: 50000" className={inputClass('amount')} style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', borderColor: 'var(--border)' }} />
         {(errors.amount && (touched.amount || submitAttempted)) ? <p className="text-xs text-red-500 mt-1">{errors.amount}</p> : null}
-        <select name="destination" value={form.destination} onChange={onChange} className="p-3 rounded-lg bg-black text-white/90 border">
-          {['Gabon','Congo Brazzaville','RDC Kinshasa','Nigeria','Sénégal','Bénin','Togo','Burkina Faso','Rwanda','Kenya','Ghana','Mali','Tanzanie','Ouganda','Tunisie','Liberia'].map(c => <option key={c} value={c}>{c}</option>)}
+        <select name="destination" value={form.destination} onChange={onChange} className={inputClass('destination')} style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', borderColor: 'var(--border)' }}>
+          {['Cameroun','Gabon','Congo Brazzaville','RDC Kinshasa','Nigeria','Sénégal','Bénin','Togo','Burkina Faso','Rwanda','Kenya','Ghana','Mali','Tanzanie','Ouganda','Tunisie','Liberia'].map(c => <option key={c} value={c}>{c}</option>)}
         </select>
-        <select name="payment" value={form.payment} onChange={onChange} className="p-3 rounded-lg bg-black text-white/90 border">
-          <option value="MTN">MTN MoMo</option>
-          <option value="Orange">Orange Money</option>
+        <select name="payment" value={form.payment} onChange={onChange} className={inputClass('payment')} style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', borderColor: 'var(--border)' }}>
+          {networks.map(n => <option key={n} value={n}>{n}</option>)}
           <option value="Crypto">Cryptomonnaie</option>
           <option value="Bank">Virement bancaire</option>
         </select>
@@ -292,22 +287,21 @@ function TransferForm() {
       ) : null}
       <h3 className="font-bold">Informations du bénéficiaire</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <select name="beneficiaryNetwork" value={form.beneficiaryNetwork} onChange={onChange} onBlur={() => onBlurField('beneficiaryNetwork')} className={inputClass('beneficiaryNetwork')}>
+        <select name="beneficiaryNetwork" value={form.beneficiaryNetwork} onChange={onChange} onBlur={() => onBlurField('beneficiaryNetwork')} className={inputClass('beneficiaryNetwork')} style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', borderColor: 'var(--border)' }}>
           {networks.map(n => <option key={n} value={n}>{n}</option>)}
         </select>
-        <select name="beneficiaryCountry" value={form.beneficiaryCountry} onChange={onChange} onBlur={() => onBlurField('beneficiaryCountry')} className={inputClass('beneficiaryCountry')}>
-          {['Gabon','Congo Brazzaville','RDC Kinshasa','Nigeria','Sénégal','Bénin','Togo','Burkina Faso','Rwanda','Kenya','Ghana','Mali','Tanzanie','Ouganda','Tunisie','Liberia'].map(c => <option key={c} value={c}>{c}</option>)}
-        </select>
+        {/* beneficiary country removed: it's inferred from destination */}
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
-        <input name="beneficiaryNumber" value={form.beneficiaryNumber} onChange={onChange} onBlur={() => onBlurField('beneficiaryNumber')} placeholder="Numéro mobile du bénéficiaire" className={inputClass('beneficiaryNumber')} />
+        <input name="beneficiaryNumber" value={form.beneficiaryNumber} onChange={onChange} onBlur={() => onBlurField('beneficiaryNumber')} placeholder="Numéro mobile du bénéficiaire (ex: +2376...)" className={inputClass('beneficiaryNumber')} style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', borderColor: 'var(--border)' }} />
         {(errors.beneficiaryNumber && (touched.beneficiaryNumber || submitAttempted)) ? <p className="text-xs text-red-500 mt-1">{errors.beneficiaryNumber}</p> : null}
-        <input name="beneficiaryName" value={form.beneficiaryName} onChange={onChange} placeholder="Nom sur le compte mobile" className="p-3 rounded-lg bg-black text-white/90 border" />
+        <input name="beneficiaryName" value={form.beneficiaryName} onChange={onChange} onBlur={() => onBlurField('beneficiaryName')} placeholder="Nom complet du bénéficiaire" className={inputClass('beneficiaryName')} style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', borderColor: 'var(--border)' }} />
+        {(errors.beneficiaryName && (touched.beneficiaryName || submitAttempted)) ? <p className="text-xs text-red-500 mt-1">{errors.beneficiaryName}</p> : null}
       </div>
       <textarea name="notes" value={form.notes} onChange={onChange} placeholder="Informations supplémentaires (optionnel)" className="p-3 rounded-lg bg-black text-white/90 border" />
       <div className="flex gap-3">
         <button type="submit" className="px-4 py-3 rounded-2xl font-black bg-var text-white" disabled={!isValid || loading}>{loading ? 'Envoi…' : 'Envoyer la demande'}</button>
-        <button type="button" className="px-4 py-3 rounded-2xl font-black border" onClick={() => { setForm({ name: "", email: "", phone: "", beneficiaryName: "", beneficiaryNetwork: "MTN", beneficiaryCountry: "Gabon", beneficiaryNumber: "", amount: "", destination: "Gabon", payment: "MTN", notes: "", sourceUrl: typeof window !== 'undefined' ? window.location.href : '' }); showToast('Formulaire réinitialisé', 'info'); }}>Réinitialiser</button>
+        <button type="button" className="px-4 py-3 rounded-2xl font-black border" onClick={() => { setForm({ name: "", email: "", phone: "", beneficiaryName: "", beneficiaryNetwork: "MTN", beneficiaryNumber: "", amount: "", destination: "Cameroun", payment: "MTN", notes: "", sourceUrl: typeof window !== 'undefined' ? window.location.href : '' }); showToast('Formulaire réinitialisé', 'info'); }}>Réinitialiser</button>
       </div>
     </form>
   );

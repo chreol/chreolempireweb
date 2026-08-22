@@ -1,0 +1,18 @@
+[
+  {
+    "question": "Quels sont les délais de livraison ?",
+    "answer": "Selon la destination et le mode choisi, la livraison prend entre 15 minutes et 24 heures. Les transferts prioritaires sont traités en priorité."
+  },
+  {
+    "question": "Quels documents ou informations sont nécessaires ?",
+    "answer": "Le nom complet du bénéficiaire, son numéro mobile ou coordonnées bancaires et, pour certains pays, une pièce d'identité peuvent être demandés."
+  },
+  {
+    "question": "Puis-je annuler ou modifier une demande ?",
+    "answer": "Avant la validation finale, vous pouvez modifier la demande. Une fois confirmée et traitée, contactez notre support immédiatement pour assistance."
+  },
+  {
+    "question": "Quels sont les modes de réception pour le bénéficiaire ?",
+    "answer": "Le bénéficiaire peut recevoir sur Mobile Money (MTN/Orange), compte bancaire ou retrait chez un partenaire, selon le pays."
+  }
+]
