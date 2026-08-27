@@ -1,9 +1,11 @@
 import { NextRequest } from "next/server";
+import { getAdminSecret, verifyAdminToken } from "@/lib/adminAuth";
 
 export const runtime = "edge";
 
-function authOk(req: NextRequest) {
-  return req.cookies.get("admin_token")?.value === (process.env.ADMIN_PASSWORD ?? "chreolempire-admin");
+async function authOk(req: NextRequest) {
+  const secret = getAdminSecret();
+  return Boolean(secret && await verifyAdminToken(req.cookies.get("admin_token")?.value ?? "", secret));
 }
 
 function sbKey() {
@@ -16,7 +18,7 @@ function sbHeaders() {
 }
 
 export async function GET(req: NextRequest): Promise<Response> {
-  if (!authOk(req)) return Response.json({ error: "Non autorisé" }, { status: 401 });
+  if (!(await authOk(req))) return Response.json({ error: "Non autorisé" }, { status: 401 });
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   if (!url) return Response.json([]);
   const res = await fetch(`${url}/rest/v1/promo_codes?select=*&order=created_at.desc`, { headers: sbHeaders() });
@@ -24,7 +26,7 @@ export async function GET(req: NextRequest): Promise<Response> {
 }
 
 export async function POST(req: NextRequest): Promise<Response> {
-  if (!authOk(req)) return Response.json({ error: "Non autorisé" }, { status: 401 });
+  if (!(await authOk(req))) return Response.json({ error: "Non autorisé" }, { status: 401 });
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   if (!url) return Response.json({ error: "Supabase non configuré" }, { status: 503 });
 
@@ -51,7 +53,7 @@ export async function POST(req: NextRequest): Promise<Response> {
 }
 
 export async function DELETE(req: NextRequest): Promise<Response> {
-  if (!authOk(req)) return Response.json({ error: "Non autorisé" }, { status: 401 });
+  if (!(await authOk(req))) return Response.json({ error: "Non autorisé" }, { status: 401 });
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   if (!url) return Response.json({ error: "Supabase non configuré" }, { status: 503 });
   const { id } = await req.json();

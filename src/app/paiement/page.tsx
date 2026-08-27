@@ -137,6 +137,33 @@ export default function PaiementPage() {
         </div>
       </div>
 
+      {/* ═══ AUTRES MOYENS ═══ */}
+      <div className="rounded-3xl p-6 mb-8" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+        <h2 className="text-base font-black text-white mb-2">🌍 Autres moyens de paiement disponibles</h2>
+        <p className="text-xs mb-4" style={{ color: "var(--text-secondary)" }}>
+          Pour ces moyens, contactez-nous avant le paiement afin de recevoir les instructions et le montant exact à régler.
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {[
+            { image: IMAGES.expressUnion, title: "Express Union", text: "Paiement ou transfert selon le service demandé." },
+            { image: IMAGES.yoomee, title: "Yoomee Money", text: "Disponible sur demande auprès de notre équipe." },
+            { image: IMAGES.crypto, title: "Cryptomonnaies", text: "USDT, BTC, SOL, TRX, BNB et autres actifs acceptés selon le service." },
+            { image: IMAGES.paypal, title: "PayPal Europe", text: "Solde PayPal européen accepté pour les services éligibles." },
+            { image: IMAGES.logo, title: "Espèces en boutique", text: "Disponible à Vallée 3, Boutiques Deido, Douala." },
+          ].map(method => (
+            <div key={method.title} className="flex items-center gap-3 rounded-2xl p-3" style={{ background: "var(--bg-elevated)" }}>
+              <div className="relative w-10 h-10 rounded-xl overflow-hidden shrink-0">
+                <Image src={method.image} alt={method.title} fill style={{ objectFit: "contain" }} unoptimized />
+              </div>
+              <div>
+                <p className="text-xs font-black text-white">{method.title}</p>
+                <p className="text-[11px] mt-0.5" style={{ color: "var(--text-secondary)" }}>{method.text}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* ═══ IMPORTANT — Preuve de paiement ═══ */}
       <div className="rounded-2xl p-5 mb-8 flex gap-4" style={{ background: "#EF44440D", border: "1.5px solid #EF444455" }}>
         <span className="text-2xl shrink-0">⚠️</span>

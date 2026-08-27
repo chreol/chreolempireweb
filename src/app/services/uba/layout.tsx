@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: { absolute: "Carte UBA Cameroun — Achat & Recharge Visa Prépayée | Chreol Empire" },
-  description: "Obtenez votre carte prépayée UBA Cameroun (Segment I dès 10 500 FCFA, II 17 500 FCFA, III 25 000 FCFA) ou rechargez votre carte existante. Livraison express à Douala. Paiement Mobile Money.",
+  title: { absolute: "Recharge UBA Cameroun — Frais et procédure | Chreol Empire" },
+  description: "Rechargez votre carte UBA Cameroun existante à Douala. Les frais de recharge sont calculés selon le montant ; contactez-nous pour connaître la disponibilité et les instructions.",
   keywords: [
     "carte UBA cameroun", "UBA prépayée douala", "recharge UBA cameroun", "recharge carte UBA Douala",
     "recharge carte prépayée cameroun", "recharge UBA MTN MoMo", "recharge UBA Orange Money",
@@ -12,8 +12,8 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: "https://shop.chreolempire.com/services/uba" },
   openGraph: {
-    title: "Carte UBA Cameroun Segment I, II, III | Chreol Empire",
-    description: "Achat et recharge carte UBA prépayée à Douala. Paiement MTN MoMo / Orange Money.",
+    title: "Recharge UBA Cameroun | Chreol Empire",
+    description: "Recharge de carte UBA existante à Douala. Paiement MTN MoMo ou Orange Money selon disponibilité.",
     url: "https://shop.chreolempire.com/services/uba",
     images: [{ url: "/assets/Carte UBA Cameroun pour RECHARGE.webp", width: 1200, height: 630, alt: "Carte UBA Cameroun Prépayée" }],
   },
@@ -74,7 +74,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <>
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(BREADCRUMB) }} />
-      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(PRODUCT_SCHEMA) }} />
       {children}
     </>
   );

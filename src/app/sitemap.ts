@@ -20,6 +20,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: "/services/coupons",        priority: 0.8, freq: "weekly"  },
     { url: "/services/uba",            priority: 0.8, freq: "weekly"  },
     { url: "/services/paypal",         priority: 0.8, freq: "weekly"  },
+    { url: "/services/transfert",      priority: 0.8, freq: "weekly"  },
     { url: "/services/factures",       priority: 0.8, freq: "weekly"  },
     { url: "/blog",                    priority: 0.8, freq: "weekly"  },
     { url: "/promo",                   priority: 0.7, freq: "daily"   },
@@ -35,7 +36,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     url: `${BASE}/blog/${p.slug}`,
     lastModified: new Date(p.dateISO),
     changeFrequency: "monthly" as const,
-    priority: 0.7,
+    priority: ["recharger-compte-apple-cameroun", "acheter-robux-vbucks-cameroun"].includes(p.slug) ? 0.85 : 0.7,
   }));
 
   const programmaticRoutes: MetadataRoute.Sitemap = GIFT_CARDS.flatMap(card =>

@@ -13,6 +13,7 @@ import { useToast } from "@/components/Toast";
 import FAQ from "@/components/FAQ";
 import StepGuide from "@/components/StepGuide";
 import RelatedServices from "@/components/RelatedServices";
+import GoogleReviewPrompt from "@/components/GoogleReviewPrompt";
 
 // FAQ en français pour le JSON-LD SEO
 const FAQ_FR = [
@@ -66,6 +67,18 @@ export default function CartesCadeauxPage() {
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("");
   const [payOp, setPayOp] = useState<string | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const requestedTab = params.get("tab") as TabKey | null;
+    const requestedCard = params.get("card");
+    const requestedAmount = params.get("amount");
+    const requestedRegion = params.get("region");
+    if (requestedTab && TABS.some(item => item.key === requestedTab)) setTab(requestedTab);
+    if (requestedCard && GIFT_CARDS.some(item => item.id === requestedCard)) setCardId(requestedCard);
+    if (requestedRegion && REGIONS.some(item => item.code === requestedRegion)) setRegion(requestedRegion);
+    if (requestedAmount) setAmountLabel(requestedAmount);
+  }, []);
 
   const STEPS_CADEAUX = [
     { icon: "🎮", title: tl("gc.step1.t"), description: tl("gc.step1.d"), tip: tl("gc.step1.tip") },
@@ -153,7 +166,8 @@ export default function CartesCadeauxPage() {
         <h1 className="text-3xl font-black text-white mb-1">{tl("p.giftcards.title")}</h1>
         <p style={{ color: "var(--text-secondary)" }}>{tl("p.giftcards.sub")}</p>
         <div className="mt-4 rounded-2xl p-4" style={{ background: "#1B5E2022", border: "1px solid #25D36633" }}>
-          <p className="text-sm font-black" style={{ color: "#25D366" }}>Codes authentiques · Livraison WhatsApp 15–30 min · Paiement MTN MoMo / Orange Money</p>
+          <p className="text-sm font-black" style={{ color: "#25D366" }}>🔥 HOT DEAL · Nouveaux tarifs EUR/USD · Plus que 3 cartes à ces conditions</p>
+          <p className="text-xs mt-1" style={{ color: "var(--text-secondary)" }}>Codes authentiques · Livraison WhatsApp 15–30 min · Paiement MTN MoMo / Orange Money</p>
           <p className="text-xs mt-1" style={{ color: "var(--text-secondary)" }}>Cartes européennes et américaines : livraison rapide — idéal pour achats internationaux. Les prix sont mis à jour en temps réel.</p>
         </div>
       </div>
@@ -178,6 +192,14 @@ export default function CartesCadeauxPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Card selector */}
         <div>
+          {tab === "robux" && (
+            <div className="rounded-2xl p-4 mb-4" style={{ background: "#E8232A12", border: "1px solid #E8232A44" }}>
+              <p className="text-sm font-black text-white">🎮 Tarifs Roblox et Robux</p>
+              <p className="text-xs mt-1" style={{ color: "var(--text-secondary)" }}>
+                Choisissez une carte cadeau Roblox ou un montant de Robux pour afficher son tarif en FCFA.
+              </p>
+            </div>
+          )}
           <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "var(--text-muted)" }}>
             {tl("gc.choose_card")}
           </p>
@@ -243,8 +265,13 @@ export default function CartesCadeauxPage() {
                     }}
                   >
                     <p className="text-xs font-black" style={{ color: amountLabel === a.label ? "#0A0A0A" : "white" }}>{a.label}</p>
-                    <p className="text-[10px] mt-0.5" style={{ color: amountLabel === a.label ? "#0A0A0A99" : "var(--text-muted)" }}>
-                      {a.price.toLocaleString("fr-FR")} F
+                    {a.previousPrice && a.previousPrice !== a.price && (
+                      <p className="text-[9px] mt-0.5 line-through" style={{ color: amountLabel === a.label ? "#0A0A0A99" : "var(--text-muted)" }}>
+                        {a.previousPrice.toLocaleString("fr-FR")} F
+                      </p>
+                    )}
+                    <p className="text-[10px] font-black" style={{ color: amountLabel === a.label ? "#0A0A0A" : "#25D366" }}>
+                      {a.previousPrice && a.previousPrice > a.price ? "🔥" : "🚀"} {a.price.toLocaleString("fr-FR")} F
                     </p>
                   </button>
                 ))}
@@ -371,6 +398,7 @@ export default function CartesCadeauxPage() {
       </div>
       <StepGuide title={tl("gc.guide_title")} steps={STEPS_CADEAUX} />
       <FAQ items={PAGE_FAQ} />
+      <GoogleReviewPrompt productName="vos cartes cadeaux" />
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(PAGE_FAQ_SCHEMA) }} />
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify({
         "@context": "https://schema.org",

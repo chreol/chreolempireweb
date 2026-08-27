@@ -23,7 +23,7 @@ const FAQ_FR = [
   { q: "Comment obtenir une carte UBA Cameroun pour payer sur Amazon ?", a: "Commandez votre carte UBA Cameroun via WhatsApp en fournissant : CNI, plan de localisation, demi-photo et NUI. Activation rapide en 1 à 24h+ ouvrables après dossier complet. La carte Visa UBA est acceptée sur Amazon, Alibaba, Airbnb et tous les sites internationaux." },
   { q: "Quel est le plafond de la carte UBA Cameroun ?", a: "De 2 500 000 FCFA/mois pour le segment Classic à 10 000 000 FCFA/mois pour le segment Gold. La carte est utilisable pour les paiements en ligne et en magasin partout où Visa est accepté dans le monde." },
   { q: "La carte UBA Cameroun fonctionne-t-elle à l'international ?", a: "Oui, c'est une carte Visa prépayée internationale. Utilisable sur tous les sites e-commerce mondiaux (Amazon, Netflix, PayPal, Booking…) et dans les terminaux physiques Visa à l'étranger." },
-  { q: "Combien coûte une carte UBA Cameroun à Douala ?", a: "De 10 500 FCFA pour la carte Classic à 25 000 FCFA pour la carte Gold selon votre segment. Les frais de recharge varient de 1 500 FCFA fixe (petits montants) à 3% pour les rechargements supérieurs à 350 000 FCFA." },
+  { q: "Quels sont les frais de recharge UBA à Douala ?", a: "Les frais dépendent du montant rechargé : 1 000 FCFA de 1 500 à 5 000 FCFA, 2 000 FCFA de 5 001 à 40 000 FCFA, puis un pourcentage selon la tranche. Contactez-nous pour confirmer la disponibilité." },
 ];
 
 const PAGE_FAQ_SCHEMA = {
@@ -557,7 +557,7 @@ export default function UBAPage() {
             {/* Mode de paiement préféré (optionnel) */}
             <PaymentMethodSelector value={payOp} onChange={setPayOp} />
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="sm:col-span-2 flex flex-col gap-2">
                 <button
                   onClick={handleAddToCart}
@@ -579,29 +579,6 @@ export default function UBAPage() {
                 </USSDOrderFlow>
               </div>
 
-              <aside className="rounded-2xl p-4" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
-                <p className="text-sm font-bold mb-2" style={{ color: "var(--gold)" }}>{t("u.neero_title")}</p>
-                <p className="text-xs mb-3" style={{ color: "var(--text-secondary)" }}>{t("u.neero_desc")}</p>
-                <button
-                  type="button"
-                  onClick={() => {
-                    track("neero_request", { location: "uba_recharge_panel" });
-                    showToast(t("u.neero_request_sent"), "info");
-                  }}
-                  className="w-full inline-block text-center py-2 px-3 rounded-lg font-bold"
-                  style={{ background: "#2563EB", color: "white" }}
-                >
-                  {t("u.neero_button")}
-                </button>
-                <ul className="mt-3 text-[13px]" style={{ color: "var(--text-secondary)" }}>
-                  <li>{t("u.neero_step1")}</li>
-                  <li>{t("u.neero_step2")}</li>
-                  <li>{t("u.neero_step3")}</li>
-                </ul>
-                <p className="text-[12px] mt-3" style={{ color: "var(--text-muted)" }}>
-                  {t("u.neero_advice")}
-                </p>
-              </aside>
             </div>
           </motion.div>
         )}

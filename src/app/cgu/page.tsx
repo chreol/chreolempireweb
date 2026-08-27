@@ -42,7 +42,7 @@ export default function CGUPage() {
             3. Commande et paiement
           </h2>
           <div className="pl-4 flex flex-col gap-2">
-            <p>Les commandes sont passées via le site web ou directement par WhatsApp au +237 694 360 978.</p>
+            <p>Les commandes sont passées via le site web ou directement par WhatsApp au +237 697 657 734.</p>
             <p>Les moyens de paiement acceptés sont : <span className="font-bold text-white">MTN Mobile Money</span>, <span className="font-bold text-white">Orange Money</span> et tout autre moyen expressément convenu avec le service client.</p>
             <p>Le paiement doit être effectué intégralement avant toute livraison. Aucun crédit n&apos;est accordé.</p>
             <p>Les prix sont affichés en Francs CFA (XAF) et sont susceptibles d&apos;évoluer sans préavis, notamment pour les produits indexés sur des taux de change (cryptomonnaies, PayPal, coupons européens). Le taux appliqué est celui en vigueur au moment de la confirmation de la commande.</p>
@@ -136,7 +136,7 @@ export default function CGUPage() {
           <p className="pl-4">
             Pour toute question concernant les présentes CGU, contactez-nous via WhatsApp au{" "}
             <a href="https://wa.me/237694360978" target="_blank" rel="noopener noreferrer" className="font-bold hover:underline" style={{ color: "var(--gold)" }}>
-              +237 694 360 978
+              +237 697 657 734
             </a>{" "}
             ou par email à{" "}
             <a href="mailto:contact@chreolempire.com" className="font-bold hover:underline" style={{ color: "var(--gold)" }}>

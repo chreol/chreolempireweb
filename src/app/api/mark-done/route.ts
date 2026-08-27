@@ -75,7 +75,7 @@ function buildCancelEmail(name: string, ref: string, summary: OrderSummary | nul
 
   <table width="100%" cellpadding="0" cellspacing="0">
     <tr><td style="background:#0A0A0A;border-radius:12px 12px 0 0;padding:20px 32px;text-align:center">
-      <img src="https://shop.chreolempire.com/assets/chreolempire%20logo%20avec%20contact%20m.webp"
+      <img src="https://shop.chreolempire.com/assets/Logo_Chreol_Empire_revue-removebg-preview.png"
         alt="Chreol Empire" width="52" height="52"
         style="border-radius:12px;margin-bottom:8px;display:block;margin-left:auto;margin-right:auto" />
       <p style="margin:0;font-size:22px;font-weight:900">
@@ -173,7 +173,7 @@ function buildDeliveryEmail(name: string, ref: string, summary: OrderSummary | n
 
   <table width="100%" cellpadding="0" cellspacing="0">
     <tr><td style="background:#0A0A0A;border-radius:12px 12px 0 0;padding:20px 32px;text-align:center">
-      <img src="https://shop.chreolempire.com/assets/chreolempire%20logo%20avec%20contact%20m.webp"
+      <img src="https://shop.chreolempire.com/assets/Logo_Chreol_Empire_revue-removebg-preview.png"
         alt="Chreol Empire" width="52" height="52"
         style="border-radius:12px;margin-bottom:8px;display:block;margin-left:auto;margin-right:auto" />
       <p style="margin:0;font-size:22px;font-weight:900">

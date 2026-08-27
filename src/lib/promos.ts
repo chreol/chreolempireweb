@@ -20,6 +20,24 @@ export interface Promo {
 // ── Modifiez ces offres librement — c'est la seule source de vérité ──────────
 export const PROMOS: Promo[] = [
   {
+    id: "psn-20-house-tariff",
+    emoji: "🔥",
+    badge: "HOT DEAL",
+    badgeColor: "#F59E0B",
+    title: "Carte PSN 20€ Europe — geste de la maison",
+    description: "Nouveau tarif : profitez de la carte PSN 20€ à 15 800 FCFA au lieu de 16 800 FCFA. Livraison WhatsApp 15-30 min.",
+    originalPrice: 16800,
+    promoPrice: 15800,
+    currency: "FCFA",
+    discountPct: 6,
+    service: "cartes-cadeaux",
+    product: "psn",
+    expiresAt: "2026-09-30T23:59:00",
+    maxQty: 3,
+    remaining: 3,
+    whatsappPrefill: "Bonjour, je souhaite profiter du HOT DEAL PSN 20€ Europe à 15 800 FCFA, geste de la maison. Pouvez-vous confirmer la disponibilité ?",
+  },
+  {
     id: "psn-20-promo",
     emoji: "🎮",
     badge: "⚡ Flash",

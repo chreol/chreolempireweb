@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { GIFT_CARDS, IMAGES } from "@/lib/services";
+import GoogleReviewPrompt from "@/components/GoogleReviewPrompt";
 
 const REGIONS: Record<string, { code: string; flag: string; label: string; slug: string }> = {
   europe:    { code: "EU", flag: "🇪🇺", label: "Europe",    slug: "europe"    },
@@ -61,8 +62,11 @@ export default async function CardRegionPage({ params }: { params: Promise<{ slu
   if (!parsed) notFound();
   const { card, region } = parsed;
 
-  const lowestPrice  = card.amounts[0]?.price ?? 0;
-  const highestPrice = card.amounts[card.amounts.length - 1]?.price ?? lowestPrice;
+  const amounts = (region.code === "US" && "usAmounts" in card && card.usAmounts
+    ? card.usAmounts
+    : card.amounts) as Array<{ label: string; price: number; previousPrice?: number }>;
+  const lowestPrice  = amounts[0]?.price ?? 0;
+  const highestPrice = amounts[amounts.length - 1]?.price ?? lowestPrice;
 
   const schema = {
     "@context": "https://schema.org",
@@ -138,15 +142,20 @@ export default async function CardRegionPage({ params }: { params: Promise<{ slu
           Montants disponibles
         </p>
         <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-          {card.amounts.map(a => (
+          {amounts.map(a => (
             <div
               key={a.label}
               className="py-3 px-2 rounded-xl text-center"
               style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
             >
               <p className="text-xs font-black text-white">{a.label}</p>
-              <p className="text-[11px] mt-0.5 font-bold" style={{ color: "var(--gold)" }}>
-                {a.price.toLocaleString("fr-FR")} F
+              {a.previousPrice && a.previousPrice !== a.price && (
+                <p className="text-[9px] mt-0.5 line-through" style={{ color: "var(--text-muted)" }}>
+                  {a.previousPrice.toLocaleString("fr-FR")} F
+                </p>
+              )}
+              <p className="text-[11px] font-black" style={{ color: "#25D366" }}>
+                {a.previousPrice && a.previousPrice > a.price ? "🔥" : "🚀"} {a.price.toLocaleString("fr-FR")} F
               </p>
             </div>
           ))}
@@ -186,6 +195,10 @@ export default async function CardRegionPage({ params }: { params: Promise<{ slu
           <Image src={IMAGES.whatsapp} alt="WhatsApp" width={16} height={16} unoptimized />
           Commander directement via WhatsApp
         </a>
+      </div>
+
+      <div className="mt-8">
+        <GoogleReviewPrompt productName={`la carte ${card.name} ${region.label}`} compact />
       </div>
     </div>
   );

@@ -1,9 +1,11 @@
 import { NextRequest } from "next/server";
+import { getAdminSecret, verifyAdminToken } from "@/lib/adminAuth";
 
 export const runtime = "edge";
 
-function authOk(req: NextRequest) {
-  return req.cookies.get("admin_token")?.value === (process.env.ADMIN_PASSWORD ?? "chreolempire-admin");
+async function authOk(req: NextRequest) {
+  const secret = getAdminSecret();
+  return Boolean(secret && await verifyAdminToken(req.cookies.get("admin_token")?.value ?? "", secret));
 }
 function sbKey() { return process.env.SUPABASE_SERVICE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ""; }
 
@@ -25,7 +27,7 @@ function csvCell(v: unknown): string {
 }
 
 export async function GET(req: NextRequest): Promise<Response> {
-  if (!authOk(req)) return new Response("Non autorisé", { status: 401 });
+  if (!(await authOk(req))) return new Response("Non autorisé", { status: 401 });
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = sbKey();

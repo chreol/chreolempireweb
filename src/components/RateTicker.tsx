@@ -1,37 +1,37 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
+import Image from "next/image";
+import { IMAGES, UBA_RECHARGE_FEES } from "@/lib/services";
 
-interface Rate { name: string; buy?: string; sell?: string; }
+interface Rate { name: string; buy?: string; sell?: string; display?: string; }
 
-const FALLBACK: Rate[] = [
-  { name: "USDT",      buy: "580 FCFA/$",      sell: "700 FCFA/$" },
-  { name: "USDC",      buy: "580 FCFA/$",      sell: "700 FCFA/$" },
-  { name: "BTC",       buy: "58 000 000 FCFA", sell: "70 000 000 FCFA" },
-  { name: "ETH",       buy: "2 900 000 FCFA",  sell: "3 500 000 FCFA" },
-  { name: "BNB",       buy: "435 000 FCFA",    sell: "525 000 FCFA" },
-  { name: "SOL",       buy: "99 000 FCFA",     sell: "120 000 FCFA" },
-  { name: "TRX",       buy: "151 FCFA",        sell: "182 FCFA" },
-  { name: "LTC",       buy: "62 000 FCFA",     sell: "75 000 FCFA" },
-  { name: "ADA",       buy: "330 FCFA",        sell: "400 FCFA" },
-  { name: "PayPal",    buy: "580 FCFA/€",      sell: "700 FCFA/€" },
-  { name: "PCS",       buy: "450 FCFA/€" },
-  { name: "Transcash", buy: "450 FCFA/€" },
-
+const FALLBACK: Rate[] = [{ name: "USDT", buy: "580 FCFA/$", sell: "700 FCFA/$" }];
+const OTHER_SERVICES: Rate[] = [
+  { name: "PayPal", buy: "580 FCFA/€", sell: "700 FCFA/€" },
+  { name: "Coupons", buy: "450 FCFA/€" },
+  { name: "Cartes cadeaux", display: "Roblox · Robux · iTunes/Apple · PSN · EU/USA · 10€: 8 500 F · 20€: 15 800 F · 50€: 35 800 F" },
+  { name: "Recharge UBA", display: UBA_RECHARGE_FEES.map(fee => {
+    const range = `${fee.min.toLocaleString("fr-FR")}-${fee.max.toLocaleString("fr-FR")} F`;
+    const value = fee.type === "fixed" ? `${fee.fee.toLocaleString("fr-FR")} F` : `${fee.fee}%`;
+    return `${value} (${range})`;
+  }).join(" · ") },
+  { name: "Transfert", buy: "frais dès 2 500 FCFA" },
 ];
 
 function buildItems(rates: Rate[]) {
   return rates.map(r => {
+    if (r.display) return `${r.name} ▸ ${r.display}`;
     let s = r.name + " ▸";
-    if (r.buy)          s += " Achetons " + r.buy;
+    if (r.buy)          s += " Achat " + r.buy;
     if (r.buy && r.sell) s += " · ";
-    if (r.sell)         s += "Vendons " + r.sell;
+    if (r.sell)         s += " Vente " + r.sell;
     return s;
   });
 }
 
 export default function RateTicker() {
-  const [items, setItems] = useState<string[]>(() => buildItems(FALLBACK));
+  const [items, setItems] = useState<string[]>(() => buildItems([...FALLBACK, ...OTHER_SERVICES]));
   const trackRef  = useRef<HTMLDivElement>(null);
   const animRef   = useRef<Animation | null>(null);
   const pausedRef = useRef(false);
@@ -41,7 +41,10 @@ export default function RateTicker() {
     if (!url) return;
     fetch(url, { signal: AbortSignal.timeout(4000) })
       .then(r => r.json())
-      .then((d: Rate[]) => { if (Array.isArray(d) && d.length) setItems(buildItems(d)); })
+      .then((d: Rate[]) => {
+        const usdt = Array.isArray(d) ? d.find(rate => rate.name.toUpperCase() === "USDT") : null;
+        if (usdt) setItems(buildItems([usdt, ...OTHER_SERVICES]));
+      })
       .catch(() => {});
   }, []);
 
@@ -61,7 +64,16 @@ export default function RateTicker() {
   const pause   = useCallback(() => { pausedRef.current = true;  animRef.current?.pause(); }, []);
   const resume  = useCallback(() => { pausedRef.current = false; animRef.current?.play();  }, []);
 
-  const text = items.join("     ◆     ");
+  function renderItems() {
+    return items.map((item, index) => (
+      <span key={`${item}-${index}`} className="inline-flex items-center">
+        <span>{item}</span>
+        {index < items.length - 1 && (
+          <span aria-hidden="true" className="px-4 font-black" style={{ color: "#FFFFFF" }}>|</span>
+        )}
+      </span>
+    ));
+  }
 
   return (
     <div
@@ -71,19 +83,23 @@ export default function RateTicker() {
       onMouseLeave={resume}
     >
       {/* TARIF badge */}
-      <div className="flex items-center gap-1.5 shrink-0 px-3 border-r" style={{ borderColor: "#C9A84C22", height: "100%" }}>
-        <span className="text-[9px] font-black tracking-widest whitespace-nowrap" style={{ color: "var(--gold)" }}>TARIF</span>
+      <div className="flex items-center gap-1.5 shrink-0 px-2 border-r" style={{ borderColor: "#C9A84C22", height: "100%" }}>
+        <span className="chreol-logo-wrap w-[18px] h-[18px]">
+          <span className="chreol-logo-stars" aria-hidden="true"><span>✦</span><span>✦</span></span>
+          <Image src={IMAGES.logo} alt="Chreol Empire" width={18} height={18} className="chreol-logo-spin object-contain" unoptimized />
+        </span>
+        <span className="text-[9px] font-black tracking-widest whitespace-nowrap" style={{ color: "var(--gold)" }}>TARIFS</span>
       </div>
 
       {/* Scrolling track */}
       <div className="flex-1 overflow-hidden">
         <div ref={trackRef} className="inline-flex whitespace-nowrap gap-0">
           {/* Two identical spans — required for seamless CSS loop (translateX -50%) */}
-          <span className="text-[10.5px] font-semibold tracking-wide tabular-nums px-6" style={{ color: "var(--gold)", opacity: 0.9 }}>
-            {text}
+          <span className="text-[10.5px] font-semibold tracking-wide tabular-nums px-2" style={{ color: "var(--gold)", opacity: 0.9 }}>
+            {renderItems()}
           </span>
-          <span aria-hidden="true" className="text-[10.5px] font-semibold tracking-wide tabular-nums px-6" style={{ color: "var(--gold)", opacity: 0.9 }}>
-            {text}
+          <span aria-hidden="true" className="text-[10.5px] font-semibold tracking-wide tabular-nums px-2" style={{ color: "var(--gold)", opacity: 0.9 }}>
+            {renderItems()}
           </span>
         </div>
       </div>

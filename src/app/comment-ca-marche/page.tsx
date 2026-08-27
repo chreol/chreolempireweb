@@ -93,7 +93,7 @@ const GUIDES: ServiceGuide[] = [
     href: "/services/uba",
     delay: "24 – 72h (achat) / 15 min (recharge)",
     steps: [
-      { icon: "🃏", title: "Choisissez votre segment", desc: "Segment I (10 500 FCFA), Segment II (17 500 FCFA) ou Segment III (25 000 FCFA) selon votre usage." },
+      { icon: "🃏", title: "Vérifiez la disponibilité", desc: "L'achat de carte UBA est traité sur demande. Pour une carte existante, utilisez l'option Recharge et vérifiez les frais affichés." },
       { icon: "💸", title: "Payez par Mobile Money", desc: "Effectuez le paiement par MTN MoMo ou Orange Money et transmettez la preuve sur WhatsApp avec vos informations." },
       { icon: "📦", title: "Recevez votre carte", desc: "Votre carte UBA Visa prépayée est livrée physiquement ou les données de recharge en 24 à 72 heures ouvrées." },
       { icon: "🔄", title: "Rechargez quand vous voulez", desc: "Utilisez l'onglet « Recharge » sur le site pour recharger votre carte existante en quelques minutes." },
@@ -124,7 +124,7 @@ const GLOBAL_STEPS = [
 
 const FAQ_ITEMS = [
   { q: "Est-ce sécurisé de payer par Mobile Money ?", a: "Oui. MTN MoMo et Orange Money utilisent un code PIN que vous seul connaissez. Vos coordonnées bancaires ne transitent jamais par notre plateforme. Nous opérons depuis 2012 sans aucun incident signalé." },
-  { q: "Que se passe-t-il si je ne reçois pas mon produit ?", a: "Contactez-nous immédiatement sur WhatsApp au +237 694 360 978. Nous traitons chaque réclamation sous 2 heures. Si l'erreur vient de notre côté, le produit est remplacé ou remboursé." },
+  { q: "Que se passe-t-il si je ne reçois pas mon produit ?", a: "Contactez-nous immédiatement sur WhatsApp au +237 697 657 734. Nous traitons chaque réclamation dès réception. Pour un rendez-vous en boutique, utilisez le +237 694 360 978." },
   { q: "Peut-on commander la nuit ?", a: "Le site est disponible 24h/24. Nous traitons les commandes de 7h à 23h tous les jours. Les commandes passées hors de ces heures sont traitées dès l'ouverture." },
   { q: "Puis-je commander pour quelqu'un d'autre ?", a: "Absolument. Renseignez simplement le numéro Mobile Money ou l'email PayPal de la personne concernée. Pour les cartes cadeaux, aucun numéro n'est nécessaire." },
   { q: "Le taux affiché est-il garanti ?", a: "Le taux est garanti au moment de la confirmation de votre commande. Pour les cryptos et PayPal, le taux appliqué est celui en vigueur lors de notre échange WhatsApp." },
@@ -270,7 +270,7 @@ export default function CommentCaMarchePage() {
             Une question ? Notre équipe est disponible tous les jours de 7h à 23h sur WhatsApp.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <a href={`https://wa.me/237694360978?text=${encodeURIComponent("Bonjour, je souhaite passer une commande.")}`}
+            <a href={`https://wa.me/237697657734?text=${encodeURIComponent("Bonjour, je souhaite passer une commande.")}`}
               target="_blank" rel="noopener noreferrer"
               className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl font-black text-white text-sm transition-opacity hover:opacity-85"
               style={{ background: "#25D366" }}>

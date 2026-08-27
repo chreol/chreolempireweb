@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import { CONTACT } from '@/lib/services';
 import { useToast } from "@/components/Toast";
 import TransferRatesModal from '@/components/TransferRatesModal';
@@ -14,7 +15,21 @@ export default function TransfertPage() {
   return (
     <div className="max-w-3xl mx-auto px-4 py-10">
       <TransferRatesModal />
-      <h1 className="text-4xl font-black mb-4">CHREOL EMPIRE TRANSFER : Votre argent, notre priorité !</h1>
+      <section className="relative isolate overflow-hidden rounded-2xl mb-6 min-h-[300px] flex items-end">
+        <Image
+          src="/assets/Chreol%20Empire%20Transfert.png"
+          alt="Chreol Empire Transfer : envoi d'argent du Cameroun vers l'Afrique"
+          fill
+          priority
+          sizes="(max-width: 768px) 100vw, 768px"
+          className="object-cover object-center"
+        />
+        <div className="absolute inset-0 -z-0 bg-gradient-to-t from-black via-black/60 to-black/10" />
+        <div className="relative z-10 p-6 sm:p-8">
+          <h1 className="text-3xl sm:text-4xl font-black mb-3 text-white">CHREOL EMPIRE TRANSFER : Votre argent, notre priorité !</h1>
+          <p className="text-base sm:text-lg text-white/90">Envoyez de l'argent du Cameroun vers toute l'Afrique rapidement et en toute sécurité.</p>
+        </div>
+      </section>
       <p className="text-lg mb-6" style={{ color: "var(--text-secondary)" }}>Besoin d'envoyer de l'argent en Afrique ? Nous couvrons désormais <strong>16 destinations</strong> avec des frais transparents et une rapidité exemplaire.</p>
 
       <section className="rounded-2xl p-6 mb-6" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
@@ -136,7 +151,8 @@ export default function TransfertPage() {
 function TransferForm() {
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState({ name: "", email: "", phone: "", beneficiaryName: "", beneficiaryNetwork: "MTN", beneficiaryNumber: "", amount: "", destination: "Cameroun", payment: "MTN", notes: "", sourceUrl: typeof window !== 'undefined' ? window.location.href : '' });
+  const emptyForm = { name: "", email: "", phone: "", senderCountry: "Cameroun", paymentNetwork: "Crypto USDT", beneficiaryName: "", beneficiaryNetwork: "MTN", beneficiaryNumber: "", amount: "", destination: "Cameroun", payment: "Crypto USDT", notes: "", sourceUrl: typeof window !== 'undefined' ? window.location.href : '' };
+  const [form, setForm] = useState(emptyForm);
   const [errors, setErrors] = useState<Record<string,string>>({});
   const [touched, setTouched] = useState<Record<string,boolean>>({});
   const [submitAttempted, setSubmitAttempted] = useState(false);
@@ -157,11 +173,12 @@ function TransferForm() {
     const cur = f ?? form;
     const errs: Record<string, string> = {};
     if (!cur.name || !cur.name.trim()) errs.name = 'Nom requis';
-    if (!cur.email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(cur.email)) errs.email = 'Email invalide';
+    if (cur.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(cur.email)) errs.email = 'Email invalide';
     if (!cur.phone || !/^\+?\d{7,15}$/.test(cur.phone)) errs.phone = 'Téléphone invalide (ex: +2376...)';
     if (!cur.amount || isNaN(Number(cur.amount)) || Number(cur.amount) <= 0) errs.amount = 'Montant invalide';
-    if (!cur.destination) errs.destination = 'Destination requise';
-    if (!cur.payment) errs.payment = 'Mode de paiement requis';
+    if (!cur.senderCountry) errs.senderCountry = 'Pays de l’expéditeur requis';
+    if (!cur.paymentNetwork) errs.paymentNetwork = 'Réseau de paiement requis';
+    if (!cur.destination) errs.destination = 'Pays du bénéficiaire requis';
     if (!cur.beneficiaryNumber || !/\d{6,15}/.test(cur.beneficiaryNumber)) errs.beneficiaryNumber = 'Numéro du bénéficiaire invalide';
     if (!cur.beneficiaryName || !cur.beneficiaryName.trim()) errs.beneficiaryName = 'Nom du bénéficiaire requis';
     if (!cur.beneficiaryNetwork) errs.beneficiaryNetwork = 'Réseau du bénéficiaire requis';
@@ -196,7 +213,7 @@ function TransferForm() {
 
       // Build WhatsApp message and open it (user gesture) while submitting request in background
       const waAdmin = CONTACT.whatsapp.replace(/\D/g, '');
-      const msg = `Demande de transfert:\nNom: ${form.name || '-'}\nTel: ${form.phone || '-'}\nMontant: ${form.amount || '-'} FCFA\nDestination: ${form.destination || '-'}\nBénéficiaire: ${form.beneficiaryName || '-'} (${form.beneficiaryNetwork || '-'}) - ${form.beneficiaryNumber || '-'}\nNotes: ${form.notes || '-'}`;
+      const msg = `Demande de transfert:\nExpéditeur : ${form.name || '-'}, ${form.phone || '-'}, ${form.amount || '-'} FCFA, du ${form.senderCountry || '-'}, paiement par ${form.paymentNetwork || '-'}\nBénéficiaire : ${form.destination || '-'}, ${form.beneficiaryNetwork || '-'}, ${form.beneficiaryNumber || '-'}, ${form.beneficiaryName || '-'}\nInformations : ${form.notes || '-'}`;
       const waLink = `https://wa.me/${waAdmin}?text=${encodeURIComponent(msg)}`;
       // open WhatsApp first (user gesture)
       window.open(waLink, '_blank');
@@ -206,7 +223,7 @@ function TransferForm() {
       const j = await res.json();
       if (!res.ok) throw new Error(j?.error || 'Erreur serveur');
       showToast('Demande envoyée — nous vous contacterons bientôt', 'success');
-      setForm({ name: "", email: "", phone: "", beneficiaryName: "", beneficiaryNetwork: "MTN", beneficiaryNumber: "", amount: "", destination: "Cameroun", payment: "MTN", notes: "", sourceUrl: typeof window !== 'undefined' ? window.location.href : '' });
+      setForm(emptyForm);
     } catch (err) {
       showToast((err as any)?.message || 'Erreur envoi demande', 'error');
     } finally { setLoading(false); }
@@ -219,6 +236,7 @@ function TransferForm() {
   // country -> networks mapping (used to populate beneficiary network options)
   const networkMap: Record<string, string[]> = {
     'Cameroun': ['MTN', 'Orange', 'ExpressUnion'],
+    "Côte d'Ivoire": ['Wave', 'Orange', 'MTN'],
     'Gabon': ['MTN', 'Orange', 'GIMAC', 'ExpressUnion'],
     'Congo Brazzaville': ['MTN', 'Orange', 'ExpressUnion'],
     'RDC Kinshasa': ['Vodacom', 'Airtel', 'Orange'],
@@ -237,6 +255,7 @@ function TransferForm() {
     'Liberia': ['Lonestar', 'MTN']
   };
   const networks = networkMap[form.destination] ?? ['MTN', 'Orange', 'GIMAC', 'ExpressUnion'];
+  const senderPaymentNetworks = ['MTN Mobile Money', 'Orange Money', 'Crypto USDT', 'Crypto BTC', 'Crypto SOL', 'Express Union', 'Yoomee Money', 'Virement bancaire'];
   function inputClass(name: string) {
     const base = 'p-3 rounded-lg border';
     const showError = Boolean(errors[name] && (touched[name] || submitAttempted));
@@ -245,51 +264,57 @@ function TransferForm() {
 
   return (
     <form onSubmit={submit} className="grid grid-cols-1 gap-3 text-sm">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <input name="name" value={form.name} onChange={onChange} onBlur={() => onBlurField('name')} placeholder="Ex: Jean Dupont" className={inputClass('name')} style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', borderColor: 'var(--border)' }} />
+      <fieldset className="rounded-2xl p-4 grid grid-cols-1 sm:grid-cols-2 gap-3" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}>
+        <legend className="px-2 text-sm font-black" style={{ color: 'var(--gold)' }}>1. Informations de l’expéditeur</legend>
+        <div>
+          <input name="name" value={form.name} onChange={onChange} onBlur={() => onBlurField('name')} placeholder="Nom ou prénom (ex: Chreol Empire)" className={inputClass('name')} style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', borderColor: 'var(--border)' }} />
           {errors.name && (touched.name || submitAttempted) ? <p className="text-xs text-red-500 mt-1">{errors.name}</p> : null}
-          <input name="email" value={form.email} onChange={onChange} onBlur={() => onBlurField('email')} placeholder="jean@example.com (optionnel)" className={inputClass('email')} style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', borderColor: 'var(--border)' }} />
-          {errors.email && (touched.email || submitAttempted) ? <p className="text-xs text-red-500 mt-1">{errors.email}</p> : null}
         </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <input name="phone" value={form.phone} onChange={onChange} onBlur={() => onBlurField('phone')} placeholder="Téléphone (ex: +2376...)" className={inputClass('phone')} />
-        {(errors.phone && (touched.phone || submitAttempted)) ? <p className="text-xs text-red-500 mt-1">{errors.phone}</p> : null}
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <input name="amount" value={form.amount} onChange={onChange} onBlur={() => onBlurField('amount')} placeholder="Montant (FCFA) — ex: 50000" className={inputClass('amount')} style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', borderColor: 'var(--border)' }} />
-        {(errors.amount && (touched.amount || submitAttempted)) ? <p className="text-xs text-red-500 mt-1">{errors.amount}</p> : null}
-        <select name="destination" value={form.destination} onChange={onChange} className={inputClass('destination')} style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', borderColor: 'var(--border)' }}>
-          {['Cameroun','Gabon','Congo Brazzaville','RDC Kinshasa','Nigeria','Sénégal','Bénin','Togo','Burkina Faso','Rwanda','Kenya','Ghana','Mali','Tanzanie','Ouganda','Tunisie','Liberia'].map(c => <option key={c} value={c}>{c}</option>)}
-        </select>
-        <select name="payment" value={form.payment} onChange={onChange} className={inputClass('payment')} style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', borderColor: 'var(--border)' }}>
-          {networks.map(n => <option key={n} value={n}>{n}</option>)}
-          <option value="Crypto">Cryptomonnaie</option>
-          <option value="Bank">Virement bancaire</option>
-        </select>
-      </div>
+        <div>
+          <input name="phone" value={form.phone} onChange={onChange} onBlur={() => onBlurField('phone')} placeholder="Numéro WhatsApp (ex: +237 697 657 734)" className={inputClass('phone')} />
+          {errors.phone && (touched.phone || submitAttempted) ? <p className="text-xs text-red-500 mt-1">{errors.phone}</p> : null}
+        </div>
+        <div>
+          <select name="senderCountry" value={form.senderCountry} onChange={onChange} onBlur={() => onBlurField('senderCountry')} className={inputClass('senderCountry')} style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', borderColor: 'var(--border)' }}>
+            {Object.keys(networkMap).map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+          {errors.senderCountry && (touched.senderCountry || submitAttempted) ? <p className="text-xs text-red-500 mt-1">{errors.senderCountry}</p> : null}
+        </div>
+        <div>
+          <input name="amount" value={form.amount} onChange={onChange} onBlur={() => onBlurField('amount')} placeholder="Montant à envoyer (FCFA) — ex: 50000" className={inputClass('amount')} style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', borderColor: 'var(--border)' }} />
+          {errors.amount && (touched.amount || submitAttempted) ? <p className="text-xs text-red-500 mt-1">{errors.amount}</p> : null}
+        </div>
+        <div>
+          <select name="paymentNetwork" value={form.paymentNetwork} onChange={e => { onChange(e); setForm(prev => ({ ...prev, payment: e.target.value })); }} onBlur={() => onBlurField('paymentNetwork')} className={inputClass('paymentNetwork')} style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', borderColor: 'var(--border)' }}>
+            {senderPaymentNetworks.map(n => <option key={n} value={n}>{n}</option>)}
+          </select>
+          {errors.paymentNetwork && (touched.paymentNetwork || submitAttempted) ? <p className="text-xs text-red-500 mt-1">{errors.paymentNetwork}</p> : null}
+        </div>
+        <input name="email" value={form.email} onChange={onChange} onBlur={() => onBlurField('email')} placeholder="Email (optionnel)" className={inputClass('email')} style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', borderColor: 'var(--border)' }} />
+      </fieldset>
       {form.amount ? (
         <div className="p-3 rounded-lg" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)' }}>
           <p className="text-sm">Frais estimés: {fee === null ? (<span className="font-semibold">Contactez-nous pour les montants supérieurs à 1 000 000 FCFA</span>) : (<span className="font-semibold">{fee.toLocaleString()} FCFA</span>)}</p>
           <p className="text-sm">Montant à payer à CHREOL EMPIRE: {total === null ? (<span className="font-semibold">Contactez-nous</span>) : (<span className="font-semibold">{total.toLocaleString()} FCFA</span>)}</p>
         </div>
       ) : null}
-      <h3 className="font-bold">Informations du bénéficiaire</h3>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <fieldset className="rounded-2xl p-4 grid grid-cols-1 sm:grid-cols-2 gap-3" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}>
+        <legend className="px-2 text-sm font-black" style={{ color: 'var(--gold)' }}>2. Informations du bénéficiaire</legend>
+        <select name="destination" value={form.destination} onChange={e => { onChange(e); setForm(prev => ({ ...prev, beneficiaryNetwork: networkMap[e.target.value]?.[0] ?? 'MTN' })); }} className={inputClass('destination')} style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', borderColor: 'var(--border)' }}>
+          {Object.keys(networkMap).map(c => <option key={c} value={c}>{c}</option>)}
+        </select>
         <select name="beneficiaryNetwork" value={form.beneficiaryNetwork} onChange={onChange} onBlur={() => onBlurField('beneficiaryNetwork')} className={inputClass('beneficiaryNetwork')} style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', borderColor: 'var(--border)' }}>
           {networks.map(n => <option key={n} value={n}>{n}</option>)}
         </select>
-        {/* beneficiary country removed: it's inferred from destination */}
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
-        <input name="beneficiaryNumber" value={form.beneficiaryNumber} onChange={onChange} onBlur={() => onBlurField('beneficiaryNumber')} placeholder="Numéro mobile du bénéficiaire (ex: +2376...)" className={inputClass('beneficiaryNumber')} style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', borderColor: 'var(--border)' }} />
+        <input name="beneficiaryNumber" value={form.beneficiaryNumber} onChange={onChange} onBlur={() => onBlurField('beneficiaryNumber')} placeholder="Numéro du bénéficiaire (ex: +225...)" className={inputClass('beneficiaryNumber')} style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', borderColor: 'var(--border)' }} />
         {(errors.beneficiaryNumber && (touched.beneficiaryNumber || submitAttempted)) ? <p className="text-xs text-red-500 mt-1">{errors.beneficiaryNumber}</p> : null}
-        <input name="beneficiaryName" value={form.beneficiaryName} onChange={onChange} onBlur={() => onBlurField('beneficiaryName')} placeholder="Nom complet du bénéficiaire" className={inputClass('beneficiaryName')} style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', borderColor: 'var(--border)' }} />
+        <input name="beneficiaryName" value={form.beneficiaryName} onChange={onChange} onBlur={() => onBlurField('beneficiaryName')} placeholder="Nom affiché sur le compte" className={inputClass('beneficiaryName')} style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', borderColor: 'var(--border)' }} />
         {(errors.beneficiaryName && (touched.beneficiaryName || submitAttempted)) ? <p className="text-xs text-red-500 mt-1">{errors.beneficiaryName}</p> : null}
-      </div>
-      <textarea name="notes" value={form.notes} onChange={onChange} placeholder="Informations supplémentaires (optionnel)" className="p-3 rounded-lg bg-black text-white/90 border" />
+        <textarea name="notes" value={form.notes} onChange={onChange} placeholder="Information supplémentaire (optionnel)" className="p-3 rounded-lg bg-black text-white/90 border sm:col-span-2" />
+      </fieldset>
       <div className="flex gap-3">
         <button type="submit" className="px-4 py-3 rounded-2xl font-black bg-var text-white" disabled={!isValid || loading}>{loading ? 'Envoi…' : 'Envoyer la demande'}</button>
-        <button type="button" className="px-4 py-3 rounded-2xl font-black border" onClick={() => { setForm({ name: "", email: "", phone: "", beneficiaryName: "", beneficiaryNetwork: "MTN", beneficiaryNumber: "", amount: "", destination: "Cameroun", payment: "MTN", notes: "", sourceUrl: typeof window !== 'undefined' ? window.location.href : '' }); showToast('Formulaire réinitialisé', 'info'); }}>Réinitialiser</button>
+        <button type="button" className="px-4 py-3 rounded-2xl font-black border" onClick={() => { setForm(emptyForm); showToast('Formulaire réinitialisé', 'info'); }}>Réinitialiser</button>
       </div>
     </form>
   );

@@ -1,11 +1,12 @@
 import { NextRequest } from "next/server";
+import { getAdminSecret, verifyAdminToken } from "@/lib/adminAuth";
 
 export const runtime = "edge";
 
-function authOk(req: NextRequest): boolean {
+async function authOk(req: NextRequest): Promise<boolean> {
   const token = req.cookies.get("admin_token")?.value ?? "";
-  const secret = process.env.ADMIN_PASSWORD ?? "chreolempire-admin";
-  return token === secret;
+  const secret = getAdminSecret();
+  return Boolean(secret && await verifyAdminToken(token, secret));
 }
 
 // Service key bypasse les RLS — obligatoire pour SELECT admin
@@ -21,7 +22,7 @@ function sbHeaders(write = false) {
 }
 
 export async function GET(req: NextRequest): Promise<Response> {
-  if (!authOk(req)) return Response.json({ error: "Non autorisé" }, { status: 401 });
+  if (!(await authOk(req))) return Response.json({ error: "Non autorisé" }, { status: 401 });
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   if (!url) return Response.json({ error: "Supabase non configuré" }, { status: 503 });
@@ -44,7 +45,7 @@ export async function GET(req: NextRequest): Promise<Response> {
 }
 
 export async function PATCH(req: NextRequest): Promise<Response> {
-  if (!authOk(req)) return Response.json({ error: "Non autorisé" }, { status: 401 });
+  if (!(await authOk(req))) return Response.json({ error: "Non autorisé" }, { status: 401 });
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   if (!url) return Response.json({ error: "Supabase non configuré" }, { status: 503 });

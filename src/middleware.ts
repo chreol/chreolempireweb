@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getAdminSecret, verifyAdminToken } from "@/lib/adminAuth";
 
-export function middleware(req: NextRequest) {
+export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // Ne pas protéger la page de login elle-même → évite la boucle infinie
@@ -8,8 +9,8 @@ export function middleware(req: NextRequest) {
 
   if (pathname.startsWith("/admin")) {
     const token  = req.cookies.get("admin_token")?.value ?? "";
-    const secret = process.env.ADMIN_PASSWORD ?? "chreolempire-admin";
-    if (token !== secret) {
+    const secret = getAdminSecret();
+    if (!secret || !(await verifyAdminToken(token, secret))) {
       const login = req.nextUrl.clone();
       login.pathname = "/admin/login";
       return NextResponse.redirect(login);

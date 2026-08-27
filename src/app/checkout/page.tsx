@@ -5,6 +5,7 @@ import { useState, Suspense, useRef } from "react";
 import Image from "next/image";
 import { CONTACT, IMAGES } from "@/lib/services";
 import GoogleReviewsOptIn from "@/components/GoogleReviewsOptIn";
+import GoogleReviewPrompt from "@/components/GoogleReviewPrompt";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const PRODUCT_IMAGE: Record<string, string> = {
@@ -295,6 +296,7 @@ function CheckoutInner() {
           deliveryCountry="CM"
         />
       )}
+      {step === "ussd" && <div className="mt-6"><GoogleReviewPrompt productName={label} compact /></div>}
 
       {/* Trust */}
       <div className="mt-8 pt-6 flex flex-wrap items-center justify-center gap-4" style={{ borderTop: "1px solid var(--border)" }}>

@@ -21,7 +21,7 @@ const SEARCH_INDEX: SearchItem[] = [
   { type: "service", emoji: "💳", label: "Carte UBA Cameroun",            sub: "Achat & recharge Visa prépayée",                   href: "/services/uba",             tags: ["uba","visa","carte","recharge","prépayée","bancaire","segment"] },
   { type: "service", emoji: "💸", label: "PayPal Europe",                 sub: "Achat & vente — 580 / 700 FCFA/€",                 href: "/services/paypal",          tags: ["paypal","europe","euro","france","dollars","devise"] },
   { type: "service", emoji: "🔄", label: "Paiement Factures & Échange",   sub: "Canal+, Eneo, Camwater, StarTimes — MoMo",         href: "/services/factures",        tags: ["canal","eneo","camwater","startimes","facture","momo","orange","mtn","exchange","abonnement"] },
-  { type: "product", emoji: "🎮", label: "PSN 10€",       sub: "7 500 FCFA",  href: "/services/cartes-cadeaux", tags: ["psn","10","playstation","sony"] },
+  { type: "product", emoji: "🎮", label: "PSN 10€",       sub: "8 500 FCFA",  href: "/services/cartes-cadeaux?tab=standard&card=psn&amount=10%E2%82%AC&region=EU", tags: ["psn","10","playstation","sony"] },
   { type: "product", emoji: "🎮", label: "PSN 20€",       sub: "14 500 FCFA", href: "/services/cartes-cadeaux", tags: ["psn","20","playstation"] },
   { type: "product", emoji: "🎮", label: "Steam 20€",     sub: "14 500 FCFA", href: "/services/cartes-cadeaux", tags: ["steam","20","pc","jeux"] },
   { type: "product", emoji: "👾", label: "Robux 800R",    sub: "10 500 FCFA", href: "/services/cartes-cadeaux", tags: ["robux","roblox","800","enfants"] },

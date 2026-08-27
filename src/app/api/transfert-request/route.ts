@@ -7,6 +7,8 @@ type Body = {
   name?: string;
   email?: string;
   phone?: string;
+  senderCountry?: string;
+  paymentNetwork?: string;
   beneficiaryName?: string;
   beneficiaryNetwork?: string;
   beneficiaryCountry?: string;
@@ -17,6 +19,10 @@ type Body = {
   notes?: string;
   sourceUrl?: string;
 };
+
+function safeText(value: unknown, maxLength = 300): string {
+  return String(value ?? '-').trim().slice(0, maxLength).replace(/[<>]/g, '');
+}
 
 async function sendTelegram(text: string) {
   const token = process.env.TELEGRAM_BOT_TOKEN;
@@ -44,17 +50,30 @@ async function sendBrevo(subject: string, html: string, toEmail?: string) {
 
 export async function POST(req: Request) {
   const body = (await req.json()) as Body;
-  const { name, email, phone, beneficiaryName, beneficiaryNetwork, beneficiaryCountry, beneficiaryNumber, amount, destination, payment, notes, sourceUrl } = body;
+  const { name, email, phone, senderCountry, paymentNetwork, beneficiaryName, beneficiaryNetwork, beneficiaryCountry, beneficiaryNumber, amount, destination, payment, notes, sourceUrl } = body;
+  const safeName = safeText(name, 100);
+  const safeEmail = safeText(email, 160);
+  const safeSenderCountry = safeText(senderCountry, 80);
+  const safePaymentNetwork = safeText(paymentNetwork || payment, 60);
+  const safeBeneficiaryName = safeText(beneficiaryName, 100);
+  const safeNetwork = safeText(beneficiaryNetwork, 40);
+  const safeCountry = safeText(beneficiaryCountry, 80);
+  const safeNumber = safeText(beneficiaryNumber, 30);
+  const safeDestination = safeText(destination, 80);
+  const safePayment = safeText(payment, 50);
+  const safeNotes = safeText(notes, 500);
   const errors: Record<string, string> = {};
   if (!phone || !/^\+?\d{7,15}$/.test(phone)) errors.phone = 'Téléphone invalide (format international attendu, ex: +2376...)';
   if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) errors.amount = 'Montant invalide';
+  if (!senderCountry) errors.senderCountry = 'Pays de départ requis';
+  if (!paymentNetwork && !payment) errors.paymentNetwork = 'Réseau de paiement requis';
   if (!destination) errors.destination = 'Destination requise';
   if (!beneficiaryNumber || !/\d{6,15}/.test(beneficiaryNumber)) errors.beneficiaryNumber = 'Numéro du bénéficiaire invalide';
   if (Object.keys(errors).length) return NextResponse.json({ error: 'Validation', details: errors }, { status: 400 });
 
   const ref = `TRF-${Date.now().toString(36).slice(-6).toUpperCase()}`;
 
-  const text = `Nouvelle demande de transfert (${ref})\nNom: ${name || '-'}\nEmail: ${email || '-'}\nTéléphone: ${phone}\nBénéficiaire: ${beneficiaryName || '-'}\nRéseau: ${beneficiaryNetwork || '-'}\nPays (bénéf): ${beneficiaryCountry || '-'}\nNuméro (bénéf): ${beneficiaryNumber || '-'}\nNom sur compte (bénéf): ${beneficiaryName || '-'}\nMontant: ${amount} FCFA\nDestination: ${destination}\nMoyen de paiement: ${payment || '-'}\nNotes: ${notes || '-'}\nSource: ${sourceUrl || (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://shop.chreolempire.com')}`;
+  const text = `Nouvelle demande de transfert (${ref})\nExpéditeur: ${safeName}\nEmail: ${safeEmail}\nTéléphone WhatsApp: ${phone}\nPays de départ: ${safeSenderCountry}\nMontant envoyé: ${amount} FCFA\nRéseau de paiement: ${safePaymentNetwork}\nBénéficiaire: ${safeBeneficiaryName}\nRéseau bénéficiaire: ${safeNetwork}\nPays bénéficiaire: ${safeCountry || safeDestination}\nNuméro bénéficiaire: ${safeNumber}\nNotes: ${safeNotes}\nSource: ${sourceUrl || (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://shop.chreolempire.com')}`;
 
   // build mark-done / cancel links
   const secret = process.env.MARK_DONE_SECRET ?? process.env.BREVO_API_KEY ?? 'chreolempire';
@@ -71,7 +90,7 @@ export async function POST(req: Request) {
     const SUPA_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     if (SUPA_URL && SUPA_KEY) {
       const sb = createClient(SUPA_URL, SUPA_KEY, { auth: { persistSession: false } });
-      const { error } = await sb.from('transfers').insert([{ ref, name, email, phone, beneficiary_name: beneficiaryName, beneficiary_network: beneficiaryNetwork, beneficiary_country: beneficiaryCountry, beneficiary_number: beneficiaryNumber, amount: Number(amount), destination, payment, notes, source_url: sourceUrl, status: 'pending', created_at: new Date().toISOString(), expires_at: new Date(Date.now() + 60*60*1000).toISOString() }]);
+      const { error } = await sb.from('transfers').insert([{ ref, name, email, phone, sender_country: senderCountry, payment_network: paymentNetwork || payment, beneficiary_name: beneficiaryName, beneficiary_network: beneficiaryNetwork, beneficiary_country: beneficiaryCountry || destination, beneficiary_number: beneficiaryNumber, amount: Number(amount), destination, payment: paymentNetwork || payment, notes, source_url: sourceUrl, status: 'pending', created_at: new Date().toISOString(), expires_at: new Date(Date.now() + 60*60*1000).toISOString() }]);
       if (!error) supaOk = 1;
     }
   } catch (e) {
@@ -83,14 +102,14 @@ export async function POST(req: Request) {
   const waClientLink = `https://wa.me/${waClientNum}`;
   const phoneStr = phone ?? '-';
   const tgHtml = `<b>Nouvelle demande de transfert (${ref})</b>\n` +
-    `<b>Nom:</b> ${name || '-'}\n<b>Email:</b> ${email || '-'}\n<b>Téléphone:</b> <a href="${waClientLink}">${phoneStr}</a>\n` +
-    `<b>Bénéficiaire:</b> ${beneficiaryName || '-'} — ${beneficiaryNetwork || '-'} / ${beneficiaryCountry || '-'} / ${beneficiaryNumber || '-'}\n` +
-    `<b>Montant:</b> ${amount} FCFA\n<b>Destination:</b> ${destination}\n<b>Moyen:</b> ${payment || '-'}\n` +
-    `<b>Source:</b> ${sourceUrl || base}\n` +
+    `<b>Expéditeur:</b> ${safeName}\n<b>Email:</b> ${safeEmail}\n<b>Téléphone:</b> <a href="${waClientLink}">${phoneStr}</a>\n<b>Pays départ:</b> ${safeSenderCountry}\n<b>Montant:</b> ${amount} FCFA\n<b>Paiement:</b> ${safePaymentNetwork}\n` +
+    `<b>Bénéficiaire:</b> ${safeBeneficiaryName} — ${safeNetwork} / ${safeCountry} / ${safeNumber}\n` +
+    `<b>Destination:</b> ${safeCountry || safeDestination}\n` +
+    `<b>Source:</b> ${safeText(sourceUrl || base, 300)}\n` +
     `<b>Marquer traitée:</b> ${markDoneUrl}\n<b>Annuler:</b> ${markCancelUrl}` +
     `\n\n📣 Nos services: ` +
     `<a href="${base}/services/cartes-cadeaux">Cartes cadeaux</a> · ` +
-    `<a href="${base}/services/paiement">Paiement</a> · ` +
+    `<a href="${base}/paiement">Paiement</a> · ` +
     `<a href="${base}/services/crypto">Crypto</a> · ` +
     `<a href="${base}/services/coupons">Coupons</a>`;
   const tg = await sendTelegram(tgHtml);
@@ -106,7 +125,7 @@ export async function POST(req: Request) {
     `<h3 style="margin-top:14px">📣 Nos services</h3>` +
     `<div style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0">` +
     `<a href="${base}/services/cartes-cadeaux" style="flex:1 1 45%;background:#111;color:#fff;padding:10px;border-radius:8px;text-decoration:none;text-align:center">Cartes cadeaux<br/><small style=\"color:#bbbbbb\">Offres instantanées</small></a>` +
-    `<a href="${base}/services/paiement" style="flex:1 1 45%;background:#0f172a;color:#fff;padding:10px;border-radius:8px;text-decoration:none;text-align:center">Paiement & Factures<br/><small style=\"color:#bbbbbb\">Paiement sécurisé</small></a>` +
+    `<a href="${base}/paiement" style="flex:1 1 45%;background:#0f172a;color:#fff;padding:10px;border-radius:8px;text-decoration:none;text-align:center">Paiement & Factures<br/><small style=\"color:#bbbbbb\">Paiement sécurisé</small></a>` +
     `<a href="${base}/services/crypto" style="flex:1 1 45%;background:#052e21;color:#fff;padding:10px;border-radius:8px;text-decoration:none;text-align:center">Crypto<br/><small style=\"color:#bbbbbb\">USDT, BTC, SOL...</small></a>` +
     `<a href="${base}/services/coupons" style="flex:1 1 45%;background:#2b0f3a;color:#fff;padding:10px;border-radius:8px;text-decoration:none;text-align:center">Coupons & PCS<br/><small style=\"color:#bbbbbb\">Offres promo</small></a>` +
     `</div>` +

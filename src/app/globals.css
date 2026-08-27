@@ -92,6 +92,43 @@
 .img-zoom { transition: transform 500ms ease; }
 .img-zoom:hover { transform: scale(1.05); }
 
+@keyframes chreol-logo-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.chreol-logo-spin {
+  border: 1px solid var(--gold);
+  border-radius: 9999px;
+  animation: chreol-logo-spin 14s linear infinite;
+  will-change: transform;
+}
+
+.chreol-logo-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chreol-logo-stars {
+  position: absolute;
+  inset: -6px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  pointer-events: none;
+  color: var(--gold-light);
+  font-size: 8px;
+  line-height: 1;
+}
+
+.chreol-logo-stars span:last-child { align-self: flex-end; }
+
+@media (prefers-reduced-motion: reduce) {
+  .chreol-logo-spin { animation: none; }
+}
+
 /* ─── Light-theme heading visibility ─── */
 /* Many components use .text-white (Tailwind) for headings.
    On dark theme this is fine; on light we override to the dark text variable. */

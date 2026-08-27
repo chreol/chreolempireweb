@@ -19,7 +19,7 @@ export const SOCIAL_LINKS = {
 };
 
 export const IMAGES = {
-  logo:       "/assets/chreolempire logo avec contact m.webp",
+  logo:       "/assets/Logo_Chreol_Empire_revue-removebg-preview.png",
   whatsapp:   "/assets/whatsapp.webp",
   telegram:   "/assets/telegram.webp",
   instagram:  "/assets/instagram.webp",
@@ -43,6 +43,7 @@ export const IMAGES = {
   pcs:     "/assets/PCS-Mastercard.webp",
   transcash:"/assets/echange-transcash.webp",
   factures:"/assets/paiement-+-facture-services.webp",
+  transfer: "/assets/Chreol Empire Transfert.png",
   mtn:     "/assets/MTN Mobile Money (MoMo) Payment .webp",
   orange:  "/assets/orange-money.webp",
   expressUnion: "/assets/Express Union logo.webp",
@@ -52,60 +53,41 @@ export const IMAGES = {
   camwater:"/assets/Camwater logo.webp",
   startimes:"/assets/StarTimes logo.webp",
   boutique:   "/assets/boutique.webp",
-  banner:     "/assets/Baniere_ChreolEMpire_Cartes-Cadeaux.webp",
+  banner:     "/assets/banner-chreol-empire-cameroun.webp.webp",
   googleAvis: "/assets/google-avis-client-grande.webp",
 };
 
-// Standard EUR amounts (adapted to updated price table; 5€ entries removed)
+// Gift card prices: EUR and USD use the same FCFA tariff.
 const STANDARD_AMOUNTS = [
-  { label: "10€",  price: 8900 },
-  { label: "15€",  price: 12900 },
-  { label: "20€",  price: 16800 },
-  { label: "25€",  price: 20500 },
-  { label: "30€",  price: 24500 },
-  { label: "40€",  price: 32000 },
-  { label: "50€",  price: 39500 },
-  { label: "75€",  price: 58500 },
-  { label: "100€", price: 76500 },
-  // keep some larger options for power users
-  { label: "150€", price: 102000 },
-  { label: "200€", price: 135000 },
-  { label: "300€", price: 204000 },
-  { label: "500€", price: 340000 },
+  { label: "10€",  price: 8500, previousPrice: 8900 },
+  { label: "15€",  price: 12800, previousPrice: 12900 },
+  { label: "20€",  price: 15800, previousPrice: 16800 },
+  { label: "25€",  price: 18500, previousPrice: 20500 },
+  { label: "30€",  price: 24000, previousPrice: 24500 },
+  { label: "40€",  price: 31400, previousPrice: 32000 },
+  { label: "50€",  price: 35800, previousPrice: 39500 },
+  { label: "75€",  price: 54000, previousPrice: 58500 },
+  { label: "80€",  price: 59800, previousPrice: 61500 },
+  { label: "100€", price: 72500, previousPrice: 76500 },
+  { label: "150€", price: 103800, previousPrice: 102000 },
+  { label: "200€", price: 136000, previousPrice: 135000 },
+  { label: "300€", price: 205000, previousPrice: 204000 },
+  { label: "500€", price: 340000, previousPrice: 340000 },
 ];
 
-// iTunes / Google Play EUR amounts (remove 5€)
-const ITUNES_GP_AMOUNTS = [
-  { label: "10€",  price: 8900 },
-  { label: "15€",  price: 12900 },
-  { label: "25€",  price: 20500 },
-  { label: "50€",  price: 39500 },
-  { label: "100€", price: 76500 },
-  { label: "150€", price: 102000 },
-  { label: "200€", price: 135000 },
-  { label: "300€", price: 204000 },
-  { label: "500€", price: 340000 },
-];
+const ITUNES_GP_AMOUNTS = STANDARD_AMOUNTS;
 
-// USD standard amounts (adapted to USD price table; 5$ entries removed)
-export const USD_STANDARD_AMOUNTS = [
-  { label: "10$",  price: 8500 },
-  { label: "15$",  price: 12500 },
-  { label: "20$",  price: 16000 },
-  { label: "25$",  price: 19800 },
-  { label: "30$",  price: 23800 },
-  { label: "40$",  price: 31500 },
-  { label: "50$",  price: 39000 },
-  { label: "75$",  price: 58000 },
-  { label: "80$",  price: 61500 },
-  { label: "100$", price: 76000 },
-];
+export const USD_STANDARD_AMOUNTS = STANDARD_AMOUNTS.map(amount => ({
+  label: amount.label.replace("€", "$") ,
+  price: amount.price,
+  previousPrice: amount.previousPrice,
+}));
 
 export const GIFT_CARDS = [
   { id: "psn",        name: "PSN PlayStation",   image: IMAGES.psn,      color: "#003791", tier: "standard" as const, amounts: STANDARD_AMOUNTS, usAmounts: USD_STANDARD_AMOUNTS },
   { id: "steam",      name: "Steam",             image: IMAGES.steam,    color: "#1B2838", tier: "standard" as const, amounts: STANDARD_AMOUNTS, usAmounts: USD_STANDARD_AMOUNTS },
   { id: "razer",      name: "Razer Gold",        image: IMAGES.razer,    color: "#44D62C", tier: "standard" as const, amounts: STANDARD_AMOUNTS, usAmounts: USD_STANDARD_AMOUNTS },
-  { id: "roblox-eur", name: "Roblox (€)",        image: IMAGES.roblox,   color: "#E8232A", tier: "standard" as const, amounts: STANDARD_AMOUNTS },
+  { id: "roblox-eur", name: "Roblox — Carte cadeau", image: IMAGES.roblox, color: "#E8232A", tier: "robux" as const, amounts: STANDARD_AMOUNTS },
   { id: "nintendo",   name: "Nintendo eShop",    image: IMAGES.nintendo, color: "#E70012", tier: "standard" as const, amounts: STANDARD_AMOUNTS, usAmounts: USD_STANDARD_AMOUNTS },
   { id: "itunes",     name: "iTunes / App Store",image: IMAGES.itunes,   color: "#0A84FF", tier: "itunes" as const,   amounts: ITUNES_GP_AMOUNTS },
   { id: "googleplay", name: "Google Play",       image: IMAGES.google,   color: "#34A853", tier: "itunes" as const,   amounts: ITUNES_GP_AMOUNTS, usAmounts: USD_STANDARD_AMOUNTS },

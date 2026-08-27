@@ -351,7 +351,7 @@ function buildClientEmail(p: NotifyPayload): string {
   const ref    = p.orderId.slice(-8).toUpperCase();
   const pColor = payColor(p.paymentMethod);
   const year   = new Date().getFullYear();
-  const waNum  = "237694360978";
+  const waNum  = "237697657734";
 
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -362,7 +362,7 @@ function buildClientEmail(p: NotifyPayload): string {
   <!-- Header -->
   <table width="100%" cellpadding="0" cellspacing="0">
     <tr><td style="background:#0A0A0A;border-radius:12px 12px 0 0;padding:20px 32px;text-align:center">
-      <img src="https://shop.chreolempire.com/assets/chreolempire%20logo%20avec%20contact%20m.webp"
+      <img src="https://shop.chreolempire.com/assets/Logo_Chreol_Empire_revue-removebg-preview.png"
         alt="Chreol Empire" width="52" height="52"
         style="border-radius:12px;margin-bottom:8px;display:block;margin-left:auto;margin-right:auto" />
       <p style="margin:0;font-size:22px;font-weight:900;letter-spacing:-0.5px">

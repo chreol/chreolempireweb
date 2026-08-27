@@ -23,17 +23,18 @@ const geist = Geist({ subsets: ["latin"], variable: "--font-geist-sans" });
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://shop.chreolempire.com";
 const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+const SOCIAL_BANNER = "/assets/banner-chreol-empire-cameroun.webp.webp?v=20260827";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Chreol Empire — Cartes Cadeaux & Crypto au Cameroun",
+    default: "Chreol Empire | Cartes Apple, PSN & Crypto Cameroun",
     template: "%s | Chreol Empire",
   },
   description:
     "Achetez vos cartes cadeaux PSN, iTunes, Roblox, Steam, Nintendo au meilleur prix. Échangez vos crypto (USDT, BTC, TRX) contre FCFA à 0% commission. Paiement MTN MoMo, Orange Money. Livraison WhatsApp 15-30 min. Douala, Cameroun.",
   keywords: [
-    "cartes cadeaux cameroun", "cartes cadeaux douala", "PSN cameroun", "iTunes cameroun",
+    "cartes cadeaux cameroun", "cartes cadeaux douala", "cartes apple cameroun", "apple gift card cameroun", "recharge compte apple cameroun", "PSN cameroun", "iTunes cameroun",
     "Roblox cameroun", "Steam cameroun", "USDT FCFA", "BTC FCFA", "crypto douala",
     "échange crypto cameroun", "PCS transcash cameroun", "UBA cameroun carte prépayée",
     "PayPal europe cameroun", "MTN MoMo", "Orange Money", "paiement mobile money",
@@ -56,9 +57,9 @@ export const metadata: Metadata = {
     locale: "fr_FR",
     type: "website",
     images: [{
-      url: "/assets/Baniere_ChreolEMpire_Cartes-Cadeaux.webp",
-      width: 1200,
-      height: 630,
+      url: SOCIAL_BANNER,
+      width: 1408,
+      height: 768,
       alt: "Chreol Empire — Cartes Cadeaux & Crypto au Cameroun",
     }],
   },
@@ -66,7 +67,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Chreol Empire — Cartes Cadeaux & Crypto au Cameroun",
     description: "Cartes cadeaux & crypto à Douala. 0% commission. MTN MoMo / Orange Money. Livraison 15-30 min.",
-    images: ["/assets/Baniere_ChreolEMpire_Cartes-Cadeaux.webp"],
+    images: [SOCIAL_BANNER],
   },
   robots: {
     index: true,
@@ -141,22 +142,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="dns-prefetch" href="https://maps.app.goo.gl" />
         <meta name="google-site-verification" content="f4xnHmrVIpddzFQKvb_TRGFigd8dOSciEyPabjA8F1A" />
         <Script id="renderOptInFn" strategy="beforeInteractive">
-          {`window.renderOptIn = function() {
-            try {
-              window.gapi.load('surveyoptin', function() {
-                try {
-                  window.gapi.surveyoptin.render({
-                    "merchant_id": 5799933923,
-                    "order_id": "ORDER_ID",
-                    "email": "CUSTOMER_EMAIL",
-                    "delivery_country": "COUNTRY_CODE",
-                    "estimated_delivery_date": "YYYY-MM-DD",
-                    "products": [{"gtin":"GTIN1"}, {"gtin":"GTIN2"}]
-                  });
-                } catch (e) { console.warn('renderOptIn render error', e); }
-              });
-            } catch (e) { console.warn('renderOptIn load error', e); }
-          }`}
+          {`window.renderOptIn = window.renderOptIn || function() {};`}
         </Script>
         <Script src="https://apis.google.com/js/platform.js?onload=renderOptIn" strategy="afterInteractive" />
         {GA_MEASUREMENT_ID ? (
@@ -192,7 +178,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 {/* Brand */}
                 <div>
                   <Link href="/" className="inline-flex items-center gap-2 mb-2">
-                    <Image src={IMAGES.logo} alt="Chreol Empire" width={36} height={36} unoptimized className="rounded-xl object-cover" />
+                    <span className="chreol-logo-wrap w-9 h-9">
+                      <span className="chreol-logo-stars" aria-hidden="true"><span>✦</span><span>✦</span></span>
+                      <Image src={IMAGES.logo} alt="Chreol Empire" width={36} height={36} unoptimized className="chreol-logo-spin object-contain" />
+                    </span>
                     <p className="font-black text-xl">
                       Chreol<span style={{ color: "var(--gold)" }}>Empire</span>
                     </p>
@@ -202,6 +191,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   </p>
                   <p className="text-xs font-bold mb-2" style={{ color: "var(--gold)" }}>
                     Cartes cadeaux &amp; crypto · 0% commission
+                  </p>
+                  <p className="text-[10px] font-bold uppercase tracking-wide mb-2" style={{ color: "var(--text-muted)" }}>
+                    Premium digital · Since 2012
                   </p>
                   <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
                     {CONTACT.address}

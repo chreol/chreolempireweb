@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { POSTS } from "@/lib/blog";
 
 export const metadata: Metadata = {
@@ -55,7 +56,9 @@ export default function BlogPage() {
             style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
           >
             <div className="flex items-start gap-4">
-              <span className="text-3xl shrink-0 mt-0.5">{post.emoji}</span>
+              <div className="relative w-24 h-20 rounded-xl overflow-hidden shrink-0">
+                <Image src={post.image} alt={post.title} fill sizes="96px" className="object-cover" />
+              </div>
               <div className="flex-1 min-w-0">
                 <div className="flex flex-wrap items-center gap-2 mb-2">
                   <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full"
@@ -73,7 +76,7 @@ export default function BlogPage() {
                   {post.description}
                 </p>
               </div>
-              <span className="shrink-0 text-sm transition-transform group-hover:translate-x-1" style={{ color: "var(--gold)" }}>→</span>
+              <span className="shrink-0 text-2xl mt-1 transition-transform group-hover:translate-x-1" style={{ color: "var(--gold)" }}>{post.emoji}</span>
             </div>
           </Link>
         ))}
@@ -86,7 +89,7 @@ export default function BlogPage() {
         <p className="text-sm mb-4" style={{ color: "var(--text-secondary)" }}>
           Notre équipe répond sur WhatsApp 7j/7 de 7h à 23h.
         </p>
-        <a href="https://wa.me/237694360978?text=Bonjour%2C%20j%27ai%20une%20question%20suite%20%C3%A0%20votre%20blog."
+        <a href="https://wa.me/237697657734?text=Bonjour%2C%20j%27ai%20une%20question%20suite%20%C3%A0%20votre%20blog."
           target="_blank" rel="noopener noreferrer"
           className="inline-flex items-center gap-2 px-6 py-3 rounded-full font-black text-white text-sm"
           style={{ background: "#25D366" }}>

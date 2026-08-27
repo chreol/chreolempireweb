@@ -6,6 +6,7 @@ export const T: TranslationMap = {
   // ── Navbar ──
   "nav.home":     { fr: "Accueil",    en: "Home" },
   "nav.services": { fr: "Services",   en: "Services" },
+  "nav.blog":     { fr: "Blog", en: "Blog" },
   "nav.promo":    { fr: "🔥 Promos",  en: "🔥 Deals" },
   "nav.payment":  { fr: "Paiement",   en: "Payment" },
   "nav.history":  { fr: "Historique", en: "History" },
@@ -13,7 +14,7 @@ export const T: TranslationMap = {
 
   // ── Hero ──
   "hero.badge":       { fr: "Magasin officiel · Douala, Cameroun", en: "Official store · Douala, Cameroon" },
-  "hero.h1.1":        { fr: "Cartes cadeaux", en: "Gift cards" },
+  "hero.h1.1":        { fr: "Cartes Apple, PSN", en: "Apple & PSN gift cards" },
   "hero.h1.3":        { fr: "au meilleur taux", en: "at the best rates" },
   "hero.subtitle":    { fr: "PSN, iTunes, Roblox, USDT, BTC, PCS, Transcash — livraison express 15–30 min via WhatsApp. Paiement Mobile Money.", en: "PSN, iTunes, Roblox, USDT, BTC, PCS, Transcash — express delivery 15–30 min via WhatsApp. Mobile Money payment." },
   "hero.cta.catalog": { fr: "Voir le catalogue →", en: "View catalog →" },

@@ -1,11 +1,12 @@
 import { NextRequest } from "next/server";
+import { getAdminSecret, verifyAdminToken } from "@/lib/adminAuth";
 
 export const runtime = "edge";
 
-function authOk(req: NextRequest): boolean {
+async function authOk(req: NextRequest): Promise<boolean> {
   const token  = req.cookies.get("admin_token")?.value ?? "";
-  const secret = process.env.ADMIN_PASSWORD ?? "chreolempire-admin";
-  return token === secret;
+  const secret = getAdminSecret();
+  return Boolean(secret && await verifyAdminToken(token, secret));
 }
 
 const SB_HEADERS = (key: string) => ({
@@ -15,7 +16,7 @@ const SB_HEADERS = (key: string) => ({
 });
 
 export async function GET(req: NextRequest): Promise<Response> {
-  if (!authOk(req)) return Response.json({ error: "Non autorisé" }, { status: 401 });
+  if (!(await authOk(req))) return Response.json({ error: "Non autorisé" }, { status: 401 });
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key) return Response.json([]);
@@ -27,7 +28,7 @@ export async function GET(req: NextRequest): Promise<Response> {
 }
 
 export async function POST(req: NextRequest): Promise<Response> {
-  if (!authOk(req)) return Response.json({ error: "Non autorisé" }, { status: 401 });
+  if (!(await authOk(req))) return Response.json({ error: "Non autorisé" }, { status: 401 });
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key) return Response.json({ error: "Supabase non configuré" }, { status: 503 });
@@ -56,7 +57,7 @@ export async function POST(req: NextRequest): Promise<Response> {
 }
 
 export async function PATCH(req: NextRequest): Promise<Response> {
-  if (!authOk(req)) return Response.json({ error: "Non autorisé" }, { status: 401 });
+  if (!(await authOk(req))) return Response.json({ error: "Non autorisé" }, { status: 401 });
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key) return Response.json({ error: "Supabase non configuré" }, { status: 503 });
@@ -71,7 +72,7 @@ export async function PATCH(req: NextRequest): Promise<Response> {
 }
 
 export async function DELETE(req: NextRequest): Promise<Response> {
-  if (!authOk(req)) return Response.json({ error: "Non autorisé" }, { status: 401 });
+  if (!(await authOk(req))) return Response.json({ error: "Non autorisé" }, { status: 401 });
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key) return Response.json({ error: "Supabase non configuré" }, { status: 503 });

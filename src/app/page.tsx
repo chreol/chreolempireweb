@@ -9,11 +9,11 @@ import WAPopover from "@/components/WAPopover";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const SERVICE_DATA = [
-  { image: IMAGES.psn,        tk: "svc.giftcards", color: "#C9A84C", href: "/services/cartes-cadeaux", stockId: "cartes-cadeaux", emoji: "🎮", price: "à partir de 7 500 FCFA" },
+  { image: IMAGES.psn,        tk: "svc.giftcards", color: "#C9A84C", href: "/services/cartes-cadeaux", stockId: "cartes-cadeaux", emoji: "🎮", price: "à partir de 8 500 FCFA" },
   { image: IMAGES.cryptoMomo, tk: "svc.crypto",    color: "#26A17B", href: "/services/crypto",          stockId: "crypto",         emoji: "₿",  price: "taux temps réel" },
   { image: IMAGES.coupons,    tk: "svc.coupons",   color: "#25D366", href: "/services/coupons",         stockId: "coupons",        emoji: "🎫", price: "450 FCFA/€" },
-  { image: IMAGES.factures,   tk: "svc.transfert", color: "#FF6B00", href: "/services/transfert",      stockId: "transfert",      emoji: "💸", price: "Envoyer / recevoir" },
-  { image: IMAGES.ubaCard,    tk: "svc.uba",       color: "#8B0000", href: "/services/uba",             stockId: "uba",            emoji: "💳", price: "à partir de 10 500 FCFA" },
+  { image: IMAGES.transfer,   tk: "svc.transfert", color: "#FF6B00", href: "/services/transfert",      stockId: "transfert",      emoji: "💸", price: "Envoyer / recevoir" },
+  { image: IMAGES.ubaCard,    tk: "svc.uba",       color: "#8B0000", href: "/services/uba",             stockId: "uba",            emoji: "💳", price: "Recharge sur demande" },
   { image: IMAGES.paypal2,    tk: "svc.paypal",    color: "#003087", href: "/services/paypal",          stockId: "paypal",         emoji: "💸", price: "580 FCFA/€" },
   { image: IMAGES.factures,   tk: "svc.factures",  color: "#FF6B00", href: "/services/factures",        stockId: "factures",       emoji: "🔄", price: "+200 FCFA par facture" },
 ];

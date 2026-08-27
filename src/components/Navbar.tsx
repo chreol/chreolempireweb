@@ -15,6 +15,7 @@ import GlobalSearch from "./GlobalSearch";
 const NAV_KEYS = [
   { href: "/",           key: "nav.home" },
   { href: "/services",   key: "nav.services" },
+  { href: "/blog",       key: "nav.blog" },
   { href: "/promo",      key: "nav.promo", highlight: true },
   { href: "/paiement",   key: "nav.payment" },
   { href: "/historique", key: "nav.history" },
@@ -49,11 +50,17 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 h-16 flex items-center justify-between gap-4">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 shrink-0">
-          <div className="relative w-9 h-9 rounded-xl overflow-hidden">
-            <Image src={IMAGES.logo} alt="Chreol Empire" fill style={{ objectFit: "cover" }} className="outline outline-1 -outline-offset-1 outline-white/10" unoptimized />
+          <div className="chreol-logo-wrap w-9 h-9">
+            <span className="chreol-logo-stars" aria-hidden="true"><span>✦</span><span>✦</span></span>
+            <Image src={IMAGES.logo} alt="Chreol Empire" fill style={{ objectFit: "contain" }} className="chreol-logo-spin" unoptimized />
           </div>
-          <span className="font-black text-[var(--text-primary)] text-lg leading-tight hidden sm:block">
-            Chreol<span style={{ color: "var(--gold)" }}>Empire</span>
+          <span className="flex flex-col leading-tight">
+            <span className="font-black text-[var(--text-primary)] text-lg whitespace-nowrap">
+              Chreol<span style={{ color: "var(--gold)" }}>Empire</span>
+            </span>
+            <span className="hidden sm:block text-[8px] font-bold uppercase tracking-wide whitespace-nowrap" style={{ color: "var(--text-muted)" }}>
+              Premium digital · Since 2012
+            </span>
           </span>
         </Link>
 
@@ -63,7 +70,7 @@ export default function Navbar() {
             <Link
               key={l.href}
               href={l.href}
-              className="px-3 py-1.5 rounded-full text-sm font-semibold transition-colors"
+              className="px-3 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap transition-colors"
               style={{
                 color: pathname === l.href ? "var(--bg-primary)" : ("highlight" in l && l.highlight && pathname !== l.href) ? "#F87171" : "var(--text-secondary)",
                 background: pathname === l.href ? "var(--gold)" : "transparent",

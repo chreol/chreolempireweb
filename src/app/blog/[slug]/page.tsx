@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { POSTS, getPost, type BlogSection } from "@/lib/blog";
 import { CONTACT } from "@/lib/services";
 
@@ -113,6 +114,9 @@ export default async function BlogPostPage({ params }: Props) {
 
       {/* Header */}
       <div className="mb-8">
+        <div className="relative w-full aspect-[16/7] rounded-2xl overflow-hidden mb-6" style={{ border: "1px solid var(--border)" }}>
+          <Image src={post.image} alt={post.title} fill priority sizes="(max-width: 768px) 100vw, 768px" className="object-cover" />
+        </div>
         <div className="flex flex-wrap items-center gap-2 mb-3">
           <span className="text-xs font-black uppercase tracking-widest px-2 py-0.5 rounded-full"
             style={{ background: "var(--gold)22", color: "var(--gold)" }}>

@@ -23,7 +23,7 @@ export default function ConfidentialitePage() {
           <div className="flex flex-col gap-1 pl-4">
             <p><span className="font-bold text-white">Entité :</span> Chreol Empire</p>
             <p><span className="font-bold text-white">Adresse :</span> Vallée 3, Boutiques Deido, Douala, Cameroun</p>
-            <p><span className="font-bold text-white">Contact :</span> contact@chreolempire.com / +237 694 360 978</p>
+            <p><span className="font-bold text-white">Contact :</span> contact@chreolempire.com / +237 697 657 734</p>
           </div>
         </section>
 
@@ -113,7 +113,7 @@ export default function ConfidentialitePage() {
               <li><span className="font-bold text-white">Droit à l&apos;effacement</span> : demander la suppression de vos données</li>
               <li><span className="font-bold text-white">Droit d&apos;opposition</span> : vous opposer au traitement de vos données</li>
             </ul>
-            <p>Pour exercer ces droits, contactez-nous via WhatsApp au +237 694 360 978 ou par email à contact@chreolempire.com. Nous répondrons dans un délai de 30 jours.</p>
+            <p>Pour exercer ces droits, contactez-nous via WhatsApp au +237 697 657 734 ou par email à contact@chreolempire.com. Nous répondrons dans un délai de 30 jours.</p>
           </div>
         </section>
 
@@ -133,7 +133,7 @@ export default function ConfidentialitePage() {
           <p className="pl-4">
             Pour toute question relative à la protection de vos données personnelles, contactez-nous via WhatsApp au{" "}
             <a href="https://wa.me/237694360978" target="_blank" rel="noopener noreferrer" className="font-bold hover:underline" style={{ color: "var(--gold)" }}>
-              +237 694 360 978
+              +237 697 657 734
             </a>{" "}
             ou par email à{" "}
             <a href="mailto:contact@chreolempire.com" className="font-bold hover:underline" style={{ color: "var(--gold)" }}>
