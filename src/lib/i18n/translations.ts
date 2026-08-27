@@ -525,9 +525,9 @@ export const T: TranslationMap = {
   "u.total_pay":      { fr: "Total à payer", en: "Total to pay" },
   "u.fees_grid":      { fr: "📋 Grille des frais de recharge", en: "📋 Top-up fees table" },
   "u.guide_title":    { fr: "Comment obtenir ou recharger une carte UBA — Étape par étape", en: "How to get or top up a UBA card — Step by step" },
-  "u.step1.t": { fr: "Choisissez votre segment de carte", en: "Choose your card segment" },
-  "u.step1.d": { fr: "Segment I (10 500 F · limite 2,5M/mois) · Segment II (17 500 F · limite 5M/mois) · Segment III (25 000 F · limite 10M/mois). Choisissez selon votre usage (shopping, Netflix, Amazon…).", en: "Segment I (10,500 F · 2.5M/month limit) · Segment II (17,500 F · 5M/month limit) · Segment III (25,000 F · 10M/month limit). Choose based on your use (shopping, Netflix, Amazon…)." },
-  "u.step1.tip": { fr: "Le Segment I est parfait pour débuter — utilisable sur tous les sites internationaux.", en: "Segment I is perfect to start — usable on all international sites." },
+  "u.step1.t": { fr: "Vérifiez la disponibilité", en: "Check availability" },
+  "u.step1.d": { fr: "L’achat de carte UBA est traité sur demande. Pour une carte existante, choisissez la recharge et vérifiez les frais selon le montant.", en: "UBA card purchase is handled on request. For an existing card, choose top-up and check the fee for your amount." },
+  "u.step1.tip": { fr: "Contactez-nous avant tout achat de carte pour confirmer la disponibilité.", en: "Contact us before buying a card to confirm availability." },
   "u.step2.t": { fr: "Fournissez vos documents", en: "Provide your documents" },
   "u.step2.d": { fr: "Notre agent vous demandera : photocopie CNI ou passeport, plan de localisation, demi-photo type passeport (fond blanc) et votre NUI. Envoyez-les via WhatsApp.", en: "Our agent will ask for: copy of ID card or passport, location plan, passport-style half photo (white background) and your TIN. Send them via WhatsApp." },
   "u.step2.tip": { fr: "Nous vous aidons à retrouver votre NUI si vous l'avez perdu (service 1 500 FCFA).", en: "We help you retrieve your TIN if you lost it (1,500 FCFA service)." },
@@ -546,7 +546,7 @@ export const T: TranslationMap = {
   "u.faq3.q": { fr: "La carte UBA Cameroun fonctionne-t-elle à l'international ?", en: "Does the UBA Cameroon card work internationally?" },
   "u.faq3.a": { fr: "Oui, c'est une carte Visa prépayée internationale. Utilisable sur tous les sites e-commerce mondiaux (Amazon, Netflix, PayPal, Booking…) et dans les terminaux physiques Visa à l'étranger.", en: "Yes, it's an international prepaid Visa card. Usable on all global e-commerce sites (Amazon, Netflix, PayPal, Booking…) and at physical Visa terminals abroad." },
   "u.faq4.q": { fr: "Combien coûte une carte UBA Cameroun à Douala ?", en: "How much does a UBA Cameroon card cost in Douala?" },
-  "u.faq4.a": { fr: "De 10 500 FCFA pour la carte Classic à 25 000 FCFA pour la carte Gold selon votre segment. Les frais de recharge varient de 1 500 FCFA fixe (petits montants) à 3% pour les rechargements supérieurs à 350 000 FCFA.", en: "From 10,500 FCFA for the Classic card to 25,000 FCFA for the Gold card depending on your segment. Top-up fees range from a fixed 1,500 FCFA (small amounts) to 3% for top-ups over 350,000 FCFA." },
+  "u.faq4.a": { fr: "Les frais de recharge sont de 1 000 FCFA pour 1 500 à 5 000 FCFA, de 2 000 FCFA pour 5 001 à 40 000 FCFA, puis de 5%, 4% ou 3,5% selon la tranche. Contactez-nous pour confirmer la disponibilité.", en: "Top-up fees are 1,000 FCFA for 1,500 to 5,000 FCFA, 2,000 FCFA for 5,001 to 40,000 FCFA, then 5%, 4% or 3.5% depending on the tier. Contact us to confirm availability." },
 
   // ── Factures page ──
   "fa.breadcrumb":   { fr: "Factures & MoMo", en: "Bills & MoMo" },

@@ -84,7 +84,7 @@ export default function MentionsLegalesPage() {
           </h2>
           <p className="pl-4">
             Pour toute question relative aux présentes mentions légales, vous pouvez nous contacter via WhatsApp au{" "}
-            <a href="https://wa.me/237694360978" target="_blank" rel="noopener noreferrer" className="font-bold hover:underline" style={{ color: "var(--gold)" }}>
+            <a href="https://wa.me/237697657734" target="_blank" rel="noopener noreferrer" className="font-bold hover:underline" style={{ color: "var(--gold)" }}>
               +237 697 657 734
             </a>{" "}
             ou par email à{" "}
