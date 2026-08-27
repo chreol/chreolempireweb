@@ -1,0 +1,20 @@
+{
+  "packageId": "com.chreolempire.shop",
+  "host": "shop.chreolempire.com",
+  "name": "CHREOL EMPIRE",
+  "launcherName": "Chreol Empire",
+  "display": "standalone",
+  "startUrl": "/",
+  "iconUrl": "https://shop.chreolempire.com/icon.png",
+  "maskableIconUrl": "https://shop.chreolempire.com/icon.png",
+  "themeColor": "#0A0A0A",
+  "navigationColor": "#0A0A0A",
+  "navigationColorDark": "#0A0A0A",
+  "navigationDividerColor": "#C9A84C",
+  "navigationDividerColorDark": "#C9A84C",
+  "backgroundColor": "#0A0A0A",
+  "enableNotifications": false,
+  "fallbackType": "customtabs",
+  "orientation": "portrait",
+  "webManifestUrl": "https://shop.chreolempire.com/manifest.webmanifest"
+}
