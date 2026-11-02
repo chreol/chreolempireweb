@@ -22,10 +22,10 @@ export default function MentionsLegalesPage() {
           </h2>
           <div className="flex flex-col gap-1 pl-4">
             <p><span className="font-bold text-white">Dénomination :</span> Chreol Empire</p>
-            <p><span className="font-bold text-white">Forme :</span> Entreprise individuelle</p>
+            <p><span className="font-bold text-white">Forme :</span> SARL — Chreol Empire</p>
             <p><span className="font-bold text-white">Responsable de publication :</span> Chreol Empire</p>
-            <p><span className="font-bold text-white">Adresse :</span> Vallée 3, Boutiques Deido, Douala, Cameroun</p>
-            <p><span className="font-bold text-white">Téléphone :</span> +237 694 360 978 · <span className="font-bold text-white">WhatsApp commercial :</span> +237 697 657 734</p>
+            <p><span className="font-bold text-white">Adresse :</span> Siège — Ékié / Dernier Poteau, Yaoundé – Cameroun · Annexe — Vallée 3, Boutiques Deido, Douala – Cameroun</p>
+            <p><span className="font-bold text-white">Téléphone :</span> +237 683 682 958 · <span className="font-bold text-white">WhatsApp commercial :</span> +237 697 657 734</p>
             <p><span className="font-bold text-white">Email :</span> contact@chreolempire.com</p>
             <p><span className="font-bold text-white">Activité depuis :</span> 2012</p>
           </div>
@@ -80,7 +80,16 @@ export default function MentionsLegalesPage() {
 
         <section>
           <h2 className="text-base font-black text-white mb-3" style={{ borderLeft: "3px solid var(--gold)", paddingLeft: "0.75rem" }}>
-            7. Contact
+            7. Modes de paiement
+          </h2>
+          <p className="pl-4">
+            Les modes de paiement acceptés par Chreol Empire sont : MTN Mobile Money, Orange Money, Express Union, Yoomee Money, virements bancaires (banques Afriland First Bank et UBA Cameroun), paiement en espèces en boutique, échange PayPal Europe (achat / vente), cryptomonnaies (USDT, BTC, TRX, …), ainsi que le module de paiement Iwopay pour les validations automatiques.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-base font-black text-white mb-3" style={{ borderLeft: "3px solid var(--gold)", paddingLeft: "0.75rem" }}>
+            8. Contact
           </h2>
           <p className="pl-4">
             Pour toute question relative aux présentes mentions légales, vous pouvez nous contacter via WhatsApp au{" "}

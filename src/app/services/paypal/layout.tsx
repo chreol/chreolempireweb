@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: { absolute: "PayPal Europe en FCFA — Achat & Vente au Cameroun | Chreol Empire" },
-  description: "Vendez votre solde PayPal Europe contre FCFA (580 FCFA/€) ou achetez du solde PayPal (700 FCFA/€). Paiement MTN MoMo / Orange Money. Traitement en 15-30 min. Douala, Cameroun.",
+  description: "Vendez votre solde PayPal Europe contre FCFA (520 FCFA/€) ou achetez du solde PayPal (700 FCFA/€). Paiement MTN MoMo / Orange Money. Traitement en 15-30 min. Douala, Cameroun.",
   keywords: ["PayPal cameroun", "vendre PayPal FCFA", "acheter PayPal cameroun", "PayPal contre FCFA douala", "solde PayPal europe cameroun"],
   alternates: { canonical: "https://shop.chreolempire.com/services/paypal" },
   openGraph: {
     title: "PayPal Europe ↔ FCFA | Chreol Empire Douala",
-    description: "Vendez 580 FCFA/€ ou achetez 700 FCFA/€ de solde PayPal. MTN MoMo / Orange Money.",
+    description: "Vendez 520 FCFA/€ ou achetez 700 FCFA/€ de solde PayPal. MTN MoMo / Orange Money.",
     url: "https://shop.chreolempire.com/services/paypal",
     images: [{ url: "/assets/Achat_VentePaypal.webp", width: 1200, height: 630, alt: "PayPal Europe contre FCFA Cameroun" }],
   },
@@ -27,13 +27,13 @@ const SERVICE_SCHEMA = {
   "@context": "https://schema.org",
   "@type": "Service",
   "name": "Achat & Vente PayPal Europe en FCFA",
-  "description": "Échangez votre solde PayPal Europe contre FCFA à Douala. Achat à 700 FCFA/€, vente à 580 FCFA/€. Paiement MTN MoMo ou Orange Money.",
+  "description": "Échangez votre solde PayPal Europe contre FCFA à Douala. Achat à 700 FCFA/€, vente à 520 FCFA/€. Paiement MTN MoMo ou Orange Money.",
   "provider": { "@type": "LocalBusiness", "name": "Chreol Empire", "address": { "@type": "PostalAddress", "addressLocality": "Douala", "addressCountry": "CM" } },
   "areaServed": { "@type": "Country", "name": "Cameroun" },
   "offers": {
     "@type": "AggregateOffer",
     "priceCurrency": "XAF",
-    "lowPrice": "5800",
+    "lowPrice": "2600",
     "highPrice": "700000",
     "offerCount": 2,
     "availability": "https://schema.org/InStock",

@@ -15,7 +15,7 @@ const SERVICE_DATA = [
   { image: IMAGES.transcash,  tk: "svc.coupons",   emoji: "🎫", color: "#25D366", href: "/services/coupons",         stockId: "coupons",        cat: "fintech" as ServiceCat, tags: ["Transcash", "PCS", "450 FCFA/€", "Mobile Money"] },
   { image: IMAGES.transfer,   tk: "svc.transfert", emoji: "💸", color: "#FF6B00", href: "/services/transfert",      stockId: "transfert",      cat: "fintech" as ServiceCat, tags: ["transfert","virement","mobile money"] },
   { image: IMAGES.ubaCard,    tk: "svc.uba",       emoji: "💳", color: "#8B0000", href: "/services/uba",             stockId: "uba",            cat: "fintech" as ServiceCat, tags: ["Segment I", "Segment II", "Segment III", "Recharge"] },
-  { image: IMAGES.paypal2,    tk: "svc.paypal",    emoji: "💸", color: "#003087", href: "/services/paypal",          stockId: "paypal",         cat: "fintech" as ServiceCat, tags: ["PayPal", "700 FCFA/€", "Europe", "France"] },
+  { image: IMAGES.paypal2,    tk: "svc.paypal",    emoji: "💸", color: "#003087", href: "/services/paypal",          stockId: "paypal",         cat: "fintech" as ServiceCat, tags: ["PayPal", "520 FCFA/€", "Europe", "France"] },
   { image: IMAGES.factures,   tk: "svc.factures",  emoji: "🔄", color: "#FF6B00", href: "/services/factures",        stockId: "factures",       cat: "fintech" as ServiceCat, tags: ["Canal+", "Eneo", "Camwater", "StarTimes", "MoMo"] },
 ];
 
@@ -32,7 +32,7 @@ const POPULAR = [
   { image: IMAGES.roblox,   name: "Robux 800R",      price: "10 500 FCFA", href: "/services/cartes-cadeaux?tab=robux&card=robux&amount=800%20Robux&region=EU", color: "#E8232A", badge: "👾 Trending",     prefill: "🎮 Je veux commander 800 Robux — 10 500 FCFA" },
   { image: IMAGES.crypto,   name: "USDT 10$",        price: "5 800 FCFA",  href: "/services/crypto",          color: "#26A17B", badge: "₿ 0% commission", prefill: "💱 Je veux vendre 10 USDT (TRC20) — environ 5 800 FCFA" },
   { image: IMAGES.itunes,   name: "iTunes 25€",      price: "18 500 FCFA", href: "/services/cartes-cadeaux?tab=itunes&card=itunes&amount=25%E2%82%AC&region=EU", color: "#0A84FF", badge: "🎵 Populaire",    prefill: "🎵 Je veux commander iTunes/App Store 25€ — 18 500 FCFA" },
-  { image: IMAGES.paypal2,  name: "PayPal 20€",      price: "11 600 FCFA", href: "/services/paypal",          color: "#003087", badge: "💸 Express",      prefill: "💸 Je veux vendre 20€ PayPal — environ 11 600 FCFA" },
+  { image: IMAGES.paypal2,  name: "PayPal 20€",      price: "10 400 FCFA", href: "/services/paypal",          color: "#003087", badge: "💸 Express",      prefill: "💸 Je veux vendre 20€ PayPal — environ 10 400 FCFA" },
   { image: IMAGES.nintendo, name: "Nintendo 50€",    price: "35 800 FCFA", href: "/services/cartes-cadeaux?tab=standard&card=nintendo&amount=50%E2%82%AC&region=EU", color: "#E70012", badge: "🎮 Populaire",    prefill: "🎮 Je veux commander Nintendo eShop 50€ — 35 800 FCFA" },
   { image: IMAGES.razer,    name: "Razer Gold 20€",  price: "15 800 FCFA", href: "/services/cartes-cadeaux?tab=standard&card=razer&amount=20%E2%82%AC&region=EU", color: "#44D62C", badge: "⚡ Rapide",       prefill: "🎮 Je veux commander Razer Gold 20€ — 15 800 FCFA" },
 ];

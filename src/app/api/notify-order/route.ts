@@ -325,7 +325,7 @@ function buildAdminEmail(p: NotifyPayload, markDoneUrl: string, markCancelUrl: s
   </table>
 
   <p style="text-align:center;font-size:11px;color:#9CA3AF;margin-top:16px">
-    Chreol Empire · Douala, Cameroun · contact@chreolempire.com
+    Chreol Empire · Cameroun · contact@chreolempire.com
   </p>
 </div>
 </body></html>`;
@@ -529,7 +529,7 @@ function buildClientEmail(p: NotifyPayload): string {
 
       <!-- Footer -->
       <p style="margin:24px 0 0;text-align:center;font-size:11px;color:#9CA3AF">
-        © ${year} Chreol Empire · Boutiques Deido, Vallée 3, Douala, Cameroun<br>
+        © ${year} Chreol Empire · Vallée 3, Boutiques Deido, Douala – Cameroun<br>
         0% commission · Livraison express 15–30 min ·
         <a href="https://shop.chreolempire.com" target="_blank" rel="noopener noreferrer" style="color:#B45309;text-decoration:none;">chreolempire.com</a>
       </p>
@@ -658,6 +658,15 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: "Email non configuré" }, { status: 503 });
   }
 
+  // Sécurité : secret interne optionnel (défini côté serveur) pour les endpoints de notification
+  const internalSecret = process.env.INTERNAL_API_SECRET;
+  if (internalSecret) {
+    const h = request.headers.get("x-internal-secret");
+    if (h !== internalSecret) {
+      return Response.json({ error: "Non autorisé" }, { status: 401 });
+    }
+  }
+
   let p: NotifyPayload;
   try {
     p = await request.json() as NotifyPayload;
@@ -669,12 +678,41 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: "Champs requis manquants" }, { status: 400 });
   }
 
+  // ── Anti-doublon : si une commande pending existe déjà pour cet email, on ne re-notifie pas ──
+  let duplicateOrder = false;
+  const sbUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const sbKey = process.env.SUPABASE_SERVICE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
+  if (sbUrl && sbKey) {
+    try {
+      const since = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+      const dupRes = await fetch(
+        `${sbUrl}/rest/v1/orders` +
+        `?select=id,total,summary,created_at` +
+        `&client_email=eq.${encodeURIComponent(p.clientEmail)}` +
+        `&status=eq.pending` +
+        `&created_at=gte.${encodeURIComponent(since)}` +
+        `&order=created_at.desc` +
+        `&limit=1`,
+        { headers: { apikey: sbKey, Authorization: `Bearer ${sbKey}` } },
+      );
+      if (dupRes.ok) {
+        const rows = await dupRes.json().catch(() => []);
+        duplicateOrder = Array.isArray(rows) && rows.length > 0;
+      }
+    } catch { /* ignore */ }
+  }
+
   const senderIdRaw = process.env.BREVO_SENDER_ID;
   const sender = senderIdRaw
     ? { id: parseInt(senderIdRaw, 10) }
     : { name: "Chreol Empire", email: process.env.BREVO_SENDER_EMAIL ?? "contact@chreolempire.com" };
   const adminMail = process.env.ADMIN_EMAIL ?? "contact@chreolempire.com";
   const ref       = p.orderId.slice(-8).toUpperCase();
+
+  if (duplicateOrder) {
+    // Commande déjà notifiée / enregistrée → on évite un double email + double insert
+    return Response.json({ ok: true, duplicate: true, ref, admin: 0, client: 0, telegram: 0 });
+  }
 
   // Résoudre l'URL complète de la source à partir de l'origine de la requête
   if (p.sourceUrl && p.sourceUrl.startsWith("/")) {

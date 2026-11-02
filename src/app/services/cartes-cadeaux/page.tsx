@@ -17,7 +17,7 @@ import GoogleReviewPrompt from "@/components/GoogleReviewPrompt";
 
 // FAQ en français pour le JSON-LD SEO
 const FAQ_FR = [
-  { q: "Où acheter des cartes cadeaux PSN en FCFA à Douala ?", a: "Chreol Empire est votre boutique locale à Douala (Vallée 3, Deido). Commandez vos cartes PSN, Steam, Nintendo, Roblox ou iTunes directement via WhatsApp — livraison du code en 15 minutes, paiement MTN MoMo ou Orange Money." },
+  { q: "Où acheter des cartes cadeaux PSN en FCFA à Douala ?", a: "Chreol Empire est votre boutique locale à Douala (Vallée 3, Boutiques Deido). Commandez vos cartes PSN, Steam, Nintendo, Roblox ou iTunes directement via WhatsApp — livraison du code en 15 minutes, paiement MTN MoMo ou Orange Money." },
   { q: "Peut-on payer une carte Steam avec MTN MoMo au Cameroun ?", a: "Oui, tous nos modes de paiement Mobile Money sont acceptés : MTN MoMo, Orange Money, Express Union et Yoomee Money. Aucune carte bancaire requise. Commande et livraison 100% via WhatsApp." },
   { q: "Combien coûte une carte PSN 20€ en FCFA ?", a: "15 800 FCFA selon la grille actuelle. Le prix exact est confirmé au moment de la commande selon la région et le taux du jour." },
   { q: "Les codes vendus par Chreol Empire sont-ils originaux ?", a: "Oui, absolument. Tous nos codes proviennent de sources officielles et vérifiées. En cas de code invalide à l'activation, nous le remplaçons ou remboursons intégralement, sans discussion." },

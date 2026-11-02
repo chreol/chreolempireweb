@@ -20,7 +20,7 @@ import { Field, CalcRow } from "@/components/FormField";
 // FAQ en français pour le JSON-LD SEO
 const FAQ_FR = [
   { q: "Comment vendre son solde PayPal en FCFA au Cameroun ?", a: "3 étapes simples : (1) envoyez le montant en € à notre compte PayPal communiqué sur WhatsApp, (2) partagez la capture de confirmation d'envoi, (3) recevez votre FCFA sur MTN MoMo ou Orange Money en moins de 30 minutes. Taux garanti au moment de la transaction." },
-  { q: "Quel est le taux de change PayPal en FCFA en 2026 ?", a: "Nous achetons votre solde PayPal à 580 FCFA par euro et vendons à 700 FCFA par euro. Ces taux sont mis à jour régulièrement selon le marché. Consultez notre ticker en haut de page pour le cours en temps réel." },
+  { q: "Quel est le taux de change PayPal en FCFA en 2026 ?", a: "Nous achetons votre solde PayPal à 520 FCFA par euro et vendons à 700 FCFA par euro. Ces taux sont mis à jour régulièrement selon le marché. Consultez notre ticker en haut de page pour le cours en temps réel." },
   { q: "Peut-on acheter du solde PayPal avec Orange Money au Cameroun ?", a: "Oui, minimum 3 500 FCFA (environ 5€). Payez via Orange Money, MTN MoMo ou Express Union et recevez le solde PayPal correspondant dans les 30 minutes. Votre compte PayPal doit être européen (France, Belgique, Suisse…)." },
   { q: "Chreol Empire travaille-t-il avec les comptes PayPal camerounais ?", a: "Non. Nous travaillons uniquement avec des comptes PayPal européens (France, Belgique, Italie, Espagne, Suisse…). Les comptes africains ou camerounais ne sont pas éligibles en raison des restrictions PayPal sur les transferts internationaux." },
 ];
@@ -366,14 +366,14 @@ export default function PaypalPage() {
               {direction === "sell" ? (
                 <>
                   <CalcRow label={t("pp.sold")} value={`${displayEur.toFixed(2)}€`} />
-                  <CalcRow label={t("pp.buy_rate")} value={`1€ = ${sellRate} FCFA`} />
+                  <CalcRow label={t("pp.sell_rate")} value={`1€ = ${sellRate} FCFA`} />
                   <CalcRow label="Commission" value={t("common.commission_0")} />
                   <CalcRow label={t("common.you_receive")} value={`${fcfaResult.toLocaleString("fr-FR")} FCFA`} highlight />
                 </>
               ) : (
                 <>
                   <CalcRow label={t("pp.fcfa_to_pay")} value={`${displayFcfa.toLocaleString("fr-FR")} FCFA`} />
-                  <CalcRow label={t("pp.sell_rate")} value={`1€ = ${buyRate} FCFA`} />
+                  <CalcRow label={t("pp.buy_rate")} value={`1€ = ${buyRate} FCFA`} />
                   <CalcRow label="Commission" value={t("common.commission_0")} />
                   <CalcRow label={t("common.you_receive")} value={`${eurResult}€`} highlight />
                 </>

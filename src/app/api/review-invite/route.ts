@@ -80,7 +80,7 @@ function buildReviewEmail(name: string): string {
       </table>
 
       <p style="margin:24px 0 0;text-align:center;font-size:11px;color:#9CA3AF">
-        © ${year} Chreol Empire · Boutiques Deido, Vallée 3, Douala, Cameroun<br>
+        © ${year} Chreol Empire · Vallée 3, Boutiques Deido, Douala – Cameroun<br>
         chreolempire.com
       </p>
 

@@ -44,3 +44,6 @@ next-env.d.ts
 .env.local
 .vercel
 simulate-order.mjs
+
+# generated Android TWA project and local signing material
+/android-twa/generated/

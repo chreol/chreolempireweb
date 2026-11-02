@@ -3,12 +3,13 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useCart } from "@/contexts/CartContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Lang } from "@/lib/i18n/translations";
-import { IMAGES } from "@/lib/services";
+import { IMAGES, NAV_SERVICES } from "@/lib/services";
+import ServicesMenu from "./ServicesMenu";
 import WAPopover from "./WAPopover";
 import GlobalSearch from "./GlobalSearch";
 
@@ -24,10 +25,13 @@ const NAV_KEYS = [
 
 export default function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
   const { count } = useCart();
   const { theme, toggleTheme } = useTheme();
   const { lang, setLang, t } = useLanguage();
   const [searchOpen, setSearchOpen] = useState(false);
+  const [servicesOpen, setServicesOpen] = useState(false);
+  const isServicesActive = pathname.startsWith("/services");
 
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
@@ -66,7 +70,10 @@ export default function Navbar() {
 
         {/* Nav links — desktop */}
         <nav className="hidden lg:flex items-center gap-1">
-          {NAV_KEYS.map(l => (
+          {NAV_KEYS.map(l => l.href === "/services" ? (
+            /* Services — sous-menu (dropdown) */
+            <ServicesMenu key="services" />
+          ) : (
             <Link
               key={l.href}
               href={l.href}
@@ -154,40 +161,88 @@ export default function Navbar() {
       </div>
 
       {/* Mobile nav */}
-      <div
-        className="lg:hidden flex overflow-x-auto gap-1 px-4 pb-3 pt-1 no-scrollbar"
-        style={{ borderTop: "1px solid var(--border)" }}
-      >
-        {NAV_KEYS.map(l => (
-          <Link
-            key={l.href}
-            href={l.href}
-            className="shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors whitespace-nowrap"
-            style={{
-              color: pathname === l.href ? "var(--bg-primary)" : "var(--text-secondary)",
-              background: pathname === l.href ? "var(--gold)" : "var(--bg-elevated)",
-            }}
-          >
-            {t(l.key)}
-          </Link>
-        ))}
-        {/* Mobile search + theme */}
-        <div className="shrink-0 flex items-center gap-1 ml-auto">
-          <button
-            onClick={() => setSearchOpen(true)}
-            className="w-7 h-7 flex items-center justify-center rounded-full text-xs"
-            style={{ background: "var(--bg-elevated)" }}
-          >
-            🔍
-          </button>
-          <button
-            onClick={toggleTheme}
-            className="w-7 h-7 flex items-center justify-center rounded-full text-xs"
-            style={{ background: "var(--bg-elevated)" }}
-          >
-            {theme === "dark" ? "☀️" : "🌙"}
-          </button>
+      <div>
+        <div
+          className="lg:hidden flex overflow-x-auto gap-1 px-4 pb-3 pt-1 no-scrollbar"
+          style={{ borderTop: "1px solid var(--border)" }}
+        >
+          {NAV_KEYS.map(l => l.href === "/services" ? (
+            /* Services — sous-menu (panneau expansible) */
+            <button
+              key="services"
+              type="button"
+              onClick={() => setServicesOpen(v => !v)}
+              className="shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors whitespace-nowrap"
+              style={{
+                color: isServicesActive ? "var(--bg-primary)" : "var(--text-secondary)",
+                background: isServicesActive ? "var(--gold)" : "var(--bg-elevated)",
+              }}
+            >
+              {t(l.key)}
+              <span className="text-[9px] font-black" style={{ color: isServicesActive ? "var(--bg-primary)" : "var(--text-muted)" }}>▾</span>
+            </button>
+          ) : (
+            <Link
+              key={l.href}
+              href={l.href}
+              className="shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors whitespace-nowrap"
+              style={{
+                color: pathname === l.href ? "var(--bg-primary)" : "var(--text-secondary)",
+                background: pathname === l.href ? "var(--gold)" : "var(--bg-elevated)",
+              }}
+            >
+              {t(l.key)}
+            </Link>
+          ))}
+          {/* Mobile search + theme */}
+          <div className="shrink-0 flex items-center gap-1 ml-auto">
+            <button
+              onClick={() => setSearchOpen(true)}
+              className="w-7 h-7 flex items-center justify-center rounded-full text-xs"
+              style={{ background: "var(--bg-elevated)" }}
+            >
+              🔍
+            </button>
+            <button
+              onClick={toggleTheme}
+              className="w-7 h-7 flex items-center justify-center rounded-full text-xs"
+              style={{ background: "var(--bg-elevated)" }}
+            >
+              {theme === "dark" ? "☀️" : "🌙"}
+            </button>
+          </div>
         </div>
+
+        {/* Services — sous-menu : liste flexible des services */}
+        {servicesOpen && (
+          <div className="lg:hidden px-4 pb-4 pt-2">
+            <div className="grid grid-cols-2 gap-2">
+              {NAV_SERVICES.map(s => (
+                <button
+                  key={s.slug}
+                  type="button"
+                  onClick={() => { setServicesOpen(false); router.push(s.href); }}
+                  className="flex items-center gap-3 p-3 rounded-2xl text-left transition-colors min-h-[44px]"
+                  style={{ background: "var(--bg-card)", border: `1px solid ${s.color}33` }}
+                >
+                  <span className="w-10 h-10 rounded-xl flex items-center justify-center text-xl shrink-0" style={{ background: `${s.color}18` }}>{s.emoji}</span>
+                  <span className="min-w-0">
+                    <span className="block text-xs font-black text-white truncate">{t(`${s.tk}.title`)}</span>
+                    <span className="block text-[10px] font-bold truncate" style={{ color: "var(--text-muted)" }}>{t(`${s.tk}.sub`)}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+            <Link
+              href="/services"
+              onClick={() => setServicesOpen(false)}
+              className="mt-3 w-full py-2.5 rounded-xl font-black text-xs flex items-center justify-center transition-opacity hover:opacity-85"
+              style={{ background: "var(--bg-elevated)", color: "var(--text-secondary)", border: "1px solid var(--border)" }}
+            >
+              {t("btn.see_all")}
+            </Link>
+          </div>
+        )}
       </div>
     </header>
     </>

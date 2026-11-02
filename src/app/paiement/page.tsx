@@ -89,7 +89,7 @@ export default function PaiementPage() {
           </div>
         </div>
         <p className="text-sm mb-5" style={{ color: "var(--text-secondary)" }}>
-          PAssez le numero de téléphone ou effectuez vous-même le paiement via le code USSD correspondant de votre opérateur.
+          Payez le numéro de téléphone ou effectuez vous-même le paiement via le code USSD correspondant de votre opérateur.
         </p>
 
         {/* MTN */}
@@ -123,8 +123,8 @@ export default function PaiementPage() {
             <p className="font-black text-white text-sm">🟠 Orange Money / Transfert UV</p>
           </div>
           <div className="flex flex-col gap-2 text-xs mb-3" style={{ color: "var(--text-secondary)" }}>
-            <div className="flex justify-between"><span>Code</span><span className="font-black text-white">692251299</span></div>
-            <div className="flex justify-between"><span>Nom</span><span className="font-black text-white">Ets Tagny</span></div>
+            <div className="flex justify-between"><span>Code Marchand</span><span className="font-black text-white">1052061</span></div>
+            <div className="flex justify-between"><span>Nom</span><span className="font-black text-white">Chreol Empire</span></div>
           </div>
           <div className="rounded-xl p-3" style={{ background: "var(--bg-elevated)", border: "1px solid #FF660033" }}>
             <p className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: "#FF6600" }}>🛠 Code USSD à composer</p>
@@ -149,7 +149,7 @@ export default function PaiementPage() {
             { image: IMAGES.yoomee, title: "Yoomee Money", text: "Disponible sur demande auprès de notre équipe." },
             { image: IMAGES.crypto, title: "Cryptomonnaies", text: "USDT, BTC, SOL, TRX, BNB et autres actifs acceptés selon le service." },
             { image: IMAGES.paypal, title: "PayPal Europe", text: "Solde PayPal européen accepté pour les services éligibles." },
-            { image: IMAGES.logo, title: "Espèces en boutique", text: "Disponible à Vallée 3, Boutiques Deido, Douala." },
+            { image: IMAGES.logo, title: "Espèces en boutique", text: "Disponible à Vallée 3, Boutiques Deido, Douala – Cameroun." },
           ].map(method => (
             <div key={method.title} className="flex items-center gap-3 rounded-2xl p-3" style={{ background: "var(--bg-elevated)" }}>
               <div className="relative w-10 h-10 rounded-xl overflow-hidden shrink-0">
@@ -164,6 +164,65 @@ export default function PaiementPage() {
         </div>
       </div>
 
+      {/* ═══ PAISEMENT MANUEL — VIREMENTS BANCAIRES & MOBILE MONEY ═══ */}
+      <div className="rounded-3xl p-6 mb-8" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+        <h2 className="text-base font-black text-white mb-2">🏦 Paiement manuel</h2>
+        <p className="text-xs mb-4" style={{ color: "var(--text-secondary)" }}>
+          Virements bancaires ou Mobile Money — instructions et justificatifs.
+        </p>
+
+        <div className="rounded-2xl p-4 mb-4" style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)" }}>
+          <p className="text-xs font-black text-white mb-3">🏛 Virements bancaires — CHREOL EMPIRE SARL</p>
+          <p className="text-xs mb-2" style={{ color: "var(--text-secondary)" }}>🏦 Afriland First Bank — IBAN : CM21 10005 00026 00000230112 26 — SWIFT : CCEICMCX</p>
+          <p className="text-xs mb-2" style={{ color: "var(--text-secondary)" }}>🏦 UBA Cameroun — IBAN : CM21 10033 05221 21011000384 92 — SWIFT : UNAFCMCX</p>
+          <p className="text-[11px]" style={{ color: "var(--text-muted)" }}>Payez le montant exact, puis envoyez la capture / justificatif de virement sur WhatsApp.</p>
+        </div>
+
+        <div className="rounded-2xl p-4" style={{ background: "#FF660010", border: "1px solid #FF660044" }}>
+          <div className="flex items-center gap-2 mb-3">
+            <div className="relative w-7 h-7 rounded-lg overflow-hidden shrink-0">
+              <Image src={IMAGES.orange} alt="Orange" fill style={{ objectFit: "cover" }} unoptimized />
+            </div>
+            <p className="font-black text-white text-sm">🟠 Orange Money / Transfert UV</p>
+          </div>
+          <div className="flex flex-col gap-2 text-xs mb-3" style={{ color: "var(--text-secondary)" }}>
+            <div className="flex justify-between"><span>Code Marchand</span><span className="font-black text-white">1052061</span></div>
+            <div className="flex justify-between"><span>Nom</span><span className="font-black text-white">Chreol Empire</span></div>
+          </div>
+          <div className="rounded-xl p-3" style={{ background: "var(--bg-elevated)", border: "1px solid #FF660033" }}>
+            <p className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: "#FF6600" }}>🛠 Code USSD à composer</p>
+            <div className="flex items-center gap-2">
+              <code className="flex-1 text-sm font-black tracking-wider" style={{ color: "#FF6600" }}>{OM_USSD}</code>
+              <CopyBtn text={OM_USSD} />
+            </div>
+            <p className="text-[10px] mt-2" style={{ color: "var(--text-muted)" }}>Remplacez <strong>MONTANT</strong> par le montant exact de votre commande</p>
+          </div>
+        </div>
+      </div>
+
+      {/* ═══ PAIMENT RAPIDE — IWOPAY ═══ */}
+      <div className="rounded-3xl p-6 mb-8" style={{ background: "#C9A84C10", border: "1px solid #C9A84C44" }}>
+        <h2 className="text-base font-black text-white mb-2">💨 Paiement rapide — Iwopay</h2>
+        <p className="text-sm mb-4" style={{ color: "var(--text-secondary)" }}>
+          Réglez directement via Iwopay pour une validation automatique et un payout rapide (statuts 100 / 01).
+        </p>
+        <div className="flex items-center gap-3 rounded-2xl p-4" style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)" }}>
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center text-2xl shrink-0" style={{ background: "#C9A84C22" }}>💨</div>
+          <div>
+            <p className="text-xs font-black text-white">💨 Iwopay — Paiement rapide</p>
+            <p className="text-[11px] mt-0.5" style={{ color: "var(--text-secondary)" }}>Paiement en ligne avec validation automatique (statut 100 / 01 → payout automatique).</p>
+          </div>
+        </div>
+        <WAPopover
+          prefill="💨 Bonjour Chreol Empire, je souhaite régler un paiement via Iwopay."
+          className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 rounded-full font-black text-white text-xs transition-opacity hover:opacity-80"
+          style={{ background: "#C9A84C22", border: "1px solid #C9A84C55" }}
+        >
+          <span style={{ fontSize: 14 }}>💨</span>
+          Payer via Iwopay
+        </WAPopover>
+      </div>
+
       {/* ═══ IMPORTANT — Preuve de paiement ═══ */}
       <div className="rounded-2xl p-5 mb-8 flex gap-4" style={{ background: "#EF44440D", border: "1.5px solid #EF444455" }}>
         <span className="text-2xl shrink-0">⚠️</span>
@@ -173,7 +232,7 @@ export default function PaiementPage() {
             Une fois le paiement effectué (option A ou B), envoyez impérativement la <strong className="text-white">capture d&apos;écran</strong> ou la preuve de transaction sur WhatsApp pour déclencher l&apos;envoi immédiat de vos fonds.
           </p>
           <p className="text-xs font-black mt-2" style={{ color: "#EF4444" }}>
-            Bring back the screenshot proof of transaction!
+            {t("pay2.proof_en")}
           </p>
         </div>
       </div>

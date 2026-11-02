@@ -125,6 +125,7 @@ export default function CartPage() {
 
   async function handleConfirmOrder() {
     if (!selectedOp) return;
+    if (loading) return;
     setLoading(true);
 
     const opLabel = opConfig?.label ?? "Via WhatsApp";

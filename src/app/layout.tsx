@@ -83,14 +83,14 @@ const LOCAL_BUSINESS_JSON = {
   "@context": "https://schema.org",
   "@type": "LocalBusiness",
   "name": "Chreol Empire",
-  "description": "Boutique en ligne spécialisée en cartes cadeaux numériques (PSN, iTunes, Roblox, Steam) et échange de cryptomonnaies (USDT, BTC, TRX) à Douala, Cameroun.",
+  "description": "Boutique en ligne spécialisée en cartes cadeaux numériques (PSN, iTunes, Roblox, Steam) et échange de cryptomonnaies (USDT, BTC, TRX) au Cameroun : Siège à Ékié / Dernier Poteau, Yaoundé et Annexe à Vallée 3, Boutiques Deido, Douala.",
   "url": "https://shop.chreolempire.com",
   "telephone": "+237694360978",
   "email": "contact@chreolempire.com",
   "address": {
     "@type": "PostalAddress",
-    "streetAddress": "Vallée 3, Boutiques Deido",
-    "addressLocality": "Douala",
+    "streetAddress": "Ékié / Dernier Poteau",
+    "addressLocality": "Yaoundé",
     "addressCountry": "CM"
   },
   "geo": { "@type": "GeoCoordinates", "latitude": 4.0511, "longitude": 9.7679 },
@@ -309,6 +309,26 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     <Link href="/confidentialite" className="hover:text-white transition-colors">Confidentialité</Link>
                     <span>·</span>
                     <Link href="/mentions-legales" className="hover:text-white transition-colors">Mentions légales</Link>
+                  </div>
+                </div>
+              </div>
+
+              {/* ── Mentions légales & informations société ── */}
+              <div className="mt-8 pt-8" style={{ borderTop: "1px solid var(--border)" }}>
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 pb-8">
+                  <div className="flex flex-col lg:flex-row lg:items-start gap-5">
+                    <div className="flex items-start gap-3">
+                      <div className="relative w-10 h-10 rounded-xl overflow-hidden shrink-0" style={{ background: "#C9A84C22" }}>
+                        <Image src={IMAGES.logo} alt="Chreol Empire" fill style={{ objectFit: "contain" }} unoptimized />
+                      </div>
+                      <div>
+                        <p className="font-black text-xs" style={{ color: "var(--gold)" }}>CHREOL EMPIRE SARL</p>
+                        <p className="text-[11px] font-bold mb-0.5" style={{ color: "var(--text-secondary)" }}>RCCM : CM-NSI-02-2026-B12-0898 — NIU : M092618984598Y</p>
+                        <p className="text-[11px] mb-1" style={{ color: "var(--text-secondary)" }}>📍 Siège social : <a href={SOCIAL_LINKS.mapsSiege} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors" style={{ color: "var(--text-secondary)" }}>Ékié / Dernier Poteau, Yaoundé – Cameroun</a></p>
+                        <p className="text-[11px] font-bold mt-1" style={{ color: "var(--text-secondary)" }}>📍 Annexe — <a href={SOCIAL_LINKS.mapsAnnexe} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors" style={{ color: "var(--text-secondary)" }}>Vallée 3, Boutiques Deido, Douala – Cameroun</a></p>
+                        <p className="text-[11px] font-bold mt-2" style={{ color: "var(--text-secondary)" }}>📞 Téléphone : +237 683 682 958</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

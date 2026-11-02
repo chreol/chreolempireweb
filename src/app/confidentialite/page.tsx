@@ -22,7 +22,7 @@ export default function ConfidentialitePage() {
           </h2>
           <div className="flex flex-col gap-1 pl-4">
             <p><span className="font-bold text-white">Entité :</span> Chreol Empire</p>
-            <p><span className="font-bold text-white">Adresse :</span> Vallée 3, Boutiques Deido, Douala, Cameroun</p>
+            <p><span className="font-bold text-white">Adresse :</span> Vallée 3, Boutiques Deido, Douala – Cameroun</p>
             <p><span className="font-bold text-white">Contact :</span> contact@chreolempire.com / +237 697 657 734</p>
           </div>
         </section>

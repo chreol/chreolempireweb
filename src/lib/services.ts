@@ -3,7 +3,7 @@ export const CONTACT = {
   whatsappDisplay: "+237 697 657 734",
   tel: "+237694360978",
   email: "contact@chreolempire.com",
-  address: "Vallée 3, Boutiques Deido, Douala, Cameroun",
+  address: "Siège : Ékié / Dernier Poteau, Yaoundé – Cameroun · Annexe : Vallée 3, Boutiques Deido, Douala – Cameroun",
   paypalEmail: "LARAMBAMBO@GMAIL.COM",
 };
 
@@ -16,6 +16,8 @@ export const SOCIAL_LINKS = {
   googleReview:  "https://g.page/r/CQaaC7b5Jbg_EAE/review",
   businesslist:  "https://www.businesslist.co.cm/company/138059/chreol-empire-services-digitaux",
   trustpilot:    "https://trustpilot.com/review/monelecam.fr",
+  mapsSiege:     "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent("Ékié / Dernier Poteau, Yaoundé, Cameroun"),
+  mapsAnnexe:     "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent("Vallée 3, Boutiques Deido, Douala, Cameroun"),
 };
 
 export const IMAGES = {
@@ -133,7 +135,7 @@ export const CRYPTO_RATES = [
 ];
 
 export const CRYPTO_NETWORKS: Record<string, string[]> = {
-  usdt: ["TRC20", "BEP20", "ERC20", "SPL", "Arbitrum"],
+  usdt: ["BEP20","TRC20", "ERC20", "SPL", "Arbitrum"],
   usdc: ["ERC20", "BEP20", "SPL"],
   btc:  ["Bitcoin"],
   trx:  ["TRC20"],
@@ -190,12 +192,12 @@ export const COUPON_RATES = {
 };
 
 export const PAYPAL_RATES = {
-  sellRate: 580,
+  sellRate: 520,
   buyRate:  700,
 };
 
 export const PAYPAL_LIMITS = {
-  sell: { min: 20,    max: 500,    currency: "€",    label: "Vente (retrait)" },
+  sell: { min: 5,    max: 500,    currency: "€",    label: "Vente (retrait)" },
   buy:  { min: 3500,  max: 500000, currency: "FCFA", label: "Achat (recharge)" },
 };
 
@@ -224,3 +226,13 @@ export const SERVICE_STOCK: Record<string, { inStock: boolean; note?: string }> 
   "paypal":         { inStock: true },
   "factures":       { inStock: true },
 };
+
+// Services exposés dans le sous-menu "Services" de la navbar
+export const NAV_SERVICES = [
+  { slug: "cartes-cadeaux", tk: "svc.giftcards", emoji: "🎮", color: "#C9A84C", href: "/services/cartes-cadeaux" },
+  { slug: "crypto",         tk: "svc.crypto",    emoji: "₿",  color: "#26A17B", href: "/services/crypto" },
+  { slug: "coupons",        tk: "svc.coupons",   emoji: "🎫", color: "#25D366", href: "/services/coupons" },
+  { slug: "uba",            tk: "svc.uba",       emoji: "💳", color: "#8B0000", href: "/services/uba" },
+  { slug: "paypal",         tk: "svc.paypal",    emoji: "💸", color: "#003087", href: "/services/paypal" },
+  { slug: "factures",       tk: "svc.factures",  emoji: "🔄", color: "#FF6B00", href: "/services/factures" },
+];

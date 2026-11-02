@@ -8,7 +8,7 @@ interface Rate { name: string; buy?: string; sell?: string; display?: string; }
 
 const FALLBACK: Rate[] = [{ name: "USDT", buy: "580 FCFA/$", sell: "700 FCFA/$" }];
 const OTHER_SERVICES: Rate[] = [
-  { name: "PayPal", buy: "580 FCFA/€", sell: "700 FCFA/€" },
+  { name: "PayPal", buy: "700 FCFA/€", sell: "520 FCFA/€" },
   { name: "Coupons", buy: "450 FCFA/€" },
   { name: "Cartes cadeaux", display: "Roblox · Robux · iTunes/Apple · PSN · EU/USA · 10€: 8 500 F · 20€: 15 800 F · 50€: 35 800 F" },
   { name: "Recharge UBA", display: UBA_RECHARGE_FEES.map(fee => {

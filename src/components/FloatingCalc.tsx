@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { track } from "@vercel/analytics";
 import { PAYPAL_RATES, CRYPTO_RATES } from "@/lib/services";
 
-const EUR_RATE  = PAYPAL_RATES.sellRate;                                // 1€  = 580 FCFA
+const EUR_RATE  = PAYPAL_RATES.sellRate;                                // 1€  = 520 FCFA
 const USD_RATE  = CRYPTO_RATES.find(c => c.id === "usdt")?.buyRate ?? 580; // 1$  = 580 FCFA
 
 type Mode = "eur_fcfa" | "fcfa_eur" | "usd_fcfa" | "fcfa_usd";

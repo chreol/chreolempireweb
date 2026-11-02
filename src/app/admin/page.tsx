@@ -318,6 +318,11 @@ export default function AdminPage() {
               style={{ background: "var(--bg-elevated)", color: "var(--text-muted)", border: "1px solid var(--border)" }}>
               🔄
             </button>
+            <button onClick={() => window.open(`/api/admin/orders/export?status=${statusFilter === "all" ? "" : statusFilter}`, "_blank")}
+              className="shrink-0 px-4 py-1.5 rounded-full text-xs font-bold transition-opacity hover:opacity-70 whitespace-nowrap"
+              style={{ background: "var(--bg-elevated)", color: "var(--text-secondary)", border: "1px solid var(--border)" }}>
+              ⬇️ CSV
+            </button>
           </div>
 
           {/* Orders list */}

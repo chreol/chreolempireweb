@@ -21,7 +21,7 @@ export default function CGUPage() {
             1. Présentation
           </h2>
           <p className="pl-4">
-            Chreol Empire est une plateforme spécialisée dans la vente de produits numériques (cartes cadeaux PSN, iTunes, Steam, Roblox, Nintendo, Razer), l&apos;échange de cryptomonnaies (USDT, BTC, TRX, ETH et autres) contre des Francs CFA, ainsi que des services financiers de proximité (coupons Transcash et PCS Mastercard, carte UBA Cameroun, PayPal Europe, paiement de factures Canal+, Eneo, Camwater, StarTimes et échange Mobile Money). Le site est accessible à l&apos;adresse chreolempire.com.
+            Chreol Empire est une plateforme spécialisée dans la vente de produits numériques (cartes cadeaux PSN, iTunes, Steam, Roblox, Nintendo, Razer), l&apos;échange de cryptomonnaies (USDT, BTC, TRX, ETH et autres) contre des Francs CFA, ainsi que des services financiers de proximité (coupons Transcash et PCS Mastercard, carte UBA Cameroun, PayPal Europe, paiement de factures Canal+, Eneo, Camwater, StarTimes et échange Mobile Money). Chreol Empire est le siège social au sens des mentions légales : SARL Chreol Empire (Siège — Ékié / Dernier Poteau, Yaoundé – Cameroun ; Annexe — Vallée 3, Boutiques Deido, Douala – Cameroun). Le site est accessible à l&apos;adresse chreolempire.com.
           </p>
         </section>
 
@@ -43,7 +43,7 @@ export default function CGUPage() {
           </h2>
           <div className="pl-4 flex flex-col gap-2">
             <p>Les commandes sont passées via le site web ou directement par WhatsApp au +237 697 657 734.</p>
-            <p>Les moyens de paiement acceptés sont : <span className="font-bold text-white">MTN Mobile Money</span>, <span className="font-bold text-white">Orange Money</span> et tout autre moyen expressément convenu avec le service client.</p>
+            <p>Les moyens de paiement acceptés sont : <span className="font-bold text-white">MTN Mobile Money</span>, <span className="font-bold text-white">Orange Money</span>, <span className="font-bold text-white">Express Union</span>, <span className="font-bold text-white">Yoomee Money</span>, virements bancaires (banques Afriland First Bank et UBA Cameroun), paiement en espèces en boutique, <span className="font-bold text-white">PayPal Europe</span>, cryptomonnaies (<span className="font-bold text-white">USDT</span>, <span className="font-bold text-white">BTC</span>, <span className="font-bold text-white">TRX</span>, …), ainsi que le module de paiement <span className="font-bold text-white">Iwopay</span> pour les validations automatiques.</p>
             <p>Le paiement doit être effectué intégralement avant toute livraison. Aucun crédit n&apos;est accordé.</p>
             <p>Les prix sont affichés en Francs CFA (XAF) et sont susceptibles d&apos;évoluer sans préavis, notamment pour les produits indexés sur des taux de change (cryptomonnaies, PayPal, coupons européens). Le taux appliqué est celui en vigueur au moment de la confirmation de la commande.</p>
           </div>

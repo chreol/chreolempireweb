@@ -66,9 +66,9 @@ const GUIDES: ServiceGuide[] = [
     href: "/services/paypal",
     delay: "15 – 30 min",
     steps: [
-      { icon: "💶", title: "Mode Vente — Vendez vos euros", desc: "Indiquez le montant (min 20€), votre compte PayPal source et votre numéro Mobile Money." },
+      { icon: "💶", title: "Mode Vente — Vendez vos euros", desc: "Indiquez le montant (min 5€), votre compte PayPal source et votre numéro Mobile Money." },
       { icon: "📤", title: "Envoyez depuis PayPal", desc: "Transférez le montant sur notre compte PayPal indiqué sur WhatsApp." },
-      { icon: "💚", title: "Recevez votre FCFA", desc: "Dès réception, nous virons le FCFA sur votre MoMo en 15–30 min au taux du jour (580 FCFA/€)." },
+      { icon: "💚", title: "Recevez votre FCFA", desc: "Dès réception, nous virons le FCFA sur votre MoMo en 15–30 min au taux du jour (520 FCFA/€)." },
       { icon: "💳", title: "Mode Achat — Rechargez PayPal", desc: "Payez en FCFA par Mobile Money et indiquez l'email PayPal de destination. Rechargé en 30 min (700 FCFA/€)." },
     ],
   },

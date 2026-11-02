@@ -25,7 +25,7 @@ export const WA_FAQ: FaqEntry[] = [
   },
   {
     keywords: ["paypal", "solde paypal", "vendre paypal", "acheter paypal"],
-    answer: "💸 PayPal Europe ↔ FCFA.\n\nNous rachetons votre solde à 580 FCFA/€ et vendons à 700 FCFA/€. Comptes européens uniquement (France, Belgique, Suisse…).\n\n👉 https://shop.chreolempire.com/services/paypal",
+    answer: "💸 PayPal Europe ↔ FCFA.\n\nNous rachetons votre solde à 520 FCFA/€ et vendons à 700 FCFA/€. Comptes européens uniquement (France, Belgique, Suisse…).\n\n👉 https://shop.chreolempire.com/services/paypal",
   },
   {
     keywords: ["coupon", "transcash", "pcs", "mastercard", "echanger coupon", "échanger coupon"],
@@ -37,7 +37,7 @@ export const WA_FAQ: FaqEntry[] = [
   },
   {
     keywords: ["prix", "tarif", "combien", "cout", "coût", "taux"],
-    answer: "💰 Nos tarifs varient selon le service :\n\n🎮 Cartes cadeaux : selon le montant (taux ~750 F/€)\n₿ Crypto : 580-700 FCFA/$\n💸 PayPal : 580-700 FCFA/€\n🎫 Coupons : 450 FCFA/€\n💳 UBA : dès 10 500 F\n📋 Factures : +200 F\n\nDites-moi quel produit vous intéresse pour un prix exact !",
+    answer: "💰 Nos tarifs varient selon le service :\n\n🎮 Cartes cadeaux : selon le montant (taux ~750 F/€)\n₿ Crypto : 580-700 FCFA/$\n💸 PayPal : vente 520 FCFA/€ · achat 700 FCFA/€\n🎫 Coupons : 450 FCFA/€\n💳 UBA : dès 10 500 F\n📋 Factures : +200 F\n\nDites-moi quel produit vous intéresse pour un prix exact !",
   },
   {
     keywords: ["paiement", "payer", "momo", "mtn", "orange money", "moyen de paiement", "comment payer"],
@@ -49,7 +49,7 @@ export const WA_FAQ: FaqEntry[] = [
   },
   {
     keywords: ["fiable", "arnaque", "confiance", "serieux", "sérieux", "garantie", "securise", "sécurisé", "avis"],
-    answer: "🛡️ Chreol Empire, c'est la confiance depuis 2012 :\n✅ 127+ avis Google (4.9/5)\n✅ Boutique physique : Vallée 3, Deido, Douala\n✅ Codes authentiques garantis (remboursement si problème)\n✅ Plus de 12 ans d'activité\n\nVous pouvez commander en toute sérénité !",
+    answer: "🛡️ Chreol Empire, c'est la confiance depuis 2012 :\n✅ 127+ avis Google (4.9/5)\n✅ Boutique physique : Vallée 3, Boutiques Deido, Douala\n✅ Codes authentiques garantis (remboursement si problème)\n✅ Plus de 12 ans d'activité\n\nVous pouvez commander en toute sérénité !",
   },
   {
     keywords: ["horaire", "ouvert", "disponible", "heure", "quand"],
@@ -57,7 +57,7 @@ export const WA_FAQ: FaqEntry[] = [
   },
   {
     keywords: ["boutique", "adresse", "ou etes", "où êtes", "localisation", "magasin", "physique"],
-    answer: "📍 Notre boutique :\nVallée 3, Boutiques Deido, Douala, Cameroun.\n\nVous pouvez aussi tout commander en ligne et recevoir par WhatsApp — pas besoin de vous déplacer !",
+    answer: "📍 Notre boutique :\nVallée 3, Boutiques Deido, Douala – Cameroun.\n\nVous pouvez aussi tout commander en ligne et recevoir par WhatsApp — pas besoin de vous déplacer !",
   },
   {
     keywords: ["merci", "thanks", "thank you", "parfait", "super", "ok merci"],

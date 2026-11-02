@@ -3,6 +3,7 @@
 import { useSearchParams, useRouter } from "next/navigation";
 import { useState, Suspense, useRef } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { CONTACT, IMAGES } from "@/lib/services";
 import GoogleReviewsOptIn from "@/components/GoogleReviewsOptIn";
 import GoogleReviewPrompt from "@/components/GoogleReviewPrompt";
@@ -69,6 +70,7 @@ function CheckoutInner() {
   const [emailError, setEmailError] = useState(false);
   const orderIdRef                  = useRef(`CE-${Date.now()}`);
   const opConfig = OPERATORS.find(o => o.id === selectedOp);
+  const notifiedRef = useRef(false);
 
   function buildWAMsg() {
     const op = opConfig?.label ?? "Mobile Money";
@@ -169,7 +171,7 @@ function CheckoutInner() {
                   }
                   setSelectedOp(op.id);
                   setStep("ussd");
-                  sendNotification(op.label);
+                  if (!notifiedRef.current) { notifiedRef.current = true; sendNotification(op.label); }
                 }}
                 className="p-5 rounded-2xl flex flex-col items-center gap-3 transition-all hover:scale-[1.02] active:scale-[0.97]"
                 style={{ background: "var(--bg-elevated)", border: `2px solid ${op.color}55` }}
@@ -183,6 +185,34 @@ function CheckoutInner() {
                 </div>
               </button>
             ))}
+          </div>
+
+          {/* ── Moyens de paiement acceptés ── */}
+          <div className="rounded-2xl p-4 mt-6" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+            <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "var(--text-muted)" }}>
+              💳 Moyens de paiement acceptés
+            </p>
+            <div className="flex flex-col gap-2">
+              {[
+                { e: "📱", l: "MTN MoMo" },
+                { e: "🟠", l: "Orange Money" },
+                { e: "💙", l: "Express Union" },
+                { e: "💜", l: "Yoomee Money" },
+                { e: "🅿️", l: "PayPal Europe" },
+                { e: "₿", l: "Cryptomonnaies" },
+                { e: "🏦", l: "Virements bancaires" },
+                { e: "💵", l: "Espèces" },
+                { e: "💨", l: "Paiement rapide — Iwopay" },
+              ].map(m => (
+                <div key={m.l} className="flex items-center gap-2 text-xs" style={{ color: "var(--text-secondary)" }}>
+                  <span>{m.e}</span>
+                  <span className="font-bold text-white">{m.l}</span>
+                </div>
+              ))}
+            </div>
+            <Link href="/paiement" className="inline-block mt-3 text-xs font-bold transition-opacity hover:opacity-70" style={{ color: "var(--gold)" }}>
+              Voir les instructions et modes de paiement détaillés →
+            </Link>
           </div>
 
           <div className="mt-6 text-center">

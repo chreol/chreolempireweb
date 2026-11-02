@@ -14,7 +14,7 @@ const SERVICE_DATA = [
   { image: IMAGES.coupons,    tk: "svc.coupons",   color: "#25D366", href: "/services/coupons",         stockId: "coupons",        emoji: "🎫", price: "450 FCFA/€" },
   { image: IMAGES.transfer,   tk: "svc.transfert", color: "#FF6B00", href: "/services/transfert",      stockId: "transfert",      emoji: "💸", price: "Envoyer / recevoir" },
   { image: IMAGES.ubaCard,    tk: "svc.uba",       color: "#8B0000", href: "/services/uba",             stockId: "uba",            emoji: "💳", price: "Recharge sur demande" },
-  { image: IMAGES.paypal2,    tk: "svc.paypal",    color: "#003087", href: "/services/paypal",          stockId: "paypal",         emoji: "💸", price: "580 FCFA/€" },
+  { image: IMAGES.paypal2,    tk: "svc.paypal",    color: "#003087", href: "/services/paypal",          stockId: "paypal",         emoji: "💸", price: "520 FCFA/€" },
   { image: IMAGES.factures,   tk: "svc.factures",  color: "#FF6B00", href: "/services/factures",        stockId: "factures",       emoji: "🔄", price: "+200 FCFA par facture" },
 ];
 
@@ -538,24 +538,41 @@ export default function HomePage() {
           <h2 className="text-2xl font-black text-white text-center">{t("section.payment")}</h2>
           <Link href="/paiement" className="text-xs font-bold transition-opacity hover:opacity-70" style={{ color: "var(--gold)" }}>Voir tous →</Link>
         </div>
-        <div className="flex flex-wrap justify-center gap-4">
-          {[
-            { image: IMAGES.mtn,      label: "MTN MoMo",    sub: "Mobile Money" },
-            { image: IMAGES.orange,   label: "Orange Money", sub: "Mobile Money" },
-            { image: IMAGES.whatsapp, label: "WhatsApp",     sub: "Paiement direct" },
-          ].map(p => (
-            <div key={p.label} className="flex items-center gap-4 px-6 py-4 rounded-2xl"
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          {([
+            { image: IMAGES.mtn,         label: "MTN MoMo",           sub: "Mobile Money",             emoji: "📱" },
+            { image: IMAGES.orange,      label: "Orange Money",       sub: "Mobile Money",             emoji: "🟠" },
+            { image: IMAGES.expressUnion, label: "Express Union",   sub: "Mobile Money",        emoji: "💙" },
+            { image: IMAGES.yoomee,       label: "Yoomee Money",       sub: "Mobile Money",             emoji: "💜" },
+            { image: IMAGES.paypal,       label: "PayPal Europe",      sub: "Achat / Vente",           emoji: "🅿️" },
+            { image: IMAGES.crypto,       label: "Cryptomonnaies",     sub: "USDT · BTC · TRX",        emoji: "₿" },
+            { image: null,                 label: "Virements bancaires", sub: "Afriland First · UBA",  emoji: "🏦" },
+            { image: null,                 label: "Espèces",            sub: "Paiement en boutique",     emoji: "💵" },
+            { image: IMAGES.whatsapp,     label: "WhatsApp",           sub: "Paiement direct",          emoji: "💬" },
+            { image: null,                 label: "Paiement rapide",    sub: "Iwopay — validation auto", emoji: "💨" },
+          ] as Array<{ image: string | null; label: string; sub: string; emoji: string }>).map(p => (
+            <div key={p.label} className="flex items-center gap-4 px-5 py-4 rounded-2xl"
               style={{ background: "var(--bg-card)", boxShadow: "var(--shadow-border)" }}>
               <div className="relative w-12 h-12 rounded-xl overflow-hidden shrink-0">
-                <Image src={p.image} alt={p.label} fill style={{ objectFit: "cover" }}
-                  className="outline outline-1 -outline-offset-1 outline-white/10" unoptimized />
+                {p.image ? (
+                  <Image src={p.image} alt={p.label} fill style={{ objectFit: "cover" }}
+                    className="outline outline-1 -outline-offset-1 outline-white/10" unoptimized />
+                ) : (
+                  <span className="absolute inset-0 flex items-center justify-center text-2xl">{p.emoji}</span>
+                )}
               </div>
-              <div>
-                <p className="font-black text-white text-sm">{p.label}</p>
+              <div className="min-w-0">
+                <p className="font-black text-white text-sm truncate">{p.label}</p>
                 <p className="text-xs" style={{ color: "var(--text-muted)" }}>{p.sub}</p>
               </div>
             </div>
           ))}
+        </div>
+        <div className="mt-6 text-center">
+          <Link href="/paiement" className="inline-flex items-center gap-2 px-6 py-3 rounded-full font-black text-sm text-white transition-opacity hover:opacity-80"
+            style={{ background: "#C9A84C22", border: "1px solid #C9A84C55" }}>
+            💨 Paiement rapide via Iwopay — voir les instructions →
+          </Link>
         </div>
       </section>
 
