@@ -22,6 +22,7 @@ export default function PromoModal() {
   const isGiftCardPage = pathname === "/services/cartes-cadeaux";
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- synchronisation de l'ouverture avec la route courante
     setOpen(pathname === "/" || isGiftCardPage);
   }, [isGiftCardPage, pathname]);
 
@@ -134,7 +135,7 @@ export default function PromoModal() {
               ⚡ Commander maintenant
             </a>
             <button onClick={shareOffer} className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-900 font-bold py-3 px-5 rounded-lg">
-              📤 Partager l'offre
+              📤 Partager l&apos;offre
             </button>
           </div>
         </div>

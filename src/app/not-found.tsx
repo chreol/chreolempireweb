@@ -19,7 +19,7 @@ export default function NotFound() {
         <p className="text-8xl font-black mb-2" style={{ color: "var(--gold)" }}>404</p>
         <p className="text-xl font-black text-white mb-2">Page introuvable</p>
         <p className="text-sm mb-8" style={{ color: "var(--text-secondary)" }}>
-          La page que vous cherchez n'existe pas ou a été déplacée.
+          La page que vous cherchez n&apos;existe pas ou a été déplacée.
         </p>
 
         {/* CTAs */}
@@ -29,7 +29,7 @@ export default function NotFound() {
             className="w-full py-3 rounded-full font-black text-black text-sm text-center transition-opacity hover:opacity-85"
             style={{ background: "var(--gold)" }}
           >
-            🏠 Retour à l'accueil
+            🏠 Retour à l&apos;accueil
           </Link>
           <Link
             href="/services"

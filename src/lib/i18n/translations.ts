@@ -400,6 +400,7 @@ export const T: TranslationMap = {
   "pp.id_buy":       { fr: "Compte PayPal à recharger (où recevoir les fonds)", en: "PayPal account to top up (where to receive funds)" },
   "pp.id_required":  { fr: "Identifiant PayPal requis", en: "PayPal ID required" },
   "pp.email_invalid":{ fr: "Email invalide", en: "Invalid email" },
+  "pp.email_same_as_paypal": { fr: "Cet email PayPal nous sert aussi pour vous envoyer la confirmation de commande.", en: "This PayPal email is also used to send your order confirmation." },
   "pp.phone_short":  { fr: "Numéro trop court", en: "Number too short" },
   "pp.wa_optional":  { fr: "Votre numéro WhatsApp (optionnel)", en: "Your WhatsApp number (optional)" },
   "pp.your_number":  { fr: "Votre numéro", en: "Your number" },

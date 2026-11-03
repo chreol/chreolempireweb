@@ -35,6 +35,7 @@ export default function PromoBanner() {
     if (!promo) return;
     const dismissed = sessionStorage.getItem(DISMISS_KEY);
     if (dismissed === promo.id) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- affichage différé après lecture de sessionStorage
     setVisible(true);
     setCountdown(calcCountdown());
     const id = setInterval(() => setCountdown(calcCountdown()), 1000);

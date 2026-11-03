@@ -22,6 +22,7 @@ function useCountdown(target: string | null): string {
 
   useEffect(() => {
     if (!target) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- compte à rebours recalculé à chaque seconde
     setDisplay(calc());
     const id = setInterval(() => setDisplay(calc()), 1000);
     return () => clearInterval(id);

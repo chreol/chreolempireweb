@@ -33,7 +33,7 @@ async function sendTelegram(text: string) {
     const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chat_id: chat, text, parse_mode: 'HTML' }) });
     const j = await res.json();
     return j.ok ? 1 : 0;
-  } catch (e) { return 0; }
+  } catch { return 0; }
 }
 
 async function sendBrevo(subject: string, html: string, toEmail?: string) {
@@ -45,7 +45,7 @@ async function sendBrevo(subject: string, html: string, toEmail?: string) {
   try {
     const res = await fetch('https://api.brevo.com/v3/smtp/email', { method: 'POST', headers: { 'Content-Type': 'application/json', 'api-key': brevoKey }, body: JSON.stringify({ sender, to: recipients, subject, htmlContent: html }) });
     return res.ok ? 1 : 0;
-  } catch (e) { return 0; }
+  } catch { return 0; }
 }
 
 export async function POST(req: Request) {
@@ -60,7 +60,6 @@ export async function POST(req: Request) {
   const safeCountry = safeText(beneficiaryCountry, 80);
   const safeNumber = safeText(beneficiaryNumber, 30);
   const safeDestination = safeText(destination, 80);
-  const safePayment = safeText(payment, 50);
   const safeNotes = safeText(notes, 500);
   const errors: Record<string, string> = {};
   if (!phone || !/^\+?\d{7,15}$/.test(phone)) errors.phone = 'Téléphone invalide (format international attendu, ex: +2376...)';
@@ -93,7 +92,7 @@ export async function POST(req: Request) {
       const { error } = await sb.from('transfers').insert([{ ref, name, email, phone, sender_country: senderCountry, payment_network: paymentNetwork || payment, beneficiary_name: beneficiaryName, beneficiary_network: beneficiaryNetwork, beneficiary_country: beneficiaryCountry || destination, beneficiary_number: beneficiaryNumber, amount: Number(amount), destination, payment: paymentNetwork || payment, notes, source_url: sourceUrl, status: 'pending', created_at: new Date().toISOString(), expires_at: new Date(Date.now() + 60*60*1000).toISOString() }]);
       if (!error) supaOk = 1;
     }
-  } catch (e) {
+  } catch {
     // ignore persistence errors
   }
 

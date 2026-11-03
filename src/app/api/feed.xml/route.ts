@@ -25,7 +25,6 @@ export async function GET(): Promise<Response> {
       const title = `${card.name} ${regionLabel} — Cameroun FCFA`;
       const description = `Carte cadeau ${card.name} région ${regionLabel}. Livraison WhatsApp 15-30 min à Douala. Paiement MTN MoMo / Orange Money.`;
       const link = `${BASE}/services/cartes-cadeaux/${card.id}-${regionLabel.toLowerCase().replace(/ /g, "")}`;
-      const price = (lowestAmount.price / 655.957).toFixed(2); // XAF → EUR approx
 
       items.push(`
   <item>

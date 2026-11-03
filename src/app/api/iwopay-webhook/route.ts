@@ -1,6 +1,6 @@
 export const runtime = "edge";
 
-import { isIwopaySuccess, fulfillIwopayOrder, IwopayFulfillParams } from "@/lib/iwopay";
+import { isIwopaySuccess, fulfillIwopayOrder } from "@/lib/iwopay";
 
 interface IwopayWebhookBody {
   transactionId?: string;
@@ -25,6 +25,18 @@ interface IwopayWebhookBody {
 const processedRefs = new Set<string>();
 
 export async function POST(request: Request): Promise<Response> {
+  // 0. Secret partagé optionnel : si IWOPAY_WEBHOOK_SECRET est défini, Iwopay
+  //    doit fournir ?key=<secret> (URL du callback) ou le header x-iwopay-secret.
+  const expected = process.env.IWOPAY_WEBHOOK_SECRET?.trim();
+  if (expected) {
+    const provided = request.headers.get("x-iwopay-secret")
+      ?? new URL(request.url).searchParams.get("key")
+      ?? "";
+    if (provided !== expected) {
+      return Response.json({ error: "Non autorisé" }, { status: 401 });
+    }
+  }
+
   // 1. Récupérer le corps de la requête (JSON envoyé par Iwopay)
   let body: IwopayWebhookBody;
   try {

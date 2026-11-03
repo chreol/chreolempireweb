@@ -5,9 +5,34 @@ import Image from "next/image";
 import { track } from "@vercel/analytics";
 import { CONTACT, IMAGES } from "@/lib/services";
 
-const OPERATORS = [
+export interface MerchantInfo {
+  merchant: string;
+  merchantName: string;
+  type?: string;
+  ussdFn: (amount: number) => string;
+  /** Numéro imprimé sous le QR code marchand */
+  qrCode?: string;
+  /** Image du QR code marchand (chemin public) */
+  qrImage?: string;
+}
+
+interface OperatorConfig {
+  id: "orange" | "mtn";
+  label: string;
+  color: string;
+  merchant: string;
+  merchantName: string;
+  type: string;
+  ussdFn: (amount: number) => string;
+  pin: number;
+  image: string;
+  qrCode?: string;
+  qrImage?: string;
+}
+
+const OPERATORS: readonly OperatorConfig[] = [
   {
-    id:           "orange" as const,
+    id:           "orange",
     label:        "Orange Money",
     color:        "#FF6600",
     merchant:     "692251299",
@@ -18,7 +43,7 @@ const OPERATORS = [
     image:        IMAGES.orange,
   },
   {
-    id:           "mtn" as const,
+    id:           "mtn",
     label:        "MTN MoMo",
     color:        "#FFC107",
     merchant:     "672416141",
@@ -28,7 +53,7 @@ const OPERATORS = [
     pin:          5,
     image:        IMAGES.mtn,
   },
-] as const;
+];
 
 interface USSDOrderFlowProps {
   /** Montant total en FCFA affiché dans les instructions USSD */
@@ -41,6 +66,10 @@ interface USSDOrderFlowProps {
   prefillPrenom?: string;
   /** Titre de la modale */
   title?: string;
+  /** Restreint les opérateurs proposés (ex: ["orange"] si MTN est indisponible) */
+  availableOps?: readonly ("orange" | "mtn")[];
+  /** Surcharge les informations marchand (nouveau compte, QR code…) */
+  merchantOverride?: Partial<Record<"orange" | "mtn", MerchantInfo>>;
   className?: string;
   style?: React.CSSProperties;
   children: React.ReactNode;
@@ -52,6 +81,8 @@ export default function USSDOrderFlow({
   onBeforeOpen,
   prefillPrenom,
   title = "Instructions de paiement",
+  availableOps,
+  merchantOverride,
   className,
   style,
   children,
@@ -61,7 +92,15 @@ export default function USSDOrderFlow({
   const [selectedOp, setSelectedOp] = useState<"orange" | "mtn" | null>(null);
   const [prenom, setPrenom]       = useState(prefillPrenom ?? "");
 
-  const opConfig = OPERATORS.find(o => o.id === selectedOp);
+  const ops: OperatorConfig[] = OPERATORS
+    .filter(o => !availableOps || availableOps.includes(o.id))
+    .map(o => {
+      const ov = merchantOverride?.[o.id];
+      if (!ov) return o;
+      return { ...o, ...ov, type: ov.type ?? o.type };
+    });
+
+  const opConfig = ops.find(o => o.id === selectedOp);
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
@@ -70,9 +109,16 @@ export default function USSDOrderFlow({
 
   function handleOpen() {
     if (onBeforeOpen && !onBeforeOpen()) return;
+    setPrenom(prefillPrenom ?? "");
+    // Un seul opérateur disponible → on saute l'étape de sélection
+    if (ops.length === 1) {
+      setSelectedOp(ops[0].id);
+      setStep("ussd");
+      setOpen(true);
+      return;
+    }
     setStep("choose");
     setSelectedOp(null);
-    setPrenom(prefillPrenom ?? "");
     setOpen(true);
   }
 
@@ -149,8 +195,8 @@ export default function USSDOrderFlow({
             {/* ── Étape 1 : choisir l'opérateur ── */}
             {step === "choose" && (
               <div className="flex flex-col gap-3">
-                <div className="grid grid-cols-2 gap-3">
-                  {OPERATORS.map(op => (
+                <div className={`grid gap-3 ${ops.length > 1 ? "grid-cols-2" : "grid-cols-1"}`}>
+                  {ops.map(op => (
                     <button
                       key={op.id}
                       type="button"
@@ -208,6 +254,22 @@ export default function USSDOrderFlow({
                     </div>
                   </div>
 
+                  {/* QR marchand (optionnel) */}
+                  {opConfig.qrImage && (
+                    <div className="flex items-start gap-3">
+                      <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black shrink-0 mt-0.5" style={{ background: opConfig.color, color: "#000" }}>📷</span>
+                      <div>
+                        <p className="text-xs font-bold text-white">Ou scannez le QR code marchand</p>
+                        <div className="mt-2 relative w-36 h-36 rounded-xl overflow-hidden" style={{ background: "#FFFFFF" }}>
+                          <Image src={opConfig.qrImage} alt={`QR code ${opConfig.merchantName}`} fill style={{ objectFit: "contain" }} unoptimized />
+                        </div>
+                        {opConfig.qrCode && (
+                          <p className="text-[11px] mt-1" style={{ color: "var(--text-muted)" }}>Réf. QR : {opConfig.qrCode}</p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
                   {/* 3 — Montant */}
                   <div className="flex items-start gap-3">
                     <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black shrink-0 mt-0.5" style={{ background: opConfig.color, color: "#000" }}>3</span>
@@ -256,14 +318,16 @@ export default function USSDOrderFlow({
                     J&apos;ai payé — Continuer sur WhatsApp
                   </button>
                   <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setStep("choose")}
-                      className="flex-1 text-xs py-2 rounded-xl transition-opacity hover:opacity-70"
-                      style={{ color: "var(--text-muted)" }}
-                    >
-                      ← Changer d&apos;opérateur
-                    </button>
+                    {ops.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => setStep("choose")}
+                        className="flex-1 text-xs py-2 rounded-xl transition-opacity hover:opacity-70"
+                        style={{ color: "var(--text-muted)" }}
+                      >
+                        ← Changer d&apos;opérateur
+                      </button>
+                    )}
                     <button
                       type="button"
                       onClick={handleClose}

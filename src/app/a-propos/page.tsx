@@ -87,7 +87,7 @@ export default function AProposPage() {
 
           <p className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
             Chaque transaction honorée est une promesse tenue. Chaque client satisfait est une
-            victoire contre un système qui avait dit "non" là où nous avons choisi de dire "oui".
+            victoire contre un système qui avait dit «&nbsp;non&nbsp;» là où nous avons choisi de dire «&nbsp;oui&nbsp;».
           </p>
 
           {/* Manifesto */}

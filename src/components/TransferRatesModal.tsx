@@ -6,6 +6,7 @@ export default function TransferRatesModal() {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- ouverture automatique à l'arrivée sur la page
     setOpen(true);
   }, []);
 
@@ -35,7 +36,7 @@ export default function TransferRatesModal() {
         </div>
 
         <div className="p-6 md:p-8">
-          <h2 className="text-2xl font-extrabold mb-3">📊 Tarifs d'envoi — Chreol Empire Transfer</h2>
+          <h2 className="text-2xl font-extrabold mb-3">📊 Tarifs d&apos;envoi — Chreol Empire Transfer</h2>
           <p className="mb-4 text-sm text-gray-700">Voici nos frais par tranche de montant. Ils sont affichés avant validation et peuvent varier légèrement selon le canal.</p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

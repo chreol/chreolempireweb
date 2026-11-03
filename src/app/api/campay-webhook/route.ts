@@ -175,7 +175,10 @@ async function sendEmailNotification(body: CampayWebhookBody, serviceId: string,
 
   const notifyRes = await fetch(`${siteUrl}/api/notify-order`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...(process.env.INTERNAL_API_SECRET ? { "x-internal-secret": process.env.INTERNAL_API_SECRET } : {}),
+    },
     body: JSON.stringify(payload),
     signal: AbortSignal.timeout(10000),
   });

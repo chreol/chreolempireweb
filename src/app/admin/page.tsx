@@ -116,6 +116,7 @@ export default function AdminPage() {
     setLoading(false);
   }, [statusFilter, router]);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- chargement des commandes (setLoading dans fetchOrders)
   useEffect(() => { fetchOrders(); }, [fetchOrders]);
 
   useEffect(() => {
@@ -809,7 +810,7 @@ export default function AdminPage() {
               </div>
               {/* Expiration */}
               <div>
-                <label className="block text-xs font-bold mb-1" style={{ color: "var(--text-muted)" }}>DATE D'EXPIRATION (optionnel)</label>
+                <label className="block text-xs font-bold mb-1" style={{ color: "var(--text-muted)" }}>DATE D&apos;EXPIRATION (optionnel)</label>
                 <input type="datetime-local" value={offerForm.expires_at ?? ""} onChange={e => setOfferForm(p => ({ ...p, expires_at: e.target.value || undefined }))}
                   className="w-full px-4 py-2.5 rounded-xl text-white text-sm outline-none"
                   style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)" }} />
@@ -845,7 +846,7 @@ export default function AdminPage() {
             <p className="font-bold text-white mb-3">Offres existantes ({offers.length})</p>
             {offers.length === 0 ? (
               <p className="text-sm text-center py-8 rounded-2xl" style={{ background: "var(--bg-card)", color: "var(--text-muted)" }}>
-                Aucune offre créée pour l'instant
+                Aucune offre créée pour l&apos;instant
               </p>
             ) : (
               <div className="flex flex-col gap-2">
@@ -889,7 +890,7 @@ export default function AdminPage() {
 
           {/* Idées supplémentaires */}
           <div className="rounded-2xl p-5" style={{ background: "#FFFBEB22", border: "1px solid #FDE68A44" }}>
-            <p className="font-black mb-3" style={{ color: "var(--gold)" }}>💡 Idées pour enrichir l'admin</p>
+            <p className="font-black mb-3" style={{ color: "var(--gold)" }}>💡 Idées pour enrichir l&apos;admin</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs" style={{ color: "var(--text-secondary)" }}>
               {[
                 "📧 Campagne email promotionnelle aux clients passés",
@@ -993,7 +994,7 @@ export default function AdminPage() {
           <div className="rounded-2xl p-4" style={{ background: "#FFFBEB22", border: "1px solid #FDE68A44" }}>
             <p className="text-sm font-bold mb-1" style={{ color: "var(--gold)" }}>💡 Mots-clés recherchés</p>
             <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
-              Les mots-clés tapés dans Google avant d'arriver sur le site sont dans <strong>Google Search Console → Résultats de recherche → Requêtes</strong>.
+              Les mots-clés tapés dans Google avant d&apos;arriver sur le site sont dans <strong>Google Search Console → Résultats de recherche → Requêtes</strong>.
               Les termes de recherche dans la barre du site nécessitent un tracking manuel (non encore implémenté).
             </p>
           </div>

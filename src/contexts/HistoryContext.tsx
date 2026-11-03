@@ -37,6 +37,7 @@ export function HistoryProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- restauration de l'historique depuis localStorage
       if (raw) setEntries(JSON.parse(raw));
     } catch {}
   }, []);

@@ -1,5 +1,11 @@
 export const runtime = "edge";
 
+import { isAuthorizedInternal, unauthorized } from "@/lib/internalAuth";
+import { CONTACT, ORANGE_MONEY_COMMERCE } from "@/lib/services";
+
+/** Base absolue des images utilisées dans les emails (les clients mail n'acceptent pas les chemins relatifs). */
+const EMAIL_ASSET_BASE = "https://shop.chreolempire.com";
+
 async function hmac32(secret: string, data: string): Promise<string> {
   const enc = new TextEncoder();
   const key = await crypto.subtle.importKey(
@@ -63,6 +69,15 @@ export interface NotifyPayload {
   commissionLabel?: string;  // ex: "Frais de service UBA", défaut: "Frais de service"
   sourceUrl?: string;        // page d'origine (ex: /cart, /services/uba)
   campayReference?: string;
+  /** "sell" = le client nous envoie des € PayPal · "buy" = le client paie en FCFA */
+  flow?: "sell" | "buy";
+  /** Compte PayPal du client (email, téléphone ou lien PayPal.me) */
+  paypalId?: string;
+  paypalIdFormat?: string;
+  /** Montant en euros de l'opération PayPal */
+  eurAmount?: number;
+  /** Destination du versement FCFA (ex: "Orange Money · +237 6XX XX XX XX") */
+  payoutTarget?: string;
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -156,6 +171,149 @@ function getMomoPaymentRows(method: string, total: number): string {
         style="display:inline-block;background:#25D366;color:#FFFFFF;text-decoration:none;padding:9px 22px;border-radius:8px;font-weight:900;font-size:12px">
         📱 Envoyer la preuve de paiement via WhatsApp
       </a>
+    </td>
+  </tr>`;
+}
+
+// ── Vente PayPal : instructions d'envoi (le client envoie des €) ──────────────
+
+function getPaypalSellRows(p: NotifyPayload): string {
+  const ref = p.orderId.slice(-8).toUpperCase();
+  const eur = (p.eurAmount ?? 0).toLocaleString("fr-FR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  const target = p.payoutTarget ?? p.paymentMethod;
+  const account = CONTACT.paypalEmail;
+  const waProof = `https://wa.me/237697657734?text=${encodeURIComponent(
+    `Bonjour, voici la preuve de mon envoi PayPal de ${eur}€ — Réf #${ref}`,
+  )}`;
+
+  return `
+  <tr>
+    <td colspan="2" style="padding:14px 20px 0;background:#FFFFFF">
+      <table width="100%" cellpadding="0" cellspacing="0"
+        style="border:1.5px solid #00308755;border-radius:10px;overflow:hidden">
+        <tr><td style="padding:10px 14px;background:#00308718">
+          <p style="margin:0;font-size:11px;font-weight:900;color:#003087">
+            💶 ENVOYEZ ${eur}€ SUR NOTRE COMPTE PAYPAL
+          </p>
+        </td></tr>
+        <tr>
+          <td style="padding:12px 14px">
+            <p style="margin:0;font-size:9px;color:#9CA3AF;letter-spacing:1px">COMPTE PAYPAL DESTINATAIRE</p>
+            <p style="margin:4px 0 10px;font-size:16px;font-weight:900;color:#1F2937;word-break:break-all">${esc(account)}</p>
+            <p style="margin:0;font-size:10px;color:#6B7280;letter-spacing:1px">MOTIF À INDIQUER</p>
+            <p style="margin:4px 0 0;font-size:13px;font-weight:900;color:#003087;font-family:monospace">#${ref}</p>
+            <p style="margin:10px 0 0;font-size:11px;color:#6B7280">
+              Envoyez en «&nbsp;Proches et Familles&nbsp;» avec le motif <strong>#${ref}</strong>, puis gardez la capture de confirmation.
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" style="padding:10px 20px 0;background:#FFFFFF">
+      <table width="100%" cellpadding="0" cellspacing="0"
+        style="border:1.5px solid #10B98155;border-radius:10px;overflow:hidden">
+        <tr><td style="padding:10px 14px;background:#10B98118">
+          <p style="margin:0;font-size:11px;font-weight:900;color:#047857">
+            💰 VOUS RECEVEZ ${p.total.toLocaleString("fr-FR")} FCFA
+          </p>
+        </td></tr>
+        <tr>
+          <td style="padding:10px 14px">
+            <p style="margin:0;font-size:12px;color:#1F2937">
+              Versement sur <strong>${esc(target)}</strong> dès validation de votre preuve.
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" style="padding:12px 20px 10px;background:#FFFFFF;text-align:center">
+      <a href="${waProof}"
+        style="display:inline-block;background:#25D366;color:#FFFFFF;text-decoration:none;padding:9px 22px;border-radius:8px;font-weight:900;font-size:12px">
+        📱 Envoyer la preuve de dépôt PayPal
+      </a>
+      <p style="margin:8px 0 0;font-size:11px;color:#6B7280">
+        Votre paiement sera traité dès réception de cette preuve sur WhatsApp.
+      </p>
+    </td>
+  </tr>`;
+}
+
+// ── Achat PayPal : encaissement Orange Money (QR + code marchand) ────────────
+
+function getPaypalBuyRows(p: NotifyPayload): string {
+  const c   = ORANGE_MONEY_COMMERCE;
+  const ref = p.orderId.slice(-8).toUpperCase();
+
+  return `
+  <tr>
+    <td colspan="2" style="padding:14px 20px 0;background:#FFFFFF">
+      <table width="100%" cellpadding="0" cellspacing="0"
+        style="border:1.5px solid #FF660055;border-radius:10px;overflow:hidden">
+        <tr><td style="padding:10px 14px;background:#FF660018">
+          <p style="margin:0;font-size:11px;font-weight:900;color:#FF6600">
+            🟠 PAYER VIA ORANGE MONEY
+          </p>
+        </td></tr>
+        <tr>
+          <td style="padding:12px 14px">
+            <table width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td width="150" valign="top" style="padding-right:12px">
+                  <img src="${EMAIL_ASSET_BASE}${c.image}" alt="QR code Orange Money ${c.merchantName}"
+                    width="140" style="display:block;width:140px;height:auto;border-radius:8px;border:1px solid #E5E7EB" />
+                  <p style="margin:6px 0 0;font-size:9px;color:#9CA3AF;text-align:center">Réf. QR ${c.qrCode}</p>
+                </td>
+                <td valign="top">
+                  <p style="margin:0;font-size:9px;color:#9CA3AF;letter-spacing:1px">CODE MARCHAND</p>
+                  <p style="margin:4px 0 2px;font-size:20px;font-weight:900;color:#FF6600;letter-spacing:2px">${c.merchantCode}</p>
+                  <p style="margin:0;font-size:10px;color:#6B7280">${c.merchantName}</p>
+                  <p style="margin:10px 0 0;font-size:9px;color:#9CA3AF;letter-spacing:1px">CODE USSD</p>
+                  <p style="margin:4px 0 0;font-size:14px;font-weight:900;color:#1F2937;font-family:monospace">${c.ussd}</p>
+                  <p style="margin:10px 0 0;font-size:11px;color:#6B7280">
+                    Scannez le QR avec Orange Money / Max it, ou composez le code USSD
+                    → «&nbsp;Payer un marchand&nbsp;» → code <strong>${c.merchantCode}</strong>.
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:0 14px 12px">
+            <p style="margin:0;font-size:10px;color:#9CA3AF">
+              Motif / référence à rappeler : <strong style="color:#B45309;font-family:monospace">#${ref}</strong>
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>`;
+}
+
+/** Bouton de preuve de paiement (achat PayPal via Orange Money). */
+function getPaypalBuyProofRows(p: NotifyPayload): string {
+  const ref = p.orderId.slice(-8).toUpperCase();
+  const waProof = `https://wa.me/237697657734?text=${encodeURIComponent(
+    `Bonjour, voici ma preuve de paiement Orange Money de ${p.total.toLocaleString("fr-FR")} FCFA — Réf #${ref}`,
+  )}`;
+
+  return `
+  <tr>
+    <td colspan="2" style="padding:12px 20px 10px;background:#FFFFFF;text-align:center">
+      <a href="${waProof}"
+        style="display:inline-block;background:#25D366;color:#FFFFFF;text-decoration:none;padding:9px 22px;border-radius:8px;font-weight:900;font-size:12px">
+        📱 Envoyer la preuve de paiement
+      </a>
+      <p style="margin:8px 0 0;font-size:11px;color:#6B7280">
+        Votre commande est traitée dès réception de la capture de paiement sur WhatsApp.
+      </p>
     </td>
   </tr>`;
 }
@@ -352,6 +510,14 @@ function buildClientEmail(p: NotifyPayload): string {
   const pColor = payColor(p.paymentMethod);
   const year   = new Date().getFullYear();
   const waNum  = "237697657734";
+  // Vente = le client nous envoie des € PayPal puis reçoit des FCFA.
+  // Achat = le client règle en FCFA via Mobile Money puis reçoit des €.
+  const isSell = p.flow === "sell";
+  const eurLabel = (p.eurAmount ?? 0).toLocaleString("fr-FR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  const payoutTarget = p.payoutTarget ?? p.paymentMethod;
 
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -376,9 +542,11 @@ function buildClientEmail(p: NotifyPayload): string {
   <table width="100%" cellpadding="0" cellspacing="0">
     <tr><td style="background:linear-gradient(135deg,#065F46,#047857);padding:20px 32px;text-align:center">
       <p style="margin:0;font-size:28px">✅</p>
-      <p style="margin:6px 0 0;font-weight:900;color:#FFFFFF;font-size:18px">Commande enregistrée !</p>
+      <p style="margin:6px 0 0;font-weight:900;color:#FFFFFF;font-size:18px">${isSell ? "Demande de vente enregistrée !" : "Commande enregistrée !"}</p>
       <p style="margin:6px 0 0;color:#A7F3D0;font-size:13px">
-        Bonjour <strong>${esc(p.clientName)}</strong>, nous avons bien reçu votre commande.
+        ${isSell
+          ? `Bonjour <strong>${esc(p.clientName)}</strong>, il ne vous reste plus qu'à envoyer votre solde PayPal.`
+          : `Bonjour <strong>${esc(p.clientName)}</strong>, nous avons bien reçu votre commande.`}
       </p>
       <p style="margin:12px 0 0;display:inline-block;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:#FFFFFF;font-size:11px;font-weight:900;padding:4px 14px;border-radius:20px;letter-spacing:1px">
         ⏳ EN COURS DE TRAITEMENT
@@ -423,11 +591,16 @@ function buildClientEmail(p: NotifyPayload): string {
       <!-- Total + Payment + USSD intégré -->
       <table width="100%" cellpadding="0" cellspacing="0" style="border:2px solid #FCD34D;border-radius:10px;margin-bottom:24px;overflow:hidden">
         <tr style="background:#FFFBEB">
-          <td style="padding:11px 20px;font-size:13px;color:#92400E;border-bottom:1px dashed #FDE68A">Mode de paiement</td>
-          <td style="padding:11px 20px;font-size:13px;font-weight:900;color:${pColor};text-align:right;border-bottom:1px dashed #FDE68A">${esc(p.paymentMethod)}</td>
+          <td style="padding:11px 20px;font-size:13px;color:#92400E;border-bottom:1px dashed #FDE68A">${isSell ? "Envoi PayPal" : "Mode de paiement"}</td>
+          <td style="padding:11px 20px;font-size:13px;font-weight:900;color:${isSell ? "#003087" : pColor};text-align:right;border-bottom:1px dashed #FDE68A">${isSell ? `${eurLabel}€ · PayPal` : esc(p.paymentMethod)}</td>
         </tr>
-        ${getMomoPaymentRows(p.paymentMethod, p.total)}
-        ${p.commission ? `
+        ${isSell && p.paypalId ? `
+        <tr style="background:#FFFBEB">
+          <td style="padding:10px 20px;font-size:12px;color:#92400E;border-bottom:1px dashed #FDE68A">Compte PayPal client</td>
+          <td style="padding:10px 20px;font-size:12px;font-weight:700;color:#B45309;text-align:right;border-bottom:1px dashed #FDE68A;word-break:break-all">${esc(p.paypalId)}</td>
+        </tr>` : ""}
+        ${isSell ? getPaypalSellRows(p) : p.flow === "buy" ? getPaypalBuyRows(p) : getMomoPaymentRows(p.paymentMethod, p.total)}
+        ${!isSell && p.commission ? `
         <tr style="background:#FFFBEB">
           <td style="padding:10px 20px;font-size:12px;color:#92400E;border-bottom:1px dashed #FDE68A">Montant articles</td>
           <td style="padding:10px 20px;font-size:12px;font-weight:700;color:#B45309;text-align:right;border-bottom:1px dashed #FDE68A">${(p.total - p.commission).toLocaleString("fr-FR")} FCFA</td>
@@ -437,9 +610,10 @@ function buildClientEmail(p: NotifyPayload): string {
           <td style="padding:10px 20px;font-size:12px;font-weight:700;color:#EF4444;text-align:right;border-bottom:1px dashed #FDE68A">+ ${p.commission.toLocaleString("fr-FR")} FCFA</td>
         </tr>` : ""}
         <tr style="background:#FFFBEB">
-          <td style="padding:14px 20px;font-size:14px;font-weight:900;color:#78350F">TOTAL À RÉGLER</td>
+          <td style="padding:14px 20px;font-size:14px;font-weight:900;color:#78350F">${isSell ? "MONTANT QUE VOUS RECEVEZ" : "TOTAL À RÉGLER"}</td>
           <td style="padding:14px 20px;font-size:24px;font-weight:900;color:#B45309;text-align:right;white-space:nowrap">${p.total.toLocaleString("fr-FR")} FCFA</td>
         </tr>
+        ${p.flow === "buy" ? getPaypalBuyProofRows(p) : ""}
       </table>
 
       <!-- Canal de commande -->
@@ -460,8 +634,8 @@ function buildClientEmail(p: NotifyPayload): string {
                 <div style="width:28px;height:28px;border-radius:50%;background:#10B981;color:#FFFFFF;text-align:center;line-height:28px;font-weight:900;font-size:12px">✓</div>
               </td>
               <td style="padding-left:12px;padding-bottom:14px">
-                <p style="margin:0;font-size:13px;font-weight:700;color:#1F2937">Commande reçue</p>
-                <p style="margin:2px 0 0;font-size:12px;color:#6B7280">Votre commande #${ref} est enregistrée</p>
+                <p style="margin:0;font-size:13px;font-weight:700;color:#1F2937">${isSell ? "Demande reçue" : "Commande reçue"}</p>
+                <p style="margin:2px 0 0;font-size:12px;color:#6B7280">Votre ${isSell ? "demande" : "commande"} #${ref} est enregistrée</p>
               </td>
             </tr>
             <tr>
@@ -469,8 +643,8 @@ function buildClientEmail(p: NotifyPayload): string {
                 <div style="width:28px;height:28px;border-radius:50%;background:#F59E0B;color:#FFFFFF;text-align:center;line-height:28px;font-weight:900;font-size:12px">2</div>
               </td>
               <td style="padding-left:12px;padding-bottom:14px">
-                <p style="margin:0;font-size:13px;font-weight:700;color:#1F2937">Contact WhatsApp sous 15–30 min ⏳</p>
-                <p style="margin:2px 0 0;font-size:12px;color:#6B7280">Un agent vous écrit pour confirmer le paiement</p>
+                <p style="margin:0;font-size:13px;font-weight:700;color:#1F2937">${isSell ? `Envoyez ${eurLabel}€ par PayPal` : "Contact WhatsApp sous 15–30 min ⏳"}</p>
+                <p style="margin:2px 0 0;font-size:12px;color:#6B7280">${isSell ? "Puis transmettez la preuve de dépôt sur WhatsApp" : "Un agent vous écrit pour confirmer le paiement"}</p>
               </td>
             </tr>
             <tr>
@@ -478,8 +652,8 @@ function buildClientEmail(p: NotifyPayload): string {
                 <div style="width:28px;height:28px;border-radius:50%;background:#94A3B8;color:#FFFFFF;text-align:center;line-height:28px;font-weight:900;font-size:12px">3</div>
               </td>
               <td style="padding-left:12px">
-                <p style="margin:0;font-size:13px;font-weight:700;color:#94A3B8">Livraison instantanée après paiement</p>
-                <p style="margin:2px 0 0;font-size:12px;color:#CBD5E1">Vous recevrez un email de confirmation de livraison</p>
+                <p style="margin:0;font-size:13px;font-weight:700;color:#94A3B8">${isSell ? "Versement de vos FCFA" : "Livraison instantanée après paiement"}</p>
+                <p style="margin:2px 0 0;font-size:12px;color:#CBD5E1">${isSell ? `${p.total.toLocaleString("fr-FR")} FCFA sur ${esc(payoutTarget)} après validation` : "Vous recevrez un email de confirmation de livraison"}</p>
               </td>
             </tr>
           </table>
@@ -501,7 +675,7 @@ function buildClientEmail(p: NotifyPayload): string {
           <td width="8"></td>
           <td style="padding:8px 12px;background:#FFF7ED;border-radius:8px;text-align:center;width:32%">
             <p style="margin:0;font-size:18px">🔒</p>
-            <p style="margin:4px 0 0;font-size:10px;font-weight:700;color:#92400E">0% commission</p>
+            <p style="margin:4px 0 0;font-size:10px;font-weight:700;color:#92400E">0% frais cachés</p>
           </td>
         </tr>
       </table>
@@ -530,7 +704,7 @@ function buildClientEmail(p: NotifyPayload): string {
       <!-- Footer -->
       <p style="margin:24px 0 0;text-align:center;font-size:11px;color:#9CA3AF">
         © ${year} Chreol Empire · Vallée 3, Boutiques Deido, Douala – Cameroun<br>
-        0% commission · Livraison express 15–30 min ·
+        0% frais cachés · Livraison express 15–30 min ·
         <a href="https://shop.chreolempire.com" target="_blank" rel="noopener noreferrer" style="color:#B45309;text-decoration:none;">chreolempire.com</a>
       </p>
       <p style="margin:6px 0 0;text-align:center;font-size:10px;color:#D1D5DB">
@@ -561,21 +735,26 @@ function buildTelegramMsg(p: NotifyPayload): string {
 
   return [
     `🛍️ <b>NOUVELLE COMMANDE #${ref}</b>`,
+    p.flow === "sell" ? `💸 <b>VENTE PAYPAL</b> — le client envoie <b>${(p.eurAmount ?? 0).toFixed(2)}€</b> sur <code>${esc(CONTACT.paypalEmail)}</code>` : "",
     ``,
     `👤 <b>${esc(p.clientName)}</b>`,
     `📧 ${esc(p.clientEmail)}`,
     `📱 +${waNum}`,
     `${pIcon} <b>${esc(p.paymentMethod)}</b>`,
+    p.flow === "sell" ? `💳 Compte PayPal client : <code>${esc(p.paypalId ?? "—")}</code>` : "",
+    p.flow === "sell" ? `💰 Versement FCFA : ${esc(p.payoutTarget ?? p.paymentMethod)}` : "",
     ``,
     `📦 <b>Commande :</b>`,
     itemLines,
     ``,
-    `💰 <b>TOTAL : ${p.total.toLocaleString("fr-FR")} FCFA</b>`,
+    `💰 <b>${p.flow === "sell" ? "À RECEVOIR" : "TOTAL"} : ${p.total.toLocaleString("fr-FR")} FCFA</b>`,
+    p.commission ? `🧾 dont ${esc(p.commissionLabel ?? "frais de service")} : ${p.commission.toLocaleString("fr-FR")} FCFA` : "",
+    p.flow === "buy" ? `🟠 Encaissement Orange Money — marchand <code>${ORANGE_MONEY_COMMERCE.merchantCode}</code> (${ORANGE_MONEY_COMMERCE.merchantName})` : "",
     p.campayReference ? `🔑 Réf. Campay : <code>${esc(p.campayReference)}</code>` : "",
     ``,
     p.sourceUrl ? `🌐 <a href="${esc(p.sourceUrl)}">Voir la page source</a>` : "",
     `<a href="https://wa.me/${waNum}">💬 Ouvrir WhatsApp client</a>`,
-  ].filter(l => l !== undefined).join("\n");
+  ].filter(l => l !== undefined && l !== "").join("\n");
 }
 
 async function sendTelegram(p: NotifyPayload, markDoneUrl: string, markCancelUrl: string): Promise<number> {
@@ -659,13 +838,7 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   // Sécurité : secret interne optionnel (défini côté serveur) pour les endpoints de notification
-  const internalSecret = process.env.INTERNAL_API_SECRET;
-  if (internalSecret) {
-    const h = request.headers.get("x-internal-secret");
-    if (h !== internalSecret) {
-      return Response.json({ error: "Non autorisé" }, { status: 401 });
-    }
-  }
+  if (!isAuthorizedInternal(request)) return unauthorized();
 
   let p: NotifyPayload;
   try {
@@ -678,7 +851,10 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: "Champs requis manquants" }, { status: 400 });
   }
 
-  // ── Anti-doublon : si une commande pending existe déjà pour cet email, on ne re-notifie pas ──
+  // ── Anti-doublon : on ne bloque que si une commande pending identique
+  //    (même email + même montant + même moyen de paiement) existe déjà.
+  //    Une vente PayPal puis un achat PayPal avec le même email ne sont donc
+  //    plus considérés comme des doublons.
   let duplicateOrder = false;
   const sbUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const sbKey = process.env.SUPABASE_SERVICE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
@@ -687,17 +863,20 @@ export async function POST(request: Request): Promise<Response> {
       const since = new Date(Date.now() - 30 * 60 * 1000).toISOString();
       const dupRes = await fetch(
         `${sbUrl}/rest/v1/orders` +
-        `?select=id,total,summary,created_at` +
+        `?select=id,total,payment_method,created_at` +
         `&client_email=eq.${encodeURIComponent(p.clientEmail)}` +
         `&status=eq.pending` +
         `&created_at=gte.${encodeURIComponent(since)}` +
         `&order=created_at.desc` +
-        `&limit=1`,
+        `&limit=5`,
         { headers: { apikey: sbKey, Authorization: `Bearer ${sbKey}` } },
       );
       if (dupRes.ok) {
         const rows = await dupRes.json().catch(() => []);
-        duplicateOrder = Array.isArray(rows) && rows.length > 0;
+        duplicateOrder = Array.isArray(rows) && rows.some((r: { total?: number; payment_method?: string }) =>
+          Number(r.total) === Number(p.total) &&
+          String(r.payment_method ?? "") === String(p.paymentMethod ?? ""),
+        );
       }
     } catch { /* ignore */ }
   }
@@ -735,7 +914,9 @@ export async function POST(request: Request): Promise<Response> {
       body: JSON.stringify({
         sender,
         to: [{ email: adminMail, name: "Chreol Empire Admin" }],
-        subject: `🛍️ Commande #${ref} — ${p.total.toLocaleString("fr-FR")} FCFA via ${p.paymentMethod}`,
+        subject: p.flow === "sell"
+          ? `💸 Vente PayPal #${ref} — ${(p.eurAmount ?? 0).toFixed(2)}€ → ${p.total.toLocaleString("fr-FR")} FCFA`
+          : `🛍️ Commande #${ref} — ${p.total.toLocaleString("fr-FR")} FCFA via ${p.paymentMethod}`,
         htmlContent: buildAdminEmail(p, markDoneUrl, markCancelUrl),
       }),
     }),
@@ -745,7 +926,9 @@ export async function POST(request: Request): Promise<Response> {
       body: JSON.stringify({
         sender,
         to: [{ email: p.clientEmail, name: p.clientName }],
-        subject: `✅ Commande confirmée #${ref} — Chreol Empire`,
+        subject: p.flow === "sell"
+          ? `💸 Vente PayPal #${ref} — envoyez ${(p.eurAmount ?? 0).toFixed(2)}€`
+          : `✅ Commande confirmée #${ref} — Chreol Empire`,
         htmlContent: buildClientEmail(p),
       }),
     }),
@@ -756,7 +939,19 @@ export async function POST(request: Request): Promise<Response> {
   const clientStatus   = clientResult.status   === "fulfilled" ? clientResult.value.status   : 500;
   const telegramStatus = telegramResult.status === "fulfilled" ? telegramResult.value        : 500;
 
-  console.log(`[notify-order] ref=${ref} admin=${adminStatus} client=${clientStatus} telegram=${telegramStatus}`);
+  // Log du corps de réponse en cas d'échec : indispensable pour diagnostiquer
+  // un expéditeur Brevo non validé ou un chat Telegram non autorisé.
+  if (adminStatus >= 300 && adminResult.status === "fulfilled") {
+    console.error(`[notify-order] admin email ${adminStatus}: ${(await adminResult.value.text().catch(() => "")).slice(0, 300)}`);
+  }
+  if (clientStatus >= 300 && clientResult.status === "fulfilled") {
+    console.error(`[notify-order] client email ${clientStatus}: ${(await clientResult.value.text().catch(() => "")).slice(0, 300)}`);
+  }
+  if (telegramStatus >= 300 && telegramResult.status === "fulfilled") {
+    console.error(`[notify-order] telegram ${telegramStatus}`);
+  }
+
+  console.log(`[notify-order] ref=${ref} flow=${p.flow ?? "n/a"} total=${p.total} admin=${adminStatus} client=${clientStatus} telegram=${telegramStatus}`);
 
   return Response.json({ ok: true, ref, admin: adminStatus, client: clientStatus, telegram: telegramStatus });
 }

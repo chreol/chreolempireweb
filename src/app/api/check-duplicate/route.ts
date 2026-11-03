@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { isAuthorizedInternal, unauthorized } from "@/lib/internalAuth";
 
 export const runtime = "edge";
 
@@ -8,11 +9,7 @@ export async function GET(req: NextRequest): Promise<Response> {
   if (!sbUrl) return Response.json({ duplicate: false });
 
   // Sécurité : secret interne optionnel (défini côté serveur) pour les endpoints internes
-  const internalSecret = process.env.INTERNAL_API_SECRET;
-  if (internalSecret) {
-    const h = req.headers.get("x-internal-secret");
-    if (h !== internalSecret) return Response.json({ duplicate: false });
-  }
+  if (!isAuthorizedInternal(req)) return unauthorized();
 
   const email = new URL(req.url).searchParams.get("email")?.trim().toLowerCase();
   if (!email) return Response.json({ duplicate: false });

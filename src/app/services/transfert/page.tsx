@@ -2,15 +2,14 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { CONTACT } from '@/lib/services';
 import { useToast } from "@/components/Toast";
 import TransferRatesModal from '@/components/TransferRatesModal';
-import { useLanguage } from "@/contexts/LanguageContext";
 import faq from '@/data/transfert-faq.json';
 
 export default function TransfertPage() {
   const { showToast } = useToast();
-  const { t } = useLanguage();
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-10">
@@ -27,10 +26,10 @@ export default function TransfertPage() {
         <div className="absolute inset-0 -z-0 bg-gradient-to-t from-black via-black/60 to-black/10" />
         <div className="relative z-10 p-6 sm:p-8">
           <h1 className="text-3xl sm:text-4xl font-black mb-3 text-white">CHREOL EMPIRE TRANSFER : Votre argent, notre priorité !</h1>
-          <p className="text-base sm:text-lg text-white/90">Envoyez de l'argent du Cameroun vers toute l'Afrique rapidement et en toute sécurité.</p>
+          <p className="text-base sm:text-lg text-white/90">Envoyez de l&apos;argent du Cameroun vers toute l&apos;Afrique rapidement et en toute sécurité.</p>
         </div>
       </section>
-      <p className="text-lg mb-6" style={{ color: "var(--text-secondary)" }}>Besoin d'envoyer de l'argent en Afrique ? Nous couvrons désormais <strong>16 destinations</strong> avec des frais transparents et une rapidité exemplaire.</p>
+      <p className="text-lg mb-6" style={{ color: "var(--text-secondary)" }}>Besoin d&apos;envoyer de l&apos;argent en Afrique ? Nous couvrons désormais <strong>16 destinations</strong> avec des frais transparents et une rapidité exemplaire.</p>
 
       <section className="rounded-2xl p-6 mb-6" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
         <h2 className="text-2xl font-bold mb-3">📊 NOS TARIFS (Frais par transaction)</h2>
@@ -71,7 +70,7 @@ export default function TransfertPage() {
 
           <div>
             <h3 className="font-bold">🔹 OPTION C – Cryptomonnaies</h3>
-            <p>Nous acceptons : <strong>USDT, BTC, SOL, TRX, BNB</strong>, et d'autres sur demande.</p>
+            <p>Nous acceptons : <strong>USDT, BTC, SOL, TRX, BNB</strong>, et d&apos;autres sur demande.</p>
           </div>
 
           <div>
@@ -88,7 +87,7 @@ export default function TransfertPage() {
           <p>🔵 <strong>Telegram</strong> : @chreolempire0</p>
           <p>🔵 <strong>Canal Telegram</strong> : @camerbizventes</p>
           <p>🔵 <strong>Facebook</strong> : @chreolempire</p>
-          <p>Envoyez <strong>"TRANSFER"</strong> en message privé.</p>
+          <p>Envoyez <strong>&quot;TRANSFER&quot;</strong> en message privé.</p>
           <p>Visitez notre boutique : <a href="https://shop.chreolempire.com" target="_blank" rel="noreferrer" className="font-bold text-var">shop.chreolempire.com</a></p>
         </div>
 
@@ -99,16 +98,16 @@ export default function TransfertPage() {
               try {
                 navigator.clipboard.writeText('TRANSFER');
                 showToast('Texte copié — envoyez TRANSFER en message privé', 'success');
-              } catch (e) {
+              } catch {
                 showToast('Copie impossible — envoyez TRANSFER manuellement', 'error');
               }
             }}
-          >Envoyer "TRANSFER" en message privé</button>
+          >Envoyer &quot;TRANSFER&quot; en message privé</button>
         </div>
       </section>
 
       <section className="rounded-2xl p-6 mb-6" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
-        <h2 className="text-2xl font-bold mb-3">👉 COMMENT INITIER UN TRANSFERT D'ARGENT</h2>
+        <h2 className="text-2xl font-bold mb-3">👉 COMMENT INITIER UN TRANSFERT D&apos;ARGENT</h2>
         <ol className="list-decimal list-inside text-sm space-y-2">
           <li>Choisissez la destination et le montant dans notre formulaire.</li>
           <li>Vérifiez les frais estimés affichés sous le champ montant.</li>
@@ -120,9 +119,9 @@ export default function TransfertPage() {
       </section>
 
       <section className="rounded-2xl p-6 mb-6" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
-        <h2 className="text-2xl font-bold mb-3">❓ FAQ — Transfert d'argent</h2>
+        <h2 className="text-2xl font-bold mb-3">❓ FAQ — Transfert d&apos;argent</h2>
         <div className="space-y-3 text-sm">
-          {faq.map((q: any, i: number) => (
+          {faq.map((q, i: number) => (
             <div key={i}>
               <p className="font-bold">{q.question}</p>
               <p>{q.answer}</p>
@@ -134,12 +133,12 @@ export default function TransfertPage() {
       <section className="rounded-2xl p-6 mb-6" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
         <h2 className="text-2xl font-bold mb-3">🔁 Autres services disponibles</h2>
         <div className="flex flex-wrap gap-3">
-          <a href="/services/cartes-cadeaux" className="px-3 py-2 rounded-full bg-black/10 text-sm">🎮 Cartes Cadeaux</a>
-          <a href="/services/crypto" className="px-3 py-2 rounded-full bg-black/10 text-sm">₿ Crypto &amp; MoMo</a>
-          <a href="/services/coupons" className="px-3 py-2 rounded-full bg-black/10 text-sm">🎫 Coupons PCS / Transcash</a>
-          <a href="/services/uba" className="px-3 py-2 rounded-full bg-black/10 text-sm">💳 UBA Cameroun</a>
-          <a href="/services/paypal" className="px-3 py-2 rounded-full bg-black/10 text-sm">💸 PayPal Europe</a>
-          <a href="/services/factures" className="px-3 py-2 rounded-full bg-black/10 text-sm">🔄 Paiement Factures</a>
+          <Link href="/services/cartes-cadeaux" className="px-3 py-2 rounded-full bg-black/10 text-sm">🎮 Cartes Cadeaux</Link>
+          <Link href="/services/crypto" className="px-3 py-2 rounded-full bg-black/10 text-sm">₿ Crypto &amp; MoMo</Link>
+          <Link href="/services/coupons" className="px-3 py-2 rounded-full bg-black/10 text-sm">🎫 Coupons PCS / Transcash</Link>
+          <Link href="/services/uba" className="px-3 py-2 rounded-full bg-black/10 text-sm">💳 UBA Cameroun</Link>
+          <Link href="/services/paypal" className="px-3 py-2 rounded-full bg-black/10 text-sm">💸 PayPal Europe</Link>
+          <Link href="/services/factures" className="px-3 py-2 rounded-full bg-black/10 text-sm">🔄 Paiement Factures</Link>
         </div>
       </section>
 
@@ -225,7 +224,7 @@ function TransferForm() {
       showToast('Demande envoyée — nous vous contacterons bientôt', 'success');
       setForm(emptyForm);
     } catch (err) {
-      showToast((err as any)?.message || 'Erreur envoi demande', 'error');
+      showToast(err instanceof Error ? err.message : 'Erreur envoi demande', 'error');
     } finally { setLoading(false); }
   }
 

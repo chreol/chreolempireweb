@@ -29,8 +29,6 @@ export default function WAPopover({
   className,
   style,
   children,
-  align: _align,
-  dropDown: _dropDown,
 }: WAPopoverProps) {
   const [open, setOpen]       = useState(false);
   const [prenom, setPrenom]   = useState(prefillPrenom ?? "");

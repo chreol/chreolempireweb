@@ -31,7 +31,10 @@ export default function ServicesMenu() {
   }, [open]);
 
   // Fermer après navigation
-  useEffect(() => { setOpen(false); }, [pathname]);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fermeture du menu au changement de route
+    setOpen(false);
+  }, [pathname]);
 
   function go(href: string) { setOpen(false); router.push(href); }
 

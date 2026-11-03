@@ -36,6 +36,42 @@ const SEARCH_INDEX: SearchItem[] = [
 
 const HINTS = ["PSN", "USDT", "PayPal", "UBA", "Canal+", "Transcash", "Nintendo", "Bitcoin"];
 
+function ResultGroup({ title, items, startIdx, cursor, onSelect }: {
+  title: string;
+  items: SearchItem[];
+  startIdx: number;
+  cursor: number;
+  onSelect: (href: string) => void;
+}) {
+  if (!items.length) return null;
+  return (
+    <div>
+      <p className="px-4 pt-3 pb-1.5 text-[10px] font-black uppercase tracking-widest" style={{ color: "var(--gold)" }}>{title}</p>
+      {items.map((r, i) => {
+        const globalIdx = startIdx + i;
+        const active = cursor === globalIdx;
+        return (
+          <button
+            key={r.label}
+            onClick={() => onSelect(r.href)}
+            className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors"
+            style={{ background: active ? "rgba(201,168,76,0.12)" : "transparent" }}
+          >
+            <span className="w-8 h-8 rounded-xl flex items-center justify-center text-base shrink-0" style={{ background: "var(--bg-elevated)" }}>
+              {r.emoji}
+            </span>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-white truncate">{r.label}</p>
+              <p className="text-xs truncate" style={{ color: "var(--text-muted)" }}>{r.sub}</p>
+            </div>
+            {active && <span className="text-xs shrink-0" style={{ color: "var(--text-muted)" }}>↵</span>}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function GlobalSearch({ onClose }: { onClose: () => void }) {
   const [query, setQuery]     = useState("");
   const [cursor, setCursor]   = useState(-1);
@@ -79,36 +115,6 @@ export default function GlobalSearch({ onClose }: { onClose: () => void }) {
   const services = results.filter(r => r.type === "service");
   const products = results.filter(r => r.type === "product");
   const pages    = results.filter(r => r.type === "page");
-
-  function ResultGroup({ title, items, startIdx }: { title: string; items: SearchItem[]; startIdx: number }) {
-    if (!items.length) return null;
-    return (
-      <div>
-        <p className="px-4 pt-3 pb-1.5 text-[10px] font-black uppercase tracking-widest" style={{ color: "var(--gold)" }}>{title}</p>
-        {items.map((r, i) => {
-          const globalIdx = startIdx + i;
-          const active = cursor === globalIdx;
-          return (
-            <button
-              key={r.label}
-              onClick={() => go(r.href)}
-              className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors"
-              style={{ background: active ? "rgba(201,168,76,0.12)" : "transparent" }}
-            >
-              <span className="w-8 h-8 rounded-xl flex items-center justify-center text-base shrink-0" style={{ background: "var(--bg-elevated)" }}>
-                {r.emoji}
-              </span>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-white truncate">{r.label}</p>
-                <p className="text-xs truncate" style={{ color: "var(--text-muted)" }}>{r.sub}</p>
-              </div>
-              {active && <span className="text-xs shrink-0" style={{ color: "var(--text-muted)" }}>↵</span>}
-            </button>
-          );
-        })}
-      </div>
-    );
-  }
 
   return (
     <div
@@ -165,9 +171,9 @@ export default function GlobalSearch({ onClose }: { onClose: () => void }) {
         {/* Results */}
         {results.length > 0 && (
           <div className="rounded-2xl overflow-hidden" style={{ background: "var(--bg-card)", border: "1px solid var(--border)", boxShadow: "0 24px 64px rgba(0,0,0,0.5)" }}>
-            <ResultGroup title="Services" items={services} startIdx={0} />
-            <ResultGroup title="Produits populaires" items={products} startIdx={services.length} />
-            <ResultGroup title="Pages" items={pages} startIdx={services.length + products.length} />
+            <ResultGroup title="Services" items={services} startIdx={0} cursor={cursor} onSelect={go} />
+            <ResultGroup title="Produits populaires" items={products} startIdx={services.length} cursor={cursor} onSelect={go} />
+            <ResultGroup title="Pages" items={pages} startIdx={services.length + products.length} cursor={cursor} onSelect={go} />
             <div className="h-2" />
           </div>
         )}

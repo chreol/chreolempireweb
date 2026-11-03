@@ -24,6 +24,9 @@ const geist = Geist({ subsets: ["latin"], variable: "--font-geist-sans" });
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://shop.chreolempire.com";
 const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 const SOCIAL_BANNER = "/assets/banner-chreol-empire-cameroun.webp.webp?v=20260827";
+// Le script Vercel Analytics n'existe que sur Vercel : hors Vercel il renvoie un 404
+// (erreur console + requête inutile). On ne le charge donc que sur Vercel.
+const VERCEL_ANALYTICS = Boolean(process.env.VERCEL || process.env.NEXT_PUBLIC_VERCEL_ENV);
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -218,7 +221,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     <Link href="/services/crypto" className="hover:text-white transition-colors">₿ Crypto &amp; MoMo</Link>
                     <Link href="/services/coupons" className="hover:text-white transition-colors">🎫 Coupons PCS / Transcash</Link>
                     <Link href="/services/uba" className="hover:text-white transition-colors">💳 UBA Cameroun</Link>
-                    <Link href="/services/transfert" className="hover:text-white transition-colors">🌍 Transfert d'argent</Link>
+                    <Link href="/services/transfert" className="hover:text-white transition-colors">🌍 Transfert d&apos;argent</Link>
                     <Link href="/services/paypal" className="hover:text-white transition-colors">💸 PayPal Europe</Link>
                     <Link href="/services/factures" className="hover:text-white transition-colors">🔄 Paiement Factures</Link>
                   </div>
@@ -338,7 +341,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </HistoryProvider>
         </ToastProvider>
         </Providers>
-        <Analytics />
+        {VERCEL_ANALYTICS ? <Analytics /> : null}
       </body>
     </html>
   );

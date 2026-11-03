@@ -6,7 +6,6 @@ import { track } from "@vercel/analytics";
 import { motion, AnimatePresence } from "framer-motion";
 import { UBA_CARDS, UBA_RECHARGE_FEES, IMAGES } from "@/lib/services";
 import { saveClientInfo } from "@/lib/clientInfo";
-import WAPopover from "@/components/WAPopover";
 import USSDOrderFlow from "@/components/USSDOrderFlow";
 import PaymentMethodSelector, { resolvePaymentMethod } from "@/components/PaymentMethodSelector";
 import RelatedServices from "@/components/RelatedServices";
@@ -17,6 +16,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import FAQ from "@/components/FAQ";
 import StepGuide from "@/components/StepGuide";
 import { Field } from "@/components/FormField";
+import { makeId } from "@/lib/uid";
 
 // FAQ en français pour le JSON-LD SEO
 const FAQ_FR = [
@@ -157,7 +157,7 @@ export default function UBAPage() {
     if (!validate()) { showToast(t("err.fix"), "error"); return; }
     saveClientInfo({ name: fullName, email, phone });
     addItem({
-      id: `uba-recharge-${Date.now()}`,
+      id: makeId("uba-recharge"),
       cardName: "UBA Cameroun — Recharge",
       amount: `${numAmount.toLocaleString("fr-FR")} FCFA + ${fee.toLocaleString("fr-FR")} FCFA frais`,
       price: total,

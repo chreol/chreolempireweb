@@ -43,7 +43,7 @@ export default function GoogleReviewPrompt({ productName = "votre commande", com
             className="inline-flex items-center justify-center min-h-10 px-4 py-2 rounded-xl text-xs font-black text-white transition-opacity hover:opacity-85 active:scale-[0.96]"
             style={{ background: "#25D366" }}
           >
-            💬 Besoin d'aide ?
+            💬 Besoin d&apos;aide ?
           </a>
         </div>
       </div>

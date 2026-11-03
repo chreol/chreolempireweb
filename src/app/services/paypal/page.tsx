@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { track } from "@vercel/analytics";
 import { motion, AnimatePresence } from "framer-motion";
-import { PAYPAL_RATES, PAYPAL_LIMITS, MOMO_OPERATORS, IMAGES } from "@/lib/services";
+import { PAYPAL_RATES, PAYPAL_LIMITS, MOMO_OPERATORS, IMAGES, ORANGE_MONEY_COMMERCE, orangeMoneyFee } from "@/lib/services";
 import { saveClientInfo } from "@/lib/clientInfo";
 import WAPopover from "@/components/WAPopover";
 import USSDOrderFlow from "@/components/USSDOrderFlow";
@@ -16,6 +16,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import FAQ from "@/components/FAQ";
 import StepGuide from "@/components/StepGuide";
 import { Field, CalcRow } from "@/components/FormField";
+import { makeId } from "@/lib/uid";
 
 // FAQ en français pour le JSON-LD SEO
 const FAQ_FR = [
@@ -114,13 +115,16 @@ export default function PaypalPage() {
   const [amount, setAmount]           = useState("");
   const [idFormat, setIdFormat]       = useState<"email" | "phone" | "paypalme">("email");
   const [paypalId, setPaypalId]       = useState("");
-  const [contactDialCode, setContactDialCode] = useState("+237");
-  const [contactPhone, setContactPhone] = useState("");
   const [contactEmail, setContactEmail] = useState("");
   const [momoOp, setMomoOp]           = useState("orange");
   const [momoDialCode, setMomoDialCode] = useState("+237");
   const [momoPhone, setMomoPhone]     = useState("");
   const [errors, setErrors]           = useState<Record<string, string>>();
+
+  // Seul Orange Money est ouvert aujourd'hui (compte marchand CHREOL EMPIRE).
+  // Les autres opérateurs restent dans MOMO_OPERATORS pour les autres services.
+  const AVAILABLE_OPS: readonly string[] = ["orange"];
+  const PAYPAL_OPS = MOMO_OPERATORS.filter(o => AVAILABLE_OPS.includes(o.id));
 
   const ID_FORMATS = [
     { id: "email",    label: "Email",         placeholder: "exemple@email.com",  icon: "✉️" },
@@ -147,10 +151,16 @@ export default function PaypalPage() {
   function switchDirection(d: "sell" | "buy") {
     setDirection(d); setAmount(""); setErrors(undefined);
     setInputCurrency(d === "sell" ? "EUR" : "FCFA");
-    setContactEmail(""); setPaypalId(""); setContactPhone(""); setContactDialCode("+237");
+    setContactEmail(""); setPaypalId("");
   }
 
   const numAmount = parseFloat(amount) || 0;
+
+  // Quand l'identifiant PayPal est un email, il sert aussi d'email de contact :
+  // on évite ainsi de demander deux fois la même information.
+  const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const usesPaypalEmailAsContact = idFormat === "email";
+  const effectiveEmail = (usesPaypalEmailAsContact ? paypalId : contactEmail).trim();
 
   // Sell: user sells PayPal → receives FCFA
   const sellEur   = direction === "sell"
@@ -165,7 +175,13 @@ export default function PaypalPage() {
     ? (inputCurrency === "FCFA" ? +(numAmount / buyRate).toFixed(2) : +numAmount.toFixed(2)) : 0;
 
   const displayEur  = direction === "sell" ? sellEur  : eurResult;
-  const displayFcfa = direction === "sell" ? fcfaResult : buyFcfa;
+
+  // ── Commission Orange Money (1 %) ──────────────────────────────────────────
+  // Les encaissements marchands Orange Money sont facturés 1 %. On l'affiche
+  // séparément et on l'ajoute au montant à régler (uniquement à l'achat).
+  const orangeFee  = direction === "buy" ? orangeMoneyFee(buyFcfa, momoOp) : 0;
+  const buyTotal   = buyFcfa + orangeFee;
+  const totalDue   = direction === "sell" ? fcfaResult : buyTotal;
 
   function validate() {
     const e: Record<string, string> = {};
@@ -180,15 +196,15 @@ export default function PaypalPage() {
       if (inFcfa < PAYPAL_LIMITS.buy.min) e.amount = t("pp.min", { v: `${PAYPAL_LIMITS.buy.min.toLocaleString("fr-FR")} FCFA (≈ ${+(PAYPAL_LIMITS.buy.min / buyRate).toFixed(0)}€)` });
     }
     if (!paypalId.trim()) e.paypalId = t("pp.id_required");
-    else if (idFormat === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(paypalId)) e.paypalId = t("pp.email_invalid");
-    if (!contactEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) e.contactEmail = t("err.email_valid");
-    const cpD = contactPhone.replace(/\D/g, "");
-    if (direction === "sell" && cpD.length < 6) e.contactPhone = t("pp.phone_short");
-    if (direction === "buy" && contactPhone && cpD.length < 6) e.contactPhone = t("pp.phone_short");
+    else if (idFormat === "email" && !emailRe.test(paypalId)) e.paypalId = t("pp.email_invalid");
+    if (!usesPaypalEmailAsContact && (!contactEmail.trim() || !emailRe.test(contactEmail))) {
+      e.contactEmail = t("err.email_valid");
+    }
+    // Le numéro Mobile Money sert aussi de contact : il est désormais obligatoire
+    // dans les deux sens (le champ « numéro WhatsApp » a été supprimé).
     const mpD = momoPhone.replace(/\D/g, "").replace(/^237/, "");
     const mpLen = momoDialCode === "+237" ? 9 : 6;
-    if (direction === "sell" && momoPhone.replace(/\D/g, "").length < mpLen) e.momoPhone = t("err.phone_invalid");
-    if (direction === "buy" && momoPhone && momoPhone.replace(/\D/g, "").length < mpLen) e.momoPhone = t("err.phone_invalid");
+    if (mpD.length < mpLen) e.momoPhone = t("err.phone_invalid");
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -198,40 +214,51 @@ export default function PaypalPage() {
   function buildDetails() {
     const op = MOMO_OPERATORS.find(o => o.id === momoOp)?.name ?? momoOp;
     const idLine = `PayPal (${idLabel}) : ${paypalId}`;
+    const contact = `${op} ${momoDialCode} ${momoPhone}`;
     if (direction === "sell")
-      return `${idLine} | ${displayEur.toFixed(2)}€ → ${fcfaResult.toLocaleString("fr-FR")} FCFA\n${op} ${momoDialCode} ${momoPhone}\nContact : ${contactDialCode} ${contactPhone}`;
-    return `${idLine} | ${buyFcfa.toLocaleString("fr-FR")} FCFA → ${eurResult}€\n${op} ${momoDialCode} ${momoPhone}\nContact : ${contactDialCode} ${contactPhone}`;
+      return `${idLine} | ${displayEur.toFixed(2)}€ → ${fcfaResult.toLocaleString("fr-FR")} FCFA\n${contact}`;
+    return `${idLine} | ${buyFcfa.toLocaleString("fr-FR")} FCFA → ${eurResult}€\nFrais Orange Money (1 %) : ${orangeFee.toLocaleString("fr-FR")} FCFA\nTotal à payer : ${buyTotal.toLocaleString("fr-FR")} FCFA\n${contact}`;
   }
 
   function buildMsgPlain() {
     const op  = MOMO_OPERATORS.find(o => o.id === momoOp)?.name ?? momoOp;
     const ref = orderIdRef.current ? ` — Réf #${orderIdRef.current.slice(-8).toUpperCase()}` : "";
     if (direction === "sell")
-      return `💸 VENTE PAYPAL${ref}\nCompte PayPal (${idLabel}) : ${paypalId}\nMontant : ${displayEur.toFixed(2)}€\nÀ recevoir : ${fcfaResult.toLocaleString("fr-FR")} FCFA\nTaux : 1€ = ${sellRate} FCFA\n\n💰 Réception MoMo\nOpérateur : ${op}\nNuméro : ${momoDialCode} ${momoPhone}\n\n📱 Contact WhatsApp : ${contactDialCode} ${contactPhone}`;
-    return `💳 ACHAT PAYPAL${ref}\nCompte PayPal (${idLabel}) : ${paypalId}\nJe paie : ${buyFcfa.toLocaleString("fr-FR")} FCFA\nÀ recevoir : ${eurResult}€\nTaux : 1€ = ${buyRate} FCFA\n\n💰 Paiement MoMo\nOpérateur : ${op}\nNuméro : ${momoDialCode} ${momoPhone}\n\n📱 Contact WhatsApp : ${contactDialCode} ${contactPhone}`;
+      return `💸 VENTE PAYPAL${ref}\nCompte PayPal (${idLabel}) : ${paypalId}\nMontant : ${displayEur.toFixed(2)}€\nÀ recevoir : ${fcfaResult.toLocaleString("fr-FR")} FCFA\nTaux : 1€ = ${sellRate} FCFA\n\n💰 Réception MoMo\nOpérateur : ${op}\nNuméro : ${momoDialCode} ${momoPhone}`;
+    return `💳 ACHAT PAYPAL${ref}\nCompte PayPal (${idLabel}) : ${paypalId}\nMontant : ${buyFcfa.toLocaleString("fr-FR")} FCFA\nFrais Orange Money (1 %) : ${orangeFee.toLocaleString("fr-FR")} FCFA\nTotal payé : ${buyTotal.toLocaleString("fr-FR")} FCFA\nÀ recevoir : ${eurResult}€\nTaux : 1€ = ${buyRate} FCFA\n\n💰 Paiement MoMo\nOpérateur : ${op}\nNuméro : ${momoDialCode} ${momoPhone}`;
   }
 
   function sendNotification() {
     const op = MOMO_OPERATORS.find(o => o.id === momoOp)?.name ?? momoOp;
+    const phone = `${momoDialCode}${momoPhone}`.replace(/\D/g, "");
     fetch("/api/notify-order", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        orderId: (() => { const id = `paypal-${direction}-${Date.now()}`; orderIdRef.current = id; return id; })(),
-        clientName: contactEmail.split("@")[0],
-        clientEmail: contactEmail,
-        clientPhone: contactPhone || momoPhone,
+        orderId: (() => { const id = makeId(`paypal-${direction}`); orderIdRef.current = id; return id; })(),
+        clientName: effectiveEmail.split("@")[0] || "Client PayPal",
+        clientEmail: effectiveEmail,
+        clientPhone: phone,
         paymentMethod: op,
         items: [{
           name: direction === "sell" ? "Vente PayPal Europe" : "Achat PayPal Europe",
           qty: 1,
-          price: direction === "sell" ? fcfaResult : buyFcfa,
+          price: direction === "sell" ? fcfaResult : buyTotal,
           amount: direction === "sell"
             ? `${displayEur.toFixed(2)}€ → ${fcfaResult.toLocaleString("fr-FR")} FCFA`
             : `${buyFcfa.toLocaleString("fr-FR")} FCFA → ${eurResult}€`,
           details: buildDetails(),
         }],
-        total: direction === "sell" ? fcfaResult : buyFcfa,
+        total: totalDue,
+        commission: orangeFee > 0 ? orangeFee : undefined,
+        commissionLabel: orangeFee > 0 ? "Frais Orange Money (1 %)" : undefined,
+        // Permet à l'email de distinguer une vente (le client envoie des €)
+        // d'un achat (le client règle en FCFA) et d'afficher les bonnes instructions.
+        flow: direction,
+        paypalId,
+        paypalIdFormat: idFormat,
+        eurAmount: direction === "sell" ? +displayEur.toFixed(2) : eurResult,
+        payoutTarget: `${op} · ${momoDialCode} ${momoPhone}`,
         sourceUrl: window.location.pathname,
       }),
     }).catch(() => {});
@@ -239,22 +266,22 @@ export default function PaypalPage() {
 
   function handleAddToCart() {
     if (!validate()) { showToast(t("err.fix"), "error"); return; }
-    saveClientInfo({ email: contactEmail, phone: contactPhone, dialCode: contactDialCode, name: contactEmail.split("@")[0] });
+    saveClientInfo({ email: effectiveEmail, phone: momoPhone, dialCode: momoDialCode, name: effectiveEmail.split("@")[0] });
     const op = MOMO_OPERATORS.find(o => o.id === momoOp)?.name ?? momoOp;
     addItem({
-      id: `paypal-${direction}-${Date.now()}`,
+      id: makeId(`paypal-${direction}`),
       cardName: direction === "sell" ? "Vente PayPal Europe" : "Achat PayPal Europe",
       amount: direction === "sell"
         ? `${displayEur.toFixed(2)}€ → ${fcfaResult.toLocaleString("fr-FR")} FCFA via ${op}`
-        : `${buyFcfa.toLocaleString("fr-FR")} FCFA → ${eurResult}€`,
-      price: direction === "sell" ? fcfaResult : buyFcfa,
+        : `${buyFcfa.toLocaleString("fr-FR")} FCFA → ${eurResult}€ (frais Orange 1 % : ${orangeFee.toLocaleString("fr-FR")} FCFA)`,
+      price: totalDue,
       type: direction === "sell" ? "sell" : "buy",
       details: buildDetails(),
     });
     addEntry({
       service: `PayPal — ${direction === "sell" ? "Vente" : "Achat"}`,
       details: direction === "sell" ? `${displayEur.toFixed(2)}€ → ${fcfaResult.toLocaleString("fr-FR")} FCFA` : `${buyFcfa.toLocaleString("fr-FR")} FCFA → ${eurResult}€`,
-      amount: direction === "sell" ? fcfaResult : buyFcfa,
+      amount: totalDue,
       currency: "FCFA",
       status: "pending",
     });
@@ -372,9 +399,10 @@ export default function PaypalPage() {
                 </>
               ) : (
                 <>
-                  <CalcRow label={t("pp.fcfa_to_pay")} value={`${displayFcfa.toLocaleString("fr-FR")} FCFA`} />
+                  <CalcRow label={t("pp.fcfa_to_pay")} value={`${buyFcfa.toLocaleString("fr-FR")} FCFA`} />
                   <CalcRow label={t("pp.buy_rate")} value={`1€ = ${buyRate} FCFA`} />
-                  <CalcRow label="Commission" value={t("common.commission_0")} />
+                  <CalcRow label="Commission Orange Money (1 %)" value={`+ ${orangeFee.toLocaleString("fr-FR")} FCFA`} />
+                  <CalcRow label="Total à payer" value={`${buyTotal.toLocaleString("fr-FR")} FCFA`} />
                   <CalcRow label={t("common.you_receive")} value={`${eurResult}€`} highlight />
                 </>
               )}
@@ -391,10 +419,10 @@ export default function PaypalPage() {
             ID_FORMATS={ID_FORMATS}
           />}
 
-          <Field label={direction === "sell" ? t("f.momo_receive") : `${t("f.momo_pay")} ${t("f.optional")}`} error={errors?.momoPhone}>
+          <Field label={direction === "sell" ? t("f.momo_receive") : t("f.momo_pay")} error={errors?.momoPhone}>
             <div className="flex flex-col gap-2">
-              <div className="grid grid-cols-3 gap-2">
-                {MOMO_OPERATORS.map(o => (
+              <div className={`grid gap-2 ${PAYPAL_OPS.length > 1 ? "grid-cols-3" : "grid-cols-1"}`}>
+                {PAYPAL_OPS.map(o => (
                   <button type="button" key={o.id} onClick={() => setMomoOp(o.id)}
                     className="flex items-center gap-2 p-2.5 rounded-xl transition-all"
                     style={{ background: momoOp === o.id ? o.color + "20" : "var(--bg-card)", border: `2px solid ${momoOp === o.id ? o.color : "var(--border)"}` }}>
@@ -410,7 +438,9 @@ export default function PaypalPage() {
                   </button>
                 ))}
               </div>
-              <div className="flex items-center rounded-2xl overflow-hidden" style={errors?.momoPhone ? inputErr : inputBase}>
+
+              {/* Indicatif et numéro : deux champs distincts, séparés par un petit espace */}
+              <div className="flex items-stretch gap-2">
                 <input
                   type="text"
                   value={momoDialCode}
@@ -421,6 +451,7 @@ export default function PaypalPage() {
                   }}
                   placeholder="+237"
                   maxLength={5}
+                  aria-label="Indicatif"
                   className="px-3 py-3 rounded-2xl text-sm font-bold text-center outline-none w-20 shrink-0"
                   style={{
                     background: "var(--bg-elevated)",
@@ -430,48 +461,47 @@ export default function PaypalPage() {
                 />
                 <input type="tel" placeholder={momoDialCode === "+237" ? "6XXXXXXXX" : t("pp.your_number")} value={momoPhone}
                   maxLength={momoDialCode === "+237" ? 9 : 15}
+                  aria-label="Numéro Mobile Money"
                   onChange={e => { setMomoPhone(e.target.value.replace(/\D/g, "")); setErrors(p => p ? { ...p, momoPhone: "" } : undefined); }}
-                  className="flex-1 py-3 pr-4 bg-transparent text-white text-sm outline-none"
+                  className="flex-1 px-4 py-3 rounded-2xl text-white text-sm outline-none"
+                  style={errors?.momoPhone ? inputErr : inputBase}
                 />
               </div>
             </div>
           </Field>
 
-          {/* ── Numéro WhatsApp contact avec indicatif éditable ── */}
-          <Field label={direction === "buy" ? `${t("f.phone_wa")} ${t("f.optional")}` : t("f.phone_wa")} error={errors?.contactPhone}>
-            <div className="flex gap-2">
-              {/* Indicatif — champ indépendant, toujours cliquable */}
-              <input
-                type="text"
-                value={contactDialCode}
-                onChange={e => {
-                  let v = e.target.value.replace(/[^0-9+]/g, "");
-                  if (!v.startsWith("+")) v = "+" + v;
-                  setContactDialCode(v.slice(0, 5));
-                }}
-                placeholder="+237"
-                maxLength={5}
-                className="px-3 py-3 rounded-2xl text-sm font-bold text-center outline-none w-20 shrink-0"
-                style={{
-                  background: "var(--bg-elevated)",
-                  border: "2px solid var(--gold)",
-                  color: "var(--text-primary)",
-                }}
-              />
-              {/* Numéro */}
-              <input
-                type="tel"
-                placeholder={contactDialCode === "+237" ? "6XXXXXXXX" : t("pp.your_number")}
-                value={contactPhone}
-                maxLength={contactDialCode === "+237" ? 9 : 15}
-                onChange={e => { setContactPhone(e.target.value.replace(/\D/g, "")); setErrors(p => p ? { ...p, contactPhone: "" } : undefined); }}
-                className="flex-1 px-4 py-3 rounded-2xl text-white text-sm outline-none"
-                style={errors?.contactPhone ? inputErr : inputBase}
-              />
+          {/* ── Compte marchand Orange Money : QR + code marchand (achat uniquement) ── */}
+          {momoOp === "orange" && direction === "buy" && (
+            <div className="rounded-2xl p-4" style={{ background: "#FF660010", border: "1px solid #FF660044" }}>
+              <p className="text-xs font-black uppercase tracking-wider mb-3" style={{ color: "#FF6600" }}>
+                🟠 Compte marchand Orange Money
+              </p>
+              <div className="flex gap-4 items-start">
+                <a
+                  href={ORANGE_MONEY_COMMERCE.image}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="relative w-40 h-40 rounded-xl overflow-hidden shrink-0 block"
+                  style={{ background: "#FFFFFF" }}
+                  aria-label="Agrandir le QR code marchand Orange Money"
+                >
+                  <Image src={ORANGE_MONEY_COMMERCE.image} alt="QR code marchand Orange Money CHREOL EMPIRE" fill style={{ objectFit: "contain" }} unoptimized />
+                </a>
+                <div className="text-xs flex flex-col gap-1.5" style={{ color: "var(--text-secondary)" }}>
+                  <p><span style={{ color: "var(--text-muted)" }}>Code marchand : </span><strong className="tabular-nums" style={{ color: "#FF6600" }}>{ORANGE_MONEY_COMMERCE.merchantCode}</strong></p>
+                  <p><span style={{ color: "var(--text-muted)" }}>Nom : </span><strong>{ORANGE_MONEY_COMMERCE.merchantName}</strong></p>
+                  <p><span style={{ color: "var(--text-muted)" }}>Réf. QR : </span><strong className="tabular-nums">{ORANGE_MONEY_COMMERCE.qrCode}</strong></p>
+                  <p><span style={{ color: "var(--text-muted)" }}>USSD : </span><strong className="tabular-nums">{ORANGE_MONEY_COMMERCE.ussd}</strong></p>
+                </div>
+              </div>
+              <p className="text-[11px] mt-3" style={{ color: "var(--text-muted)" }}>
+                Scannez le QR avec Orange Money / Max it, ou composez <strong>{ORANGE_MONEY_COMMERCE.ussd}</strong> → «&nbsp;Payer un marchand&nbsp;» → code <strong>{ORANGE_MONEY_COMMERCE.merchantCode}</strong>.
+                {direction === "buy" && <> Les encaissements Orange Money sont soumis à une commission de <strong>1 %</strong>, ajoutée au total.</>}
+              </p>
             </div>
-          </Field>
+          )}
 
-          {/* ── Identifiant PayPal — affiché APRÈS WhatsApp seulement en mode ACHAT ── */}
+          {/* ── Identifiant PayPal — affiché après le numéro Mobile Money en mode ACHAT ── */}
           {direction === "buy" && <PaypalIdField
             idFormat={idFormat} setIdFormat={setIdFormat}
             paypalId={paypalId} setPaypalId={setPaypalId}
@@ -481,16 +511,24 @@ export default function PaypalPage() {
             ID_FORMATS={ID_FORMATS}
           />}
 
-          <Field label={t("f.email.contact")} error={errors?.contactEmail}>
-            <input
-              type="email"
-              placeholder={t("f.email.ph")}
-              value={contactEmail}
-              onChange={e => { setContactEmail(e.target.value); setErrors(p => p ? { ...p, contactEmail: "" } : undefined); }}
-              className={inputCls}
-              style={errors?.contactEmail ? inputErr : inputBase}
-            />
-          </Field>
+          {/* ── Email de contact — masqué quand l'identifiant PayPal est déjà un email ── */}
+          {usesPaypalEmailAsContact ? (
+            <p className="text-[11px] flex items-center gap-1.5" style={{ color: "var(--text-muted)" }}>
+              <span>✉️</span>
+              {t("pp.email_same_as_paypal")}
+            </p>
+          ) : (
+            <Field label={t("f.email.contact")} error={errors?.contactEmail}>
+              <input
+                type="email"
+                placeholder={t("f.email.ph")}
+                value={contactEmail}
+                onChange={e => { setContactEmail(e.target.value); setErrors(p => p ? { ...p, contactEmail: "" } : undefined); }}
+                className={inputCls}
+                style={errors?.contactEmail ? inputErr : inputBase}
+              />
+            </Field>
+          )}
         </motion.div>
       </AnimatePresence>
 
@@ -515,9 +553,20 @@ export default function PaypalPage() {
           </WAPopover>
         ) : (
           <USSDOrderFlow
-            total={buyFcfa}
+            total={buyTotal}
             getMsg={buildMsgPlain}
             onBeforeOpen={() => { const ok = validate(); if (!ok) { showToast(t("err.fix"), "error"); return false; } sendNotification(); return true; }}
+            availableOps={["orange"]}
+            merchantOverride={{
+              orange: {
+                merchant: ORANGE_MONEY_COMMERCE.merchantCode,
+                merchantName: ORANGE_MONEY_COMMERCE.merchantName,
+                type: "Scan & Pay / Max it",
+                ussdFn: () => ORANGE_MONEY_COMMERCE.ussd,
+                qrCode: ORANGE_MONEY_COMMERCE.qrCode,
+                qrImage: ORANGE_MONEY_COMMERCE.image,
+              },
+            }}
             className="w-full py-3 rounded-full font-black text-white text-sm flex items-center justify-center gap-2 transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
             style={{ background: "#25D366" }}
           >

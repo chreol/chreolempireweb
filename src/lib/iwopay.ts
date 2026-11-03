@@ -51,7 +51,10 @@ export async function fulfillIwopayOrder(p: IwopayFulfillParams): Promise<{ ok: 
     : [{ name: "Commande Iwopay", qty: 1, price: p.total ?? 0, amount: `${(p.total ?? 0).toLocaleString("fr-FR")} FCFA` }];
   const notifyRes = await fetch(`${siteUrl}/api/notify-order`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...(process.env.INTERNAL_API_SECRET ? { "x-internal-secret": process.env.INTERNAL_API_SECRET } : {}),
+    },
     body: JSON.stringify({
       orderId: p.orderId,
       clientName: p.clientName ?? "Client",

@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { IMAGES } from "@/lib/services";
 import WAPopover from "@/components/WAPopover";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -204,22 +203,23 @@ export default function PaiementPage() {
       <div className="rounded-3xl p-6 mb-8" style={{ background: "#C9A84C10", border: "1px solid #C9A84C44" }}>
         <h2 className="text-base font-black text-white mb-2">💨 Paiement rapide — Iwopay</h2>
         <p className="text-sm mb-4" style={{ color: "var(--text-secondary)" }}>
-          Réglez directement via Iwopay pour une validation automatique et un payout rapide (statuts 100 / 01).
+          Iwopay est notre canal de versement Mobile Money (payout). Les demandes sont validées par un agent
+          après confirmation du paiement, puis envoyées automatiquement sur votre numéro.
         </p>
         <div className="flex items-center gap-3 rounded-2xl p-4" style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)" }}>
           <div className="w-10 h-10 rounded-xl flex items-center justify-center text-2xl shrink-0" style={{ background: "#C9A84C22" }}>💨</div>
           <div>
-            <p className="text-xs font-black text-white">💨 Iwopay — Paiement rapide</p>
-            <p className="text-[11px] mt-0.5" style={{ color: "var(--text-secondary)" }}>Paiement en ligne avec validation automatique (statut 100 / 01 → payout automatique).</p>
+            <p className="text-xs font-black text-white">💨 Iwopay — Payout Mobile Money</p>
+            <p className="text-[11px] mt-0.5" style={{ color: "var(--text-secondary)" }}>Versement automatique après validation (statuts 100 / 01).</p>
           </div>
         </div>
         <WAPopover
-          prefill="💨 Bonjour Chreol Empire, je souhaite régler un paiement via Iwopay."
+          prefill="💨 Bonjour Chreol Empire, je souhaite un versement Iwopay."
           className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 rounded-full font-black text-white text-xs transition-opacity hover:opacity-80"
           style={{ background: "#C9A84C22", border: "1px solid #C9A84C55" }}
         >
           <span style={{ fontSize: 14 }}>💨</span>
-          Payer via Iwopay
+          Demander un versement Iwopay
         </WAPopover>
       </div>
 

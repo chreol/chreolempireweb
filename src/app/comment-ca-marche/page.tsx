@@ -147,7 +147,7 @@ export default function CommentCaMarchePage() {
       {/* Hero */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-12">
         <div className="flex items-center gap-2 text-xs mb-6" style={{ color: "var(--text-muted)" }}>
-          <a href="/" className="hover:text-white transition-colors">Accueil</a>
+          <Link href="/" className="hover:text-white transition-colors">Accueil</Link>
           <span>›</span>
           <span style={{ color: "var(--gold)" }}>Comment ça marche</span>
         </div>

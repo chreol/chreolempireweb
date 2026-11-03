@@ -1,10 +1,12 @@
+import Link from "next/link";
+
 export default function MentionsLegalesPage() {
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12">
 
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-xs mb-8" style={{ color: "var(--text-muted)" }}>
-        <a href="/" className="hover:text-white transition-colors">Accueil</a>
+        <Link href="/" className="hover:text-white transition-colors">Accueil</Link>
         <span>›</span>
         <span style={{ color: "var(--gold)" }}>Mentions légales</span>
       </div>

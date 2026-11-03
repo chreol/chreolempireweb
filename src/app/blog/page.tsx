@@ -44,7 +44,7 @@ export default function BlogPage() {
         Tout savoir sur les cartes<br />cadeaux & crypto au Cameroun
       </h1>
       <p className="text-base mb-10" style={{ color: "var(--text-secondary)" }}>
-        Guides pratiques pour acheter, activer et profiter de vos achats digitaux depuis Douala ou n'importe où au Cameroun.
+        Guides pratiques pour acheter, activer et profiter de vos achats digitaux depuis Douala ou n&apos;importe où au Cameroun.
       </p>
 
       <div className="flex flex-col gap-5">

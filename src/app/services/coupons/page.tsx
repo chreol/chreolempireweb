@@ -15,6 +15,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import FAQ from "@/components/FAQ";
 import StepGuide from "@/components/StepGuide";
 import { Field } from "@/components/FormField";
+import { makeId } from "@/lib/uid";
 
 // FAQ en français pour le JSON-LD SEO
 const FAQ_FR = [
@@ -138,7 +139,7 @@ export default function CouponsPage() {
     saveClientInfo({ name, email, phone, dialCode });
     const op = MOMO_OPERATORS.find(o => o.id === momoOp)?.name ?? momoOp;
     addItem({
-      id: `coupon-${type}-${Date.now()}`,
+      id: makeId(`coupon-${type}`),
       cardName: `Échange ${type === "pcs" ? "PCS Mastercard" : "Transcash"}`,
       amount: `${amount}€ → ${fcfaResult.toLocaleString("fr-FR")} FCFA via ${op}`,
       price: fcfaResult,

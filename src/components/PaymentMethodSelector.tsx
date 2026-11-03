@@ -37,6 +37,7 @@ export default function PaymentMethodSelector({ value, onChange }: Props) {
       const saved = loadPaymentMethod();
       if (saved && SELECTABLE.some(o => o.id === saved)) onChange(saved);
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- lever le flag d'hydratation après lecture du choix mémorisé
     setHydrated(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

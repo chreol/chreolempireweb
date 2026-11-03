@@ -5,7 +5,6 @@ import Image from "next/image";
 import { track } from "@vercel/analytics";
 import { motion, AnimatePresence } from "framer-motion";
 import { FACTURE_BILLERS, FACTURE_COMMISSION, MOMO_OPERATORS, IMAGES } from "@/lib/services";
-import WAPopover from "@/components/WAPopover";
 import USSDOrderFlow from "@/components/USSDOrderFlow";
 import PaymentMethodSelector, { resolvePaymentMethod } from "@/components/PaymentMethodSelector";
 import RelatedServices from "@/components/RelatedServices";

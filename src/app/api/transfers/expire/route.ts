@@ -11,7 +11,7 @@ async function sendTelegram(text: string) {
     const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chat_id: chat, text, parse_mode: 'HTML' }) });
     const j = await res.json();
     return j.ok ? 1 : 0;
-  } catch (e) { return 0; }
+  } catch { return 0; }
 }
 
 async function sendBrevo(subject: string, html: string) {
@@ -22,7 +22,7 @@ async function sendBrevo(subject: string, html: string) {
   try {
     const res = await fetch('https://api.brevo.com/v3/smtp/email', { method: 'POST', headers: { 'Content-Type': 'application/json', 'api-key': brevoKey }, body: JSON.stringify({ sender, to: recipients, subject, htmlContent: html }) });
     return res.ok ? 1 : 0;
-  } catch (e) { return 0; }
+  } catch { return 0; }
 }
 
 export async function GET() {
@@ -49,7 +49,7 @@ export async function GET() {
       await sendTelegram(text);
       const emailHtml = `<!doctype html><html><body><div style="font-family:Arial,Helvetica,sans-serif"><h3>Demande expirée: ${ref}</h3><p>${text}</p></div></body></html>`;
       await sendBrevo(`Demande expirée ${ref}`, emailHtml);
-    } catch (e) {
+    } catch {
       // continue
     }
   }

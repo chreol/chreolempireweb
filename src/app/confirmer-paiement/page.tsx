@@ -43,7 +43,12 @@ function ConfirmerPaiementContent() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (!orderId) { setLoading(false); setNotFound(true); return; }
+    if (!orderId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- commande introuvable sans référence
+      setLoading(false);
+      setNotFound(true);
+      return;
+    }
     fetch(`/api/order-info?id=${encodeURIComponent(orderId)}`)
       .then(r => r.ok ? r.json() : null)
       .then(data => {

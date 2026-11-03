@@ -50,14 +50,38 @@ export const IMAGES = {
   orange:  "/assets/orange-money.webp",
   expressUnion: "/assets/Express Union logo.webp",
   yoomee: "/assets/Yoomee Money logo.webp",
-  canal:   "/assets/Canal+ logo.webp",
+  canal:   "/assets/Canal-Plus logo.webp",
   eneo:    "/assets/Eneo logo.webp",
   camwater:"/assets/Camwater logo.webp",
   startimes:"/assets/StarTimes logo.webp",
   boutique:   "/assets/boutique.webp",
   banner:     "/assets/banner-chreol-empire-cameroun.webp.webp",
   googleAvis: "/assets/google-avis-client-grande.webp",
+  orangeQR:   "/assets/orange-money-qr-code.png",
+  orangeQRFull: "/assets/orange-money-qr-chreol-empire.jpeg",
 };
+
+// ── Compte marchand Orange Money (QR + code marchand) ─────────────────────────
+// Source : affiche officielle « Orange Money — Scan & pay via Max it ».
+// QR 0015757444 · code marchand 1052061 · nom CHREOL EMPIRE · USSD #150*47#
+export const ORANGE_MONEY_COMMERCE = {
+  merchantCode: "1052061",
+  merchantName: "CHREOL EMPIRE",
+  qrCode:       "0015757444",
+  ussd:         "#150*47#",
+  /** QR code recadré, lisible sur mobile et dans les emails */
+  image:        "/assets/orange-money-qr-code.png",
+  /** Photo complète de l'affiche fournie par le marchand (conservée dans le projet) */
+  poster:       "/assets/orange-money-qr-chreol-empire.jpeg",
+  /** Commission de l'opérateur sur les encaissements marchands (1 %). */
+  feeRate:      0.01,
+} as const;
+
+/** Commission Orange Money arrondie en FCFA (0 si l'opérateur n'est pas Orange). */
+export function orangeMoneyFee(amount: number, operatorId: string): number {
+  if (operatorId !== "orange" || !Number.isFinite(amount) || amount <= 0) return 0;
+  return Math.round(amount * ORANGE_MONEY_COMMERCE.feeRate);
+}
 
 // Gift card prices: EUR and USD use the same FCFA tariff.
 const STANDARD_AMOUNTS = [

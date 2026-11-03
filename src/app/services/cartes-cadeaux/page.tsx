@@ -74,12 +74,12 @@ export default function CartesCadeauxPage() {
     const requestedCard = params.get("card");
     const requestedAmount = params.get("amount");
     const requestedRegion = params.get("region");
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- application des paramètres d'URL au montage
     if (requestedTab && TABS.some(item => item.key === requestedTab)) setTab(requestedTab);
     if (requestedCard && GIFT_CARDS.some(item => item.id === requestedCard)) setCardId(requestedCard);
     if (requestedRegion && REGIONS.some(item => item.code === requestedRegion)) setRegion(requestedRegion);
     if (requestedAmount) setAmountLabel(requestedAmount);
   }, []);
-
   const STEPS_CADEAUX = [
     { icon: "🎮", title: tl("gc.step1.t"), description: tl("gc.step1.d"), tip: tl("gc.step1.tip") },
     { icon: "📧", title: tl("gc.step2.t"), description: tl("gc.step2.d"), tip: tl("gc.step2.tip") },
@@ -96,8 +96,11 @@ export default function CartesCadeauxPage() {
 
   const cards = GIFT_CARDS.filter(c => c.tier === tab);
   const card = GIFT_CARDS.find(c => c.id === cardId);
-  const displayAmounts = card ? (region === "US" && (card as any).usAmounts ? (card as any).usAmounts : card.amounts) : [];
-  const amount = displayAmounts.find((a: any) => a.label === amountLabel);
+  const usAmounts = (card as { usAmounts?: { label: string; price: number; previousPrice?: number }[] } | undefined)?.usAmounts;
+  const displayAmounts: { label: string; price: number; previousPrice?: number }[] = card
+    ? (region === "US" && usAmounts ? usAmounts : card.amounts)
+    : [];
+  const amount = displayAmounts.find(a => a.label === amountLabel);
   const customNum = parseFloat(customVal.replace(",", "."));
   const customPrice = !isNaN(customNum) && customNum > 0 ? Math.round(customNum * CUSTOM_RATE) : null;
   const canAdd = card && (amount || customPrice);
@@ -254,7 +257,7 @@ export default function CartesCadeauxPage() {
             <div>
               <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "var(--text-muted)" }}>{tl("gc.amount")}</p>
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                {displayAmounts.map((a: any) => (
+                {displayAmounts.map((a) => (
                   <button
                     key={a.label}
                     onClick={() => { setAmountLabel(a.label); setCustomVal(""); }}

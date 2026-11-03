@@ -16,6 +16,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import FAQ from "@/components/FAQ";
 import StepGuide from "@/components/StepGuide";
 import { Field, CalcRow } from "@/components/FormField";
+import { makeId } from "@/lib/uid";
 
 // FAQ en français pour le JSON-LD SEO (marché camerounais francophone-dominant)
 const FAQ_FR = [
@@ -168,7 +169,7 @@ export default function CryptoPage() {
     saveClientInfo({ email, phone: momoPhone, name: beneficiary || email.split("@")[0] });
     const op = MOMO_OPERATORS.find(o => o.id === momoOp)?.name ?? momoOp;
     addItem({
-      id: `crypto-${cryptoId}-${Date.now()}`,
+      id: makeId(`crypto-${cryptoId}`),
       cardName: direction === "sell" ? `Vente ${crypto.name} (${network})` : `Achat ${crypto.name} (${network})`,
       amount: direction === "sell"
         ? `${amount} ${crypto.unit} → ${fcfaReceived.toLocaleString("fr-FR")} FCFA via ${op}`

@@ -8,6 +8,7 @@ import { CONTACT, IMAGES } from "@/lib/services";
 import GoogleReviewsOptIn from "@/components/GoogleReviewsOptIn";
 import GoogleReviewPrompt from "@/components/GoogleReviewPrompt";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { makeId } from "@/lib/uid";
 
 const PRODUCT_IMAGE: Record<string, string> = {
   psn:          IMAGES.psn,
@@ -68,7 +69,7 @@ function CheckoutInner() {
   const [selectedOp, setSelectedOp] = useState<"orange" | "mtn" | null>(null);
   const [email, setEmail]           = useState("");
   const [emailError, setEmailError] = useState(false);
-  const orderIdRef                  = useRef(`CE-${Date.now()}`);
+  const [orderId]                   = useState(() => makeId("CE"));
   const opConfig = OPERATORS.find(o => o.id === selectedOp);
   const notifiedRef = useRef(false);
 
@@ -84,7 +85,7 @@ function CheckoutInner() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        orderId: orderIdRef.current,
+        orderId: orderId,
         clientName: email.split("@")[0],
         clientEmail: email,
         clientPhone: "",
@@ -321,7 +322,7 @@ function CheckoutInner() {
       {/* Google Customer Reviews opt-in — se déclenche à l'étape paiement */}
       {step === "ussd" && (
         <GoogleReviewsOptIn
-          orderId={orderIdRef.current}
+          orderId={orderId}
           email={email}
           deliveryCountry="CM"
         />

@@ -17,6 +17,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const stored = localStorage.getItem("theme") as Theme | null;
     const initial: Theme = stored === "light" ? "light" : "dark";
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- thème mémorisé lu au montage
     setTheme(initial);
     document.documentElement.setAttribute("data-theme", initial);
   }, []);

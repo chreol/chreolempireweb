@@ -317,7 +317,7 @@ async function sendTelegramStatus(ref: string, action: string, name: string, ema
       signal: AbortSignal.timeout(6000),
     });
     return res.status;
-  } catch (e) {
+  } catch {
     return 0;
   }
 }
@@ -432,7 +432,7 @@ export async function GET(request: Request): Promise<Response> {
   // Attempt to notify admin via Telegram regardless of email send result
   try {
     await sendTelegramStatus(ref, action, name ?? "", email ?? "", sourceUrl ?? "");
-  } catch (e) { /* ignore */ }
+  } catch { /* ignore */ }
 
   if (!res.ok) {
     console.error(`[mark-done] Brevo ${res.status} for ${email} action=${action}`);

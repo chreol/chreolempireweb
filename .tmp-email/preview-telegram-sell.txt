@@ -1,0 +1,15 @@
+🛍️ <b>NOUVELLE COMMANDE #BA573E9B</b>
+💸 <b>VENTE PAYPAL</b> — le client envoie <b>10.00€</b> sur <code>LARAMBAMBO@GMAIL.COM</code>
+👤 <b>audit.achat</b>
+📧 audit.achat@example.com
+📱 +237690000000
+🟠 <b>Orange Money</b>
+💳 Compte PayPal client : <code>client.paypal@example.com</code>
+💰 Versement FCFA : Orange Money · +237 690000000
+📦 <b>Commande :</b>
+• <b>Vente PayPal Europe</b> ×1 = 5 200 FCFA
+  <i>PayPal (Email) : client.paypal@example.com | 10.00€ → 5 200 FCFA
+Orange Money +237 690000000</i>
+💰 <b>À RECEVOIR : 5 200 FCFA</b>
+🌐 <a href="http://localhost:3100/services/paypal">Voir la page source</a>
+<a href="https://wa.me/237690000000">💬 Ouvrir WhatsApp client</a>

@@ -32,6 +32,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     try {
       const saved = localStorage.getItem("chreol_cart");
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- restauration du panier depuis localStorage
       if (saved) setItems(JSON.parse(saved));
     } catch { /* ignore */ }
     initialized.current = true;

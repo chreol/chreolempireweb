@@ -10,6 +10,7 @@ import WAPopover from "@/components/WAPopover";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { saveClientInfo, loadClientInfo, saveLastOrder, loadRecentOrder } from "@/lib/clientInfo";
+import { makeId } from "@/lib/uid";
 
 const OPERATORS = [
   {
@@ -58,6 +59,7 @@ export default function CartPage() {
   useEffect(() => {
     const saved = loadClientInfo();
     if (!saved) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- pré-remplissage depuis localStorage au montage
     if (saved.name)  setName(saved.name);
     if (saved.email) setEmail(saved.email);
     if (saved.phone) setPhone(saved.phone);
@@ -130,7 +132,7 @@ export default function CartPage() {
 
     const opLabel = opConfig?.label ?? "Via WhatsApp";
     track("cart_checkout", { items: items.length, total, operator: opLabel });
-    const orderId = `${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
+    const orderId = makeId();
 
     void supabase.from("orders").insert({
       id: orderId,

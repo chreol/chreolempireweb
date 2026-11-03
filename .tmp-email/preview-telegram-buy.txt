@@ -1,0 +1,16 @@
+🛍️ <b>NOUVELLE COMMANDE #BA573E9B</b>
+👤 <b>audit.achat</b>
+📧 audit.achat@example.com
+📱 +237690000000
+🟠 <b>Orange Money</b>
+📦 <b>Commande :</b>
+• <b>Achat PayPal Europe</b> ×1 = 10 100 FCFA
+  <i>PayPal (Email) : audit.achat@example.com | 10 000 FCFA → 14.29€
+Frais Orange Money (1 %) : 100 FCFA
+Total à payer : 10 100 FCFA
+Orange Money +237 690000000</i>
+💰 <b>TOTAL : 10 100 FCFA</b>
+🧾 dont Frais Orange Money (1 %) : 100 FCFA
+🟠 Encaissement Orange Money — marchand <code>1052061</code> (CHREOL EMPIRE)
+🌐 <a href="http://localhost:3100/services/paypal">Voir la page source</a>
+<a href="https://wa.me/237690000000">💬 Ouvrir WhatsApp client</a>

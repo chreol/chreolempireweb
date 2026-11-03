@@ -44,7 +44,7 @@ export default function HistoriquePage() {
   return (
     <div className="max-w-2xl lg:max-w-3xl mx-auto px-4 sm:px-6 py-10">
       <div className="flex items-center gap-2 text-xs mb-6" style={{ color: "var(--text-muted)" }}>
-        <a href="/" className="hover:text-white transition-colors">Accueil</a>
+        <Link href="/" className="hover:text-white transition-colors">Accueil</Link>
         <span>›</span>
         <span style={{ color: "var(--gold)" }}>Historique</span>
       </div>
