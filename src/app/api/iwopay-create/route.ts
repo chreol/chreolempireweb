@@ -18,10 +18,8 @@ interface CreateBody {
 const REF_RE = /^[A-Za-z0-9_-]{4,64}$/;
 
 /**
- * ⚠️ Iwopay « op_type: credit » ENVOIE de l'argent sur le wallet indiqué (payout).
- * Cette route ne doit donc jamais être appelable depuis le navigateur public :
- * seul un administrateur connecté (cookie admin_token) ou un appel serveur
- * portant x-internal-secret est autorisé.
+ * ⚠️ direction "payout" → op_type "debit" : ENVOIE de l'argent sur le wallet.
+ * Réservé à l'admin. L'encaissement client passe par /api/iwopay-collect (credit).
  */
 async function isAdmin(req: NextRequest): Promise<boolean> {
   const token = req.cookies.get("admin_token")?.value ?? "";
@@ -83,6 +81,7 @@ export async function POST(request: NextRequest): Promise<Response> {
   try {
     const result = await createIwopayPayment({
       operator,
+      direction: "payout",
       amount,
       phone: local,
       externalId: orderId,

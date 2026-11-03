@@ -4,11 +4,13 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useState, Suspense, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { CONTACT, IMAGES } from "@/lib/services";
+import { CONTACT, IMAGES, ORANGE_MONEY_COMMERCE, MTN_MONEY, collectionFee, collectionFeeLabel, isAltPay } from "@/lib/services";
 import GoogleReviewsOptIn from "@/components/GoogleReviewsOptIn";
 import GoogleReviewPrompt from "@/components/GoogleReviewPrompt";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { makeId } from "@/lib/uid";
+import IwopayDebitForm from "@/components/IwopayDebitForm";
+import PayInstruction from "@/components/PayInstruction";
 
 const PRODUCT_IMAGE: Record<string, string> = {
   psn:          IMAGES.psn,
@@ -36,21 +38,67 @@ const OPERATORS = [
     id:           "orange" as const,
     label:        "Orange Money",
     color:        "#FF6600",
-    merchant:     "692251299",
-    merchantName: "Ets Tagny",
-    type:         "Transfert UV",
-    ussdFn:       (amount: number) => `#150*14*518554*692251299*${amount}#`,
+    merchant:     ORANGE_MONEY_COMMERCE.merchantCode,
+    merchantName: ORANGE_MONEY_COMMERCE.merchantName,
+    type:         "Scan & Pay / Max it",
+    ussdFn:       () => ORANGE_MONEY_COMMERCE.ussd,
     image:        IMAGES.orange,
+    available:    true,
   },
   {
     id:           "mtn" as const,
     label:        "MTN MoMo",
     color:        "#FFC107",
-    merchant:     "672416141",
-    merchantName: "ETS Content",
-    type:         "Flotte",
-    ussdFn:       (amount: number) => `*126*14*672416141*${amount}#`,
+    merchant:     MTN_MONEY.phoneDisplay,
+    merchantName: MTN_MONEY.accountName,
+    type:         "Dépôt",
+    ussdFn:       (amount: number) => `Déposez ${amount.toLocaleString("fr-FR")} FCFA au ${MTN_MONEY.phoneDisplay}`,
     image:        IMAGES.mtn,
+    available:    true,
+  },
+  {
+    id:           "iwopay" as const,
+    label:        "Iwopay",
+    color:        "#0EA5E9",
+    merchant:     "Demande sur votre numéro",
+    merchantName: "CHREOL EMPIRE",
+    type:         "Encaissement",
+    ussdFn:       () => "Validez la demande reçue sur votre téléphone",
+    image:        "",
+    available:    true,
+  },
+  {
+    id:           "gimac" as const,
+    label:        "Gimac",
+    color:        "#006B3D",
+    merchant:     MTN_MONEY.phoneDisplay,
+    merchantName: MTN_MONEY.accountName,
+    type:         "Transfert CEMAC",
+    ussdFn:       (amount: number) => `Transfert GIMAC ${amount.toLocaleString("fr-FR")} FCFA`,
+    image:        "",
+    available:    true,
+  },
+  {
+    id:           "paypal" as const,
+    label:        "PayPal",
+    color:        "#003087",
+    merchant:     CONTACT.paypalEmail,
+    merchantName: "Proches et Familles",
+    type:         "Proches et Familles",
+    ussdFn:       () => CONTACT.paypalEmail,
+    image:        IMAGES.paypal,
+    available:    true,
+  },
+  {
+    id:           "crypto" as const,
+    label:        "Crypto",
+    color:        "#26A17B",
+    merchant:     "Wallet boutique",
+    merchantName: "CHREOL EMPIRE",
+    type:         "Wallet",
+    ussdFn:       () => "Adresse selon l'actif",
+    image:        IMAGES.crypto,
+    available:    true,
   },
 ];
 
@@ -66,7 +114,8 @@ function CheckoutInner() {
   const amount   = parseInt(amountRaw, 10);
 
   const [step, setStep]             = useState<"choose" | "ussd">("choose");
-  const [selectedOp, setSelectedOp] = useState<"orange" | "mtn" | null>(null);
+  const [selectedOp, setSelectedOp] = useState<"orange" | "mtn" | "iwopay" | "gimac" | "paypal" | "crypto" | null>(null);
+  const [payLine, setPayLine] = useState("");
   const [email, setEmail]           = useState("");
   const [emailError, setEmailError] = useState(false);
   const [orderId]                   = useState(() => makeId("CE"));
@@ -76,11 +125,11 @@ function CheckoutInner() {
   function buildWAMsg() {
     const op = opConfig?.label ?? "Mobile Money";
     return encodeURIComponent(
-      `Bonjour, je souhaite commander : ${label} — ${amount.toLocaleString("fr-FR")} FCFA\nPaiement via ${op}`,
+      `Bonjour, je souhaite commander : ${label} — ${amount.toLocaleString("fr-FR")} FCFA\nPaiement via ${op}${payLine ? `\n${payLine}` : ""}`,
     );
   }
 
-  function sendNotification(opLabel: string) {
+  function sendNotification(opLabel: string, due: number, fee: number) {
     fetch("/api/notify-order", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -90,8 +139,10 @@ function CheckoutInner() {
         clientEmail: email,
         clientPhone: "",
         paymentMethod: opLabel,
-        items: [{ name: label, qty: 1, price: amount, amount: `${amount.toLocaleString("fr-FR")} FCFA` }],
-        total: amount,
+        items: [{ name: label, qty: 1, price: due, amount: `${due.toLocaleString("fr-FR")} FCFA` }],
+        total: due,
+        commission: fee > 0 ? fee : undefined,
+        commissionLabel: fee > 0 ? collectionFeeLabel(selectedOp ?? "") : undefined,
         sourceUrl: window.location.pathname,
       }),
     }).catch(() => {});
@@ -165,24 +216,29 @@ function CheckoutInner() {
             {OPERATORS.map(op => (
               <button
                 key={op.id}
+                disabled={!op.available}
                 onClick={() => {
+                  if (!op.available) return;
                   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
                     setEmailError(true);
                     return;
                   }
+                  const fee = collectionFee(amount, op.id);
                   setSelectedOp(op.id);
                   setStep("ussd");
-                  if (!notifiedRef.current) { notifiedRef.current = true; sendNotification(op.label); }
+                  if (!notifiedRef.current) { notifiedRef.current = true; sendNotification(op.label, amount + fee, fee); }
                 }}
-                className="p-5 rounded-2xl flex flex-col items-center gap-3 transition-all hover:scale-[1.02] active:scale-[0.97]"
-                style={{ background: "var(--bg-elevated)", border: `2px solid ${op.color}55` }}
+                className="p-5 rounded-2xl flex flex-col items-center gap-3 transition-all hover:scale-[1.02] active:scale-[0.97] disabled:cursor-not-allowed disabled:hover:scale-100"
+                style={{ background: "var(--bg-elevated)", border: `2px solid ${op.color}55`, opacity: op.available ? 1 : 0.55 }}
               >
-                <div className="relative w-14 h-14 rounded-xl overflow-hidden">
-                  <Image src={op.image} alt={op.label} fill style={{ objectFit: "cover" }} unoptimized />
+                <div className="relative w-14 h-14 rounded-xl overflow-hidden flex items-center justify-center font-black text-white" style={{ background: op.image ? undefined : op.color }}>
+                  {op.image ? <Image src={op.image} alt={op.label} fill style={{ objectFit: "cover" }} unoptimized /> : "💨"}
                 </div>
                 <div className="text-center">
                   <p className="text-sm font-black" style={{ color: op.color }}>{op.label}</p>
-                  <p className="text-[11px] mt-0.5" style={{ color: "var(--text-muted)" }}>{op.type}</p>
+                  <p className="text-[11px] mt-0.5 font-black" style={{ color: op.available ? "#22C55E" : "var(--text-muted)" }}>
+                    {op.available ? "Disponible" : "Indisponible"}
+                  </p>
                 </div>
               </button>
             ))}
@@ -195,19 +251,20 @@ function CheckoutInner() {
             </p>
             <div className="flex flex-col gap-2">
               {[
-                { e: "📱", l: "MTN MoMo" },
-                { e: "🟠", l: "Orange Money" },
-                { e: "💙", l: "Express Union" },
-                { e: "💜", l: "Yoomee Money" },
-                { e: "🅿️", l: "PayPal Europe" },
-                { e: "₿", l: "Cryptomonnaies" },
-                { e: "🏦", l: "Virements bancaires" },
-                { e: "💵", l: "Espèces" },
-                { e: "💨", l: "Paiement rapide — Iwopay" },
+                { e: "🟠", l: "Orange Money", s: "Disponible · commission 1 %" },
+                { e: "📱", l: "MTN MoMo", s: "Disponible · frais retrait 1,5 %" },
+                { e: "💨", l: "Iwopay", s: "Disponible · OM et MoMo Cameroun" },
+                { e: "🌍", l: "Gimac", s: "Disponible · transfert CEMAC" },
+                { e: "🅿️", l: "PayPal", s: "Disponible · Proches et Familles" },
+                { e: "₿", l: "Crypto", s: "Disponible · wallets boutique" },
+                { e: "💙", l: "Express Union", s: "Visible · indisponible" },
+                { e: "💜", l: "Yoomee Money", s: "Visible · indisponible" },
+                { e: "🏦", l: "Virements bancaires", s: "Sur demande" },
+                { e: "💵", l: "Espèces", s: "Boutique Deido" },
               ].map(m => (
-                <div key={m.l} className="flex items-center gap-2 text-xs" style={{ color: "var(--text-secondary)" }}>
-                  <span>{m.e}</span>
-                  <span className="font-bold text-white">{m.l}</span>
+                <div key={m.l} className="flex items-center justify-between gap-2 text-xs" style={{ color: "var(--text-secondary)" }}>
+                  <span className="flex items-center gap-2"><span>{m.e}</span><span className="font-bold text-white">{m.l}</span></span>
+                  <span className="text-[10px] font-bold" style={{ color: m.s.startsWith("Disponible") ? "#22C55E" : "var(--text-muted)" }}>{m.s}</span>
                 </div>
               ))}
             </div>
@@ -235,8 +292,8 @@ function CheckoutInner() {
       {step === "ussd" && opConfig && (
         <div>
           <div className="flex items-center gap-3 mb-5">
-            <div className="relative w-10 h-10 rounded-xl overflow-hidden shrink-0">
-              <Image src={opConfig.image} alt={opConfig.label} fill style={{ objectFit: "cover" }} unoptimized />
+            <div className="relative w-10 h-10 rounded-xl overflow-hidden shrink-0 flex items-center justify-center font-black text-white" style={{ background: opConfig.image ? undefined : opConfig.color }}>
+              {opConfig.image ? <Image src={opConfig.image} alt={opConfig.label} fill style={{ objectFit: "cover" }} unoptimized /> : "💨"}
             </div>
             <div>
               <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
@@ -248,6 +305,23 @@ function CheckoutInner() {
             </div>
           </div>
 
+          {opConfig.id === "iwopay" ? (
+            <IwopayDebitForm amount={amount + collectionFee(amount, opConfig.id)} motif={label} />
+          ) : isAltPay(opConfig.id) ? (
+            <>
+              <PayInstruction kind={opConfig.id} fcfa={amount} direction="in" onLine={setPayLine} />
+              <a
+                href={`https://wa.me/${CONTACT.whatsapp}?text=${buildWAMsg()}`}
+                target="_blank" rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 w-full py-4 rounded-full font-black text-white text-base my-3"
+                style={{ background: "#25D366" }}
+              >
+                <Image src={IMAGES.whatsapp} alt="" width={22} height={22} unoptimized />
+                {t("co.paid_contact")}
+              </a>
+            </>
+          ) : (
+          <>
           <div className="flex flex-col gap-4 mb-6">
             {/* 1 */}
             <div className="flex items-start gap-3">
@@ -268,7 +342,7 @@ function CheckoutInner() {
                   className="rounded-xl px-4 py-3 font-mono text-base font-black break-all"
                   style={{ background: "#0A0A0A", color: opConfig.color, border: `1px solid ${opConfig.color}44` }}
                 >
-                  {opConfig.ussdFn(amount)}
+                  {opConfig.ussdFn(amount + collectionFee(amount, opConfig.id))}
                 </div>
               </div>
             </div>
@@ -279,8 +353,13 @@ function CheckoutInner() {
               <div>
                 <p className="text-sm font-bold text-white">{t("co.amount_due")}</p>
                 <p className="text-3xl font-black tabular-nums mt-1" style={{ color: opConfig.color }}>
-                  {amount.toLocaleString("fr-FR")} FCFA
+                  {(amount + collectionFee(amount, opConfig.id)).toLocaleString("fr-FR")} FCFA
                 </p>
+                {collectionFee(amount, opConfig.id) > 0 && (
+                  <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>
+                    Dont {collectionFeeLabel(opConfig.id)} : {collectionFee(amount, opConfig.id).toLocaleString("fr-FR")} FCFA
+                  </p>
+                )}
               </div>
             </div>
 
@@ -300,6 +379,8 @@ function CheckoutInner() {
             <Image src={IMAGES.whatsapp} alt="" width={22} height={22} unoptimized />
             {t("co.paid_contact")}
           </a>
+          </>
+          )}
           <div className="flex gap-2">
             <button
               onClick={() => setStep("choose")}

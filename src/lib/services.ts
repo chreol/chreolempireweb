@@ -73,6 +73,8 @@ export const ORANGE_MONEY_COMMERCE = {
   image:        "/assets/orange-money-qr-code.png",
   /** Photo complète de l'affiche fournie par le marchand (conservée dans le projet) */
   poster:       "/assets/orange-money-qr-chreol-empire.jpeg",
+  /** Même affiche, sous le nom du fichier d'origine : public/assets/Orange Chreol Empire.jpeg */
+  posterFile:   "Orange Chreol Empire.jpeg",
   /** Commission de l'opérateur sur les encaissements marchands (1 %). */
   feeRate:      0.01,
 } as const;
@@ -81,6 +83,29 @@ export const ORANGE_MONEY_COMMERCE = {
 export function orangeMoneyFee(amount: number, operatorId: string): number {
   if (operatorId !== "orange" || !Number.isFinite(amount) || amount <= 0) return 0;
   return Math.round(amount * ORANGE_MONEY_COMMERCE.feeRate);
+}
+
+// ── Dépôt MTN Mobile Money (numéro personnel, frais de retrait opérateur) ────
+export const MTN_MONEY = {
+  phone:        "+237683682958",
+  phoneDisplay: "+237 683 682 958",
+  accountName:  "Vernatus Mesue Etube",
+  /** Frais de retrait prélevés par MTN Cameroun, ajoutés au dépôt. */
+  feeRate:      0.015,
+} as const;
+
+/** Frais ajoutés au montant quand le client dépose (Orange 1 %, MTN 1,5 %). */
+export function collectionFee(amount: number, operatorId: string): number {
+  if (!Number.isFinite(amount) || amount <= 0) return 0;
+  if (operatorId === "orange") return Math.round(amount * ORANGE_MONEY_COMMERCE.feeRate);
+  if (operatorId === "mtn") return Math.round(amount * MTN_MONEY.feeRate);
+  return 0;
+}
+
+export function collectionFeeLabel(operatorId: string): string {
+  if (operatorId === "orange") return "Frais Orange Money (1 %)";
+  if (operatorId === "mtn") return "Frais de retrait MTN (1,5 %)";
+  return "Frais opérateur";
 }
 
 // Gift card prices: EUR and USD use the same FCFA tariff.
@@ -225,6 +250,74 @@ export const PAYPAL_LIMITS = {
   buy:  { min: 3500,  max: 500000, currency: "FCFA", label: "Achat (recharge)" },
 };
 
+/** Euros à envoyer ou à recevoir pour un montant FCFA.
+ *  in  = le client paie la boutique (on achète son PayPal à sellRate).
+ *  out = la boutique paie le client (on vend du PayPal à buyRate).
+ */
+export function fcfaToPaypalEur(fcfa: number, direction: "in" | "out"): number {
+  const rate = direction === "in" ? PAYPAL_RATES.sellRate : PAYPAL_RATES.buyRate;
+  if (!rate || !Number.isFinite(fcfa) || fcfa <= 0) return 0;
+  return Math.round((fcfa / rate) * 100) / 100;
+}
+
+/** Montant à payer en crypto, toujours en USD. 1 USD = taux d'achat USDT. */
+export function cryptoPayUsdRate(): number {
+  return CRYPTO_RATES.find(c => c.id === "usdt")?.buyRate ?? 580;
+}
+
+export function fcfaToPayUsd(fcfa: number): number {
+  const rate = cryptoPayUsdRate();
+  if (!rate || !Number.isFinite(fcfa) || fcfa <= 0) return 0;
+  return Math.round((fcfa / rate) * 100) / 100;
+}
+
+/** Tarif à régler selon le moyen choisi. Le prix catalogue reste en FCFA. */
+export function paymentQuote(fcfa: number, methodId: string | null): { amount: string; note: string } {
+  if (!Number.isFinite(fcfa) || fcfa <= 0) return { amount: "—", note: "" };
+  if (methodId === "orange") {
+    const due = fcfa + collectionFee(fcfa, "orange");
+    return { amount: `${due.toLocaleString("fr-FR")} FCFA`, note: "Dont commission Orange Money 1 %" };
+  }
+  if (methodId === "mtn") {
+    const due = fcfa + collectionFee(fcfa, "mtn");
+    return { amount: `${due.toLocaleString("fr-FR")} FCFA`, note: "Dont frais de retrait MTN 1,5 %" };
+  }
+  if (methodId === "paypal") {
+    return {
+      amount: `${fcfaToPaypalEur(fcfa, "in").toFixed(2)} €`,
+      note: `Proches et Familles · 1 € = ${PAYPAL_RATES.sellRate.toLocaleString("fr-FR")} FCFA`,
+    };
+  }
+  if (methodId === "crypto") {
+    return {
+      amount: `${fcfaToPayUsd(fcfa).toFixed(2)} USD`,
+      note: `Même montant pour chaque crypto · 1 USD = ${cryptoPayUsdRate().toLocaleString("fr-FR")} FCFA`,
+    };
+  }
+  if (methodId === "iwopay") {
+    return { amount: `${fcfa.toLocaleString("fr-FR")} FCFA`, note: "Iwopay · Orange Money et MTN MoMo Cameroun, sans commission boutique" };
+  }
+  if (methodId === "gimac") {
+    return { amount: `${fcfa.toLocaleString("fr-FR")} FCFA`, note: "GIMAC · sans commission boutique" };
+  }
+  return { amount: `${fcfa.toLocaleString("fr-FR")} FCFA`, note: "Choisissez un moyen pour voir le montant à régler" };
+}
+
+/** Unités crypto quand la boutique verse un actif. Le paiement client, lui, reste en USD. */
+export function fcfaToCryptoUnits(fcfa: number, cryptoId: string, direction: "in" | "out"): number {
+  const row = CRYPTO_RATES.find(c => c.id === cryptoId);
+  if (!row || !Number.isFinite(fcfa) || fcfa <= 0) return 0;
+  const rate = direction === "in" ? row.buyRate : row.sellRate;
+  if (!rate) return 0;
+  return fcfa / rate;
+}
+
+export function formatCryptoUnits(amount: number, unit: string): string {
+  if (!Number.isFinite(amount) || amount <= 0) return "—";
+  const digits = unit === "USD" || unit === "TRX" || unit === "ADA" ? 2 : 6;
+  return amount.toFixed(digits);
+}
+
 export const MOMO_OPERATORS = [
   { id: "orange", name: "Orange Money",  color: "#FF6600", image: IMAGES.orange },
   { id: "mtn",    name: "MTN MoMo",      color: "#FFC107", image: IMAGES.mtn },
@@ -232,6 +325,19 @@ export const MOMO_OPERATORS = [
   { id: "eu",     name: "Express Union", color: "#0066CC", image: IMAGES.expressUnion },
   { id: "yoomee", name: "Yoomee Money",  color: "#9B59B6", image: IMAGES.yoomee },
 ];
+
+/** Moyen d'encaissement Iwopay, proposé à côté d'Orange Money et de MTN. Uniquement OM et MoMo Cameroun. */
+export const IWOPAY_METHOD = { id: "iwopay", name: "Iwopay", color: "#0EA5E9", image: "" } as const;
+
+export const IWOPAY_SCOPE =
+  "Iwopay est disponible uniquement pour les Mobile Money camerounais : Orange Money (OM) et MTN MoMo (MOMO).";
+
+export const PAYPAL_PAY_METHOD = { id: "paypal", name: "PayPal", color: "#003087", image: IMAGES.paypal } as const;
+export const CRYPTO_PAY_METHOD = { id: "crypto", name: "Crypto", color: "#26A17B", image: IMAGES.crypto } as const;
+
+export function isAltPay(id: string): id is "gimac" | "paypal" | "crypto" {
+  return id === "gimac" || id === "paypal" || id === "crypto";
+}
 
 export const FACTURE_BILLERS = [
   { id: "canal",     name: "Canal+",    image: IMAGES.canal,      color: "#0071BC", desc: "Abonnement Canal+ Cameroun" },

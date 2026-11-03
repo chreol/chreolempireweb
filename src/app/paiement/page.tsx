@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { IMAGES } from "@/lib/services";
+import { IMAGES, ORANGE_MONEY_COMMERCE, MTN_MONEY, IWOPAY_SCOPE, CONTACT } from "@/lib/services";
+import PayInstruction from "@/components/PayInstruction";
 import WAPopover from "@/components/WAPopover";
 import { useLanguage } from "@/contexts/LanguageContext";
 
-const MTN_USSD  = "*126*14*672416141*MONTANT#";
-const OM_USSD   = "#150*14*518554*692251299*MONTANT#";
+const OM_USSD   = ORANGE_MONEY_COMMERCE.ussd;
 
 function CopyBtn({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
@@ -97,19 +97,21 @@ export default function PaiementPage() {
             <div className="relative w-7 h-7 rounded-lg overflow-hidden shrink-0">
               <Image src={IMAGES.mtn} alt="MTN" fill style={{ objectFit: "cover" }} unoptimized />
             </div>
-            <p className="font-black text-white text-sm">🟡 MTN Mobile Money / Flotte</p>
+            <p className="font-black text-white text-sm">🟡 MTN Mobile Money</p>
+            <span className="ml-auto text-[10px] font-black uppercase" style={{ color: "#22C55E" }}>Disponible</span>
           </div>
           <div className="flex flex-col gap-2 text-xs mb-3" style={{ color: "var(--text-secondary)" }}>
-            <div className="flex justify-between"><span>Code Marchand</span><span className="font-black text-white">672416141</span></div>
-            <div className="flex justify-between"><span>Nom</span><span className="font-black text-white">ETS Content</span></div>
+            <div className="flex justify-between"><span>Numéro</span><span className="font-black text-white">{MTN_MONEY.phoneDisplay}</span></div>
+            <div className="flex justify-between"><span>Nom</span><span className="font-black text-white">{MTN_MONEY.accountName}</span></div>
+            <div className="flex justify-between"><span>Frais de retrait MTN</span><span className="font-black text-white">1,5 %</span></div>
           </div>
           <div className="rounded-xl p-3" style={{ background: "var(--bg-elevated)", border: "1px solid #FFC10733" }}>
-            <p className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: "#FFC107" }}>🛠 Code USSD à composer</p>
+            <p className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: "#FFC107" }}>Dépôt à effectuer</p>
             <div className="flex items-center gap-2">
-              <code className="flex-1 text-sm font-black tracking-wider" style={{ color: "#FFC107" }}>{MTN_USSD}</code>
-              <CopyBtn text={MTN_USSD} />
+              <code className="flex-1 text-sm font-black tracking-wider" style={{ color: "#FFC107" }}>{MTN_MONEY.phoneDisplay}</code>
+              <CopyBtn text={MTN_MONEY.phoneDisplay} />
             </div>
-            <p className="text-[10px] mt-2" style={{ color: "var(--text-muted)" }}>Remplacez <strong>MONTANT</strong> par le montant exact de votre commande</p>
+            <p className="text-[10px] mt-2" style={{ color: "var(--text-muted)" }}>Déposez le total de la commande sur ce numéro.</p>
           </div>
         </div>
 
@@ -119,11 +121,14 @@ export default function PaiementPage() {
             <div className="relative w-7 h-7 rounded-lg overflow-hidden shrink-0">
               <Image src={IMAGES.orange} alt="Orange" fill style={{ objectFit: "cover" }} unoptimized />
             </div>
-            <p className="font-black text-white text-sm">🟠 Orange Money / Transfert UV</p>
+            <p className="font-black text-white text-sm">🟠 Orange Money — CHREOL EMPIRE</p>
+            <span className="ml-auto text-[10px] font-black uppercase" style={{ color: "#22C55E" }}>Disponible</span>
           </div>
           <div className="flex flex-col gap-2 text-xs mb-3" style={{ color: "var(--text-secondary)" }}>
-            <div className="flex justify-between"><span>Code Marchand</span><span className="font-black text-white">1052061</span></div>
-            <div className="flex justify-between"><span>Nom</span><span className="font-black text-white">Chreol Empire</span></div>
+            <div className="flex justify-between"><span>Code Marchand</span><span className="font-black text-white">{ORANGE_MONEY_COMMERCE.merchantCode}</span></div>
+            <div className="flex justify-between"><span>Nom</span><span className="font-black text-white">{ORANGE_MONEY_COMMERCE.merchantName}</span></div>
+            <div className="flex justify-between"><span>Réf. QR</span><span className="font-black text-white">{ORANGE_MONEY_COMMERCE.qrCode}</span></div>
+            <div className="flex justify-between"><span>Commission opérateur</span><span className="font-black text-white">1 %</span></div>
           </div>
           <div className="rounded-xl p-3" style={{ background: "var(--bg-elevated)", border: "1px solid #FF660033" }}>
             <p className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: "#FF6600" }}>🛠 Code USSD à composer</p>
@@ -131,8 +136,21 @@ export default function PaiementPage() {
               <code className="flex-1 text-sm font-black tracking-wider" style={{ color: "#FF6600" }}>{OM_USSD}</code>
               <CopyBtn text={OM_USSD} />
             </div>
-            <p className="text-[10px] mt-2" style={{ color: "var(--text-muted)" }}>Remplacez <strong>MONTANT</strong> par le montant exact de votre commande</p>
+            <p className="text-[10px] mt-2" style={{ color: "var(--text-muted)" }}>Composez ce code, puis « Payer un marchand » et le code {ORANGE_MONEY_COMMERCE.merchantCode}.</p>
+            <div className="relative w-36 h-36 mt-3 rounded-xl overflow-hidden" style={{ background: "#fff" }}>
+              <Image src={ORANGE_MONEY_COMMERCE.image} alt="QR code marchand Orange Money CHREOL EMPIRE" fill style={{ objectFit: "contain" }} unoptimized />
+            </div>
           </div>
+        </div>
+
+        <div className="rounded-2xl p-4 mt-4" style={{ background: "#0EA5E910", border: "1px solid #0EA5E944" }}>
+          <div className="flex items-center gap-2 mb-2">
+            <p className="font-black text-white text-sm">💨 Iwopay</p>
+            <span className="ml-auto text-[10px] font-black uppercase" style={{ color: "#22C55E" }}>Disponible</span>
+          </div>
+          <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
+            {IWOPAY_SCOPE} Une demande arrive sur le numéro indiqué : validez-la avec votre code secret.
+          </p>
         </div>
       </div>
 
@@ -140,14 +158,18 @@ export default function PaiementPage() {
       <div className="rounded-3xl p-6 mb-8" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
         <h2 className="text-base font-black text-white mb-2">🌍 Autres moyens de paiement disponibles</h2>
         <p className="text-xs mb-4" style={{ color: "var(--text-secondary)" }}>
-          Pour ces moyens, contactez-nous avant le paiement afin de recevoir les instructions et le montant exact à régler.
+          GIMAC, PayPal et crypto utilisent les adresses déjà publiées. Le montant suit le total de la commande et les taux PayPal / crypto du site.
         </p>
+        <div className="flex flex-col gap-3 mb-4">
+          <PayInstruction kind="gimac" fcfa={0} direction="in" />
+          <PayInstruction kind="paypal" fcfa={0} direction="in" />
+          <PayInstruction kind="crypto" fcfa={0} direction="in" />
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {[
             { image: IMAGES.expressUnion, title: "Express Union", text: "Paiement ou transfert selon le service demandé." },
             { image: IMAGES.yoomee, title: "Yoomee Money", text: "Disponible sur demande auprès de notre équipe." },
-            { image: IMAGES.crypto, title: "Cryptomonnaies", text: "USDT, BTC, SOL, TRX, BNB et autres actifs acceptés selon le service." },
-            { image: IMAGES.paypal, title: "PayPal Europe", text: "Solde PayPal européen accepté pour les services éligibles." },
+            { image: IMAGES.paypal, title: "PayPal", text: `Proches et Familles uniquement : ${CONTACT.paypalEmail}` },
             { image: IMAGES.logo, title: "Espèces en boutique", text: "Disponible à Vallée 3, Boutiques Deido, Douala – Cameroun." },
           ].map(method => (
             <div key={method.title} className="flex items-center gap-3 rounded-2xl p-3" style={{ background: "var(--bg-elevated)" }}>
@@ -176,51 +198,6 @@ export default function PaiementPage() {
           <p className="text-xs mb-2" style={{ color: "var(--text-secondary)" }}>🏦 UBA Cameroun — IBAN : CM21 10033 05221 21011000384 92 — SWIFT : UNAFCMCX</p>
           <p className="text-[11px]" style={{ color: "var(--text-muted)" }}>Payez le montant exact, puis envoyez la capture / justificatif de virement sur WhatsApp.</p>
         </div>
-
-        <div className="rounded-2xl p-4" style={{ background: "#FF660010", border: "1px solid #FF660044" }}>
-          <div className="flex items-center gap-2 mb-3">
-            <div className="relative w-7 h-7 rounded-lg overflow-hidden shrink-0">
-              <Image src={IMAGES.orange} alt="Orange" fill style={{ objectFit: "cover" }} unoptimized />
-            </div>
-            <p className="font-black text-white text-sm">🟠 Orange Money / Transfert UV</p>
-          </div>
-          <div className="flex flex-col gap-2 text-xs mb-3" style={{ color: "var(--text-secondary)" }}>
-            <div className="flex justify-between"><span>Code Marchand</span><span className="font-black text-white">1052061</span></div>
-            <div className="flex justify-between"><span>Nom</span><span className="font-black text-white">Chreol Empire</span></div>
-          </div>
-          <div className="rounded-xl p-3" style={{ background: "var(--bg-elevated)", border: "1px solid #FF660033" }}>
-            <p className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: "#FF6600" }}>🛠 Code USSD à composer</p>
-            <div className="flex items-center gap-2">
-              <code className="flex-1 text-sm font-black tracking-wider" style={{ color: "#FF6600" }}>{OM_USSD}</code>
-              <CopyBtn text={OM_USSD} />
-            </div>
-            <p className="text-[10px] mt-2" style={{ color: "var(--text-muted)" }}>Remplacez <strong>MONTANT</strong> par le montant exact de votre commande</p>
-          </div>
-        </div>
-      </div>
-
-      {/* ═══ PAIMENT RAPIDE — IWOPAY ═══ */}
-      <div className="rounded-3xl p-6 mb-8" style={{ background: "#C9A84C10", border: "1px solid #C9A84C44" }}>
-        <h2 className="text-base font-black text-white mb-2">💨 Paiement rapide — Iwopay</h2>
-        <p className="text-sm mb-4" style={{ color: "var(--text-secondary)" }}>
-          Iwopay est notre canal de versement Mobile Money (payout). Les demandes sont validées par un agent
-          après confirmation du paiement, puis envoyées automatiquement sur votre numéro.
-        </p>
-        <div className="flex items-center gap-3 rounded-2xl p-4" style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)" }}>
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center text-2xl shrink-0" style={{ background: "#C9A84C22" }}>💨</div>
-          <div>
-            <p className="text-xs font-black text-white">💨 Iwopay — Payout Mobile Money</p>
-            <p className="text-[11px] mt-0.5" style={{ color: "var(--text-secondary)" }}>Versement automatique après validation (statuts 100 / 01).</p>
-          </div>
-        </div>
-        <WAPopover
-          prefill="💨 Bonjour Chreol Empire, je souhaite un versement Iwopay."
-          className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 rounded-full font-black text-white text-xs transition-opacity hover:opacity-80"
-          style={{ background: "#C9A84C22", border: "1px solid #C9A84C55" }}
-        >
-          <span style={{ fontSize: 14 }}>💨</span>
-          Demander un versement Iwopay
-        </WAPopover>
       </div>
 
       {/* ═══ IMPORTANT — Preuve de paiement ═══ */}

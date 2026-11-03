@@ -1,7 +1,7 @@
 export const runtime = "edge";
 
 import { isAuthorizedInternal, unauthorized } from "@/lib/internalAuth";
-import { CONTACT, ORANGE_MONEY_COMMERCE } from "@/lib/services";
+import { CONTACT, ORANGE_MONEY_COMMERCE, MTN_MONEY } from "@/lib/services";
 
 /** Base absolue des images utilisées dans les emails (les clients mail n'acceptent pas les chemins relatifs). */
 const EMAIL_ASSET_BASE = "https://shop.chreolempire.com";
@@ -92,7 +92,9 @@ function esc(s: string): string {
 
 function toWaNumber(phone: string): string {
   const digits = phone.replace(/\D/g, "");
-  if (digits.startsWith("237")) return digits;
+  if (!digits) return "";
+  // Déjà international (237…, 33…, etc.) : ne pas préfixer une seconde fois.
+  if (digits.startsWith("237") || digits.length > 9) return digits;
   return `237${digits}`;
 }
 
@@ -122,14 +124,14 @@ function getMomoPaymentRows(method: string, total: number): string {
   type Op = { icon: string; name: string; merchant: string; merchantName: string; ussd: string; color: string };
   const ops: Op[] = [];
   if (isMtn || showBoth) ops.push({
-    icon: "🟡", name: "MTN Mobile Money", merchant: "672416141",
-    merchantName: "ETS Content", color: "#F59E0B",
-    ussd: `*126*14*672416141*${total}#`,
+    icon: "🟡", name: "MTN Mobile Money", merchant: MTN_MONEY.phoneDisplay,
+    merchantName: MTN_MONEY.accountName, color: "#F59E0B",
+    ussd: `Dépôt sur ${MTN_MONEY.phoneDisplay}, majoré de 1,5 % (frais de retrait MTN Cameroun)`,
   });
   if (isOrange || showBoth) ops.push({
-    icon: "🟠", name: "Orange Money", merchant: "692251299",
-    merchantName: "Ets Tagny", color: "#FF6600",
-    ussd: `#150*14*518554*692251299*${total}#`,
+    icon: "🟠", name: "Orange Money", merchant: ORANGE_MONEY_COMMERCE.merchantCode,
+    merchantName: ORANGE_MONEY_COMMERCE.merchantName, color: "#FF6600",
+    ussd: `${ORANGE_MONEY_COMMERCE.ussd} puis code marchand ${ORANGE_MONEY_COMMERCE.merchantCode} (commission opérateur 1 %)`,
   });
 
   const waProof = `https://wa.me/237697657734?text=${encodeURIComponent(`Bonjour, voici ma preuve de paiement — Montant : ${total.toLocaleString("fr-FR")} FCFA`)}`;
@@ -432,7 +434,7 @@ function buildAdminEmail(p: NotifyPayload, markDoneUrl: string, markCancelUrl: s
         </tr>` : ""}
         <tr>
           <td style="padding:18px 20px;font-size:14px;font-weight:900;color:#78350F">
-            MONTANT À PERCEVOIR DU CLIENT
+            ${p.flow === "sell" ? "FCFA À VERSER AU CLIENT" : "MONTANT À PERCEVOIR DU CLIENT"}
           </td>
           <td style="padding:18px 20px;font-size:28px;font-weight:900;color:#B45309;text-align:right;white-space:nowrap">
             ${p.total.toLocaleString("fr-FR")} FCFA
@@ -440,6 +442,8 @@ function buildAdminEmail(p: NotifyPayload, markDoneUrl: string, markCancelUrl: s
         </tr>
       </table>
 
+      ${p.flow === "sell" ? `<p style="font-size:13px;color:#1F2937;margin:0 0 16px">Le client doit envoyer <strong>${(p.eurAmount ?? 0).toFixed(2)}€</strong> sur <strong>${esc(CONTACT.paypalEmail)}</strong>, motif <strong>#${ref}</strong>, en « Proches et Familles ». Versement FCFA : ${esc(p.payoutTarget ?? p.paymentMethod)}.</p>` : ""}
+      ${p.flow === "buy" ? `<p style="font-size:13px;color:#1F2937;margin:0 0 16px">Encaissement Orange Money — marchand <strong>${ORANGE_MONEY_COMMERCE.merchantCode}</strong> (${esc(ORANGE_MONEY_COMMERCE.merchantName)}), USSD ${ORANGE_MONEY_COMMERCE.ussd}. Commission opérateur 1&nbsp;% incluse dans le total quand elle est indiquée. Compte PayPal du client : <strong>${esc(p.paypalId ?? "—")}</strong>.</p>` : ""}
       ${p.campayReference ? `<p style="font-size:12px;color:#9CA3AF;margin-bottom:16px">Réf. Campay : <code>${esc(p.campayReference)}</code></p>` : ""}
 
       <!-- Source URL -->
@@ -741,8 +745,9 @@ function buildTelegramMsg(p: NotifyPayload): string {
     `📧 ${esc(p.clientEmail)}`,
     `📱 +${waNum}`,
     `${pIcon} <b>${esc(p.paymentMethod)}</b>`,
-    p.flow === "sell" ? `💳 Compte PayPal client : <code>${esc(p.paypalId ?? "—")}</code>` : "",
+    p.paypalId ? `💳 Compte PayPal client : <code>${esc(p.paypalId)}</code>` : "",
     p.flow === "sell" ? `💰 Versement FCFA : ${esc(p.payoutTarget ?? p.paymentMethod)}` : "",
+    p.flow === "sell" ? `💶 Le client envoie en « Proches et Familles », motif <code>#${ref}</code>` : "",
     ``,
     `📦 <b>Commande :</b>`,
     itemLines,
@@ -760,7 +765,10 @@ function buildTelegramMsg(p: NotifyPayload): string {
 async function sendTelegram(p: NotifyPayload, markDoneUrl: string, markCancelUrl: string): Promise<number> {
   const token  = process.env.TELEGRAM_BOT_TOKEN;
   const chatId = process.env.TELEGRAM_CHAT_ID;
-  if (!token || !chatId) return 0;
+  if (!token || !chatId) {
+    console.error("[notify-order] Telegram non connecté : TELEGRAM_BOT_TOKEN ou TELEGRAM_CHAT_ID manquant");
+    return 0;
+  }
 
   const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
     method: "POST",

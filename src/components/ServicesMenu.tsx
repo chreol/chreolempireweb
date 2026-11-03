@@ -2,14 +2,13 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { NAV_SERVICES } from "@/lib/services";
 
 export default function ServicesMenu() {
   const { t } = useLanguage();
   const pathname = usePathname();
-  const router = useRouter();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -36,17 +35,15 @@ export default function ServicesMenu() {
     setOpen(false);
   }, [pathname]);
 
-  function go(href: string) { setOpen(false); router.push(href); }
-
-  // Hover : ouverture immédiate ; départ : fermeture avec léger délai (temps de réaction humain)
   function handleEnter() {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
     if (openTimer.current) clearTimeout(openTimer.current);
     setOpen(true);
   }
   function handleLeave() {
     if (closeTimer.current) clearTimeout(closeTimer.current);
-    // Délai avant fermeture (augmenté pour laisser le temps de survol/visée du sous-menu)
-    closeTimer.current = setTimeout(() => setOpen(false), 400);
+    // 800 ms : le temps de viser un lien après avoir quitté le bouton.
+    closeTimer.current = setTimeout(() => setOpen(false), 800);
   }
   function handleToggle() {
     if (closeTimer.current) clearTimeout(closeTimer.current);
@@ -59,12 +56,12 @@ export default function ServicesMenu() {
       className="relative"
       onMouseEnter={handleEnter}
       onMouseLeave={handleLeave}
-      onClick={handleToggle}
     >
       <button
         type="button"
         aria-haspopup="true"
         aria-expanded={open}
+        onClick={handleToggle}
         className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap transition-colors"
         style={{
           color: isActive ? "var(--bg-primary)" : "var(--text-secondary)",
@@ -76,8 +73,9 @@ export default function ServicesMenu() {
       </button>
 
       {open && (
+        <div className="absolute top-full left-0 z-50 pt-3" onMouseEnter={handleEnter}>
         <div
-          className="absolute top-full left-0 mt-2 w-[min(440px,calc(100vw-2rem))] rounded-2xl p-2 z-50"
+          className="w-[min(440px,calc(100vw-2rem))] rounded-2xl p-2"
           style={{ background: "var(--bg-card)", border: "1px solid var(--border)", boxShadow: "0 24px 64px rgba(0,0,0,0.5)" }}
         >
           <div className="flex items-center justify-between px-2 pb-2 pt-0.5">
@@ -89,10 +87,10 @@ export default function ServicesMenu() {
 
           <div className="grid grid-cols-2 gap-2">
             {NAV_SERVICES.map(s => (
-              <button
+              <Link
                 key={s.slug}
-                type="button"
-                onClick={() => go(s.href)}
+                href={s.href}
+                onClick={() => setOpen(false)}
                 className="flex items-center gap-3 p-3 rounded-xl text-left transition-colors hover:bg-[var(--bg-elevated)]"
                 style={{ background: "var(--bg-elevated)", border: `1px solid ${s.color}33` }}
               >
@@ -101,9 +99,10 @@ export default function ServicesMenu() {
                   <span className="block text-xs font-black text-white truncate">{t(`${s.tk}.title`)}</span>
                   <span className="block text-[10px] font-bold truncate" style={{ color: "var(--text-muted)" }}>{t(`${s.tk}.sub`)}</span>
                 </span>
-              </button>
+              </Link>
             ))}
           </div>
+        </div>
         </div>
       )}
     </div>

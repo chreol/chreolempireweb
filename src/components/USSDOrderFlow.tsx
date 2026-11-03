@@ -3,7 +3,9 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { track } from "@vercel/analytics";
-import { CONTACT, IMAGES } from "@/lib/services";
+import { CONTACT, IMAGES, ORANGE_MONEY_COMMERCE, MTN_MONEY, collectionFee, isAltPay } from "@/lib/services";
+import IwopayDebitForm from "@/components/IwopayDebitForm";
+import PayInstruction from "@/components/PayInstruction";
 
 export interface MerchantInfo {
   merchant: string;
@@ -16,8 +18,10 @@ export interface MerchantInfo {
   qrImage?: string;
 }
 
+type PayOp = "orange" | "mtn" | "iwopay" | "gimac" | "paypal" | "crypto";
+
 interface OperatorConfig {
-  id: "orange" | "mtn";
+  id: PayOp;
   label: string;
   color: string;
   merchant: string;
@@ -35,23 +39,69 @@ const OPERATORS: readonly OperatorConfig[] = [
     id:           "orange",
     label:        "Orange Money",
     color:        "#FF6600",
-    merchant:     "692251299",
-    merchantName: "Ets Tagny",
-    type:         "Transfert UV",
-    ussdFn:       (amount: number) => `#150*14*518554*692251299*${amount}#`,
+    merchant:     ORANGE_MONEY_COMMERCE.merchantCode,
+    merchantName: ORANGE_MONEY_COMMERCE.merchantName,
+    type:         "Scan & Pay / Max it",
+    ussdFn:       () => ORANGE_MONEY_COMMERCE.ussd,
     pin:          4,
     image:        IMAGES.orange,
+    qrCode:       ORANGE_MONEY_COMMERCE.qrCode,
+    qrImage:      ORANGE_MONEY_COMMERCE.image,
   },
   {
     id:           "mtn",
     label:        "MTN MoMo",
     color:        "#FFC107",
-    merchant:     "672416141",
-    merchantName: "ETS Content",
-    type:         "Flotte",
-    ussdFn:       (amount: number) => `*126*14*672416141*${amount}#`,
+    merchant:     MTN_MONEY.phoneDisplay,
+    merchantName: MTN_MONEY.accountName,
+    type:         "Dépôt",
+    ussdFn:       (amount: number) => `Déposez ${amount.toLocaleString("fr-FR")} FCFA au ${MTN_MONEY.phoneDisplay}`,
     pin:          5,
     image:        IMAGES.mtn,
+  },
+  {
+    id:           "iwopay",
+    label:        "Iwopay",
+    color:        "#0EA5E9",
+    merchant:     "Demande sur votre numéro",
+    merchantName: "CHREOL EMPIRE",
+    type:         "Encaissement",
+    ussdFn:       () => "Validez la demande reçue sur votre téléphone",
+    pin:          4,
+    image:        "",
+  },
+  {
+    id:           "gimac",
+    label:        "Gimac",
+    color:        "#006B3D",
+    merchant:     MTN_MONEY.phoneDisplay,
+    merchantName: MTN_MONEY.accountName,
+    type:         "Transfert CEMAC",
+    ussdFn:       (amount: number) => `Transfert GIMAC vers le Cameroun : ${amount.toLocaleString("fr-FR")} FCFA`,
+    pin:          4,
+    image:        "",
+  },
+  {
+    id:           "paypal",
+    label:        "PayPal",
+    color:        "#003087",
+    merchant:     CONTACT.paypalEmail,
+    merchantName: "Proches et Familles",
+    type:         "Proches et Familles",
+    ussdFn:       () => CONTACT.paypalEmail,
+    pin:          0,
+    image:        IMAGES.paypal,
+  },
+  {
+    id:           "crypto",
+    label:        "Crypto",
+    color:        "#26A17B",
+    merchant:     "Wallet boutique",
+    merchantName: "CHREOL EMPIRE",
+    type:         "Wallet",
+    ussdFn:       () => "Adresse selon l'actif et le réseau",
+    pin:          0,
+    image:        IMAGES.crypto,
   },
 ];
 
@@ -67,9 +117,9 @@ interface USSDOrderFlowProps {
   /** Titre de la modale */
   title?: string;
   /** Restreint les opérateurs proposés (ex: ["orange"] si MTN est indisponible) */
-  availableOps?: readonly ("orange" | "mtn")[];
+  availableOps?: readonly PayOp[];
   /** Surcharge les informations marchand (nouveau compte, QR code…) */
-  merchantOverride?: Partial<Record<"orange" | "mtn", MerchantInfo>>;
+  merchantOverride?: Partial<Record<PayOp, MerchantInfo>>;
   className?: string;
   style?: React.CSSProperties;
   children: React.ReactNode;
@@ -89,11 +139,12 @@ export default function USSDOrderFlow({
 }: USSDOrderFlowProps) {
   const [open, setOpen]           = useState(false);
   const [step, setStep]           = useState<"choose" | "ussd">("choose");
-  const [selectedOp, setSelectedOp] = useState<"orange" | "mtn" | null>(null);
+  const [selectedOp, setSelectedOp] = useState<PayOp | null>(null);
   const [prenom, setPrenom]       = useState(prefillPrenom ?? "");
+  const [payLine, setPayLine]     = useState("");
 
+  const payableIds = availableOps ?? (["orange", "mtn", "iwopay", "gimac", "paypal", "crypto"] as const);
   const ops: OperatorConfig[] = OPERATORS
-    .filter(o => !availableOps || availableOps.includes(o.id))
     .map(o => {
       const ov = merchantOverride?.[o.id];
       if (!ov) return o;
@@ -101,6 +152,8 @@ export default function USSDOrderFlow({
     });
 
   const opConfig = ops.find(o => o.id === selectedOp);
+  const fee = opConfig ? collectionFee(total, opConfig.id) : 0;
+  const due = total + fee;
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
@@ -111,8 +164,8 @@ export default function USSDOrderFlow({
     if (onBeforeOpen && !onBeforeOpen()) return;
     setPrenom(prefillPrenom ?? "");
     // Un seul opérateur disponible → on saute l'étape de sélection
-    if (ops.length === 1) {
-      setSelectedOp(ops[0].id);
+    if (payableIds.length === 1) {
+      setSelectedOp(payableIds[0]);
       setStep("ussd");
       setOpen(true);
       return;
@@ -126,7 +179,7 @@ export default function USSDOrderFlow({
     setOpen(false);
   }
 
-  function handleChoose(id: "orange" | "mtn") {
+  function handleChoose(id: PayOp) {
     setSelectedOp(id);
     setStep("ussd");
   }
@@ -136,7 +189,7 @@ export default function USSDOrderFlow({
     const p = prenom.trim() || "Client";
     track("whatsapp_open", { context: title, operator: opConfig.label });
     const body = getMsg();
-    const opLine = `\nPaiement via : ${opConfig.label}`;
+    const opLine = `\nPaiement via : ${opConfig.label}${payLine ? `\n${payLine}` : ""}`;
     const msg = encodeURIComponent(`Bonjour Chreol Empire, je m'appelle ${p}.\n\n${body}${opLine}`);
     window.open(`https://wa.me/${CONTACT.whatsapp}?text=${msg}`, "_blank", "noopener,noreferrer");
     setOpen(false);
@@ -196,23 +249,31 @@ export default function USSDOrderFlow({
             {step === "choose" && (
               <div className="flex flex-col gap-3">
                 <div className={`grid gap-3 ${ops.length > 1 ? "grid-cols-2" : "grid-cols-1"}`}>
-                  {ops.map(op => (
+                  {ops.map(op => {
+                    const openOp = payableIds.includes(op.id);
+                    return (
                     <button
                       key={op.id}
                       type="button"
-                      onClick={() => handleChoose(op.id)}
-                      className="p-4 rounded-2xl flex flex-col items-center gap-3 transition-all hover:scale-[1.02] active:scale-[0.97]"
-                      style={{ background: "var(--bg-card)", border: `2px solid ${op.color}44` }}
+                      disabled={!openOp}
+                      onClick={() => { if (openOp) handleChoose(op.id); }}
+                      className="p-4 rounded-2xl flex flex-col items-center gap-3 transition-all hover:scale-[1.02] active:scale-[0.97] disabled:cursor-not-allowed disabled:hover:scale-100"
+                      style={{ background: "var(--bg-card)", border: `2px solid ${op.color}44`, opacity: openOp ? 1 : 0.55 }}
                     >
-                      <div className="relative w-12 h-12 rounded-xl overflow-hidden">
-                        <Image src={op.image} alt={op.label} fill style={{ objectFit: "cover" }} unoptimized />
+                      <div className="relative w-12 h-12 rounded-xl overflow-hidden flex items-center justify-center font-black text-white" style={{ background: op.image ? undefined : op.color }}>
+                        {op.image ? (
+                          <Image src={op.image} alt={op.label} fill style={{ objectFit: "cover" }} unoptimized />
+                        ) : "💨"}
                       </div>
                       <div className="text-center">
                         <p className="text-xs font-black" style={{ color: op.color }}>{op.label}</p>
-                        <p className="text-[10px] mt-0.5" style={{ color: "var(--text-muted)" }}>{op.type}</p>
+                        <p className="text-[10px] mt-0.5 font-black" style={{ color: openOp ? "#22C55E" : "var(--text-muted)" }}>
+                          {openOp ? "Disponible" : "Indisponible"}
+                        </p>
                       </div>
                     </button>
-                  ))}
+                    );
+                  })}
                 </div>
                 <button
                   type="button"
@@ -226,7 +287,67 @@ export default function USSDOrderFlow({
             )}
 
             {/* ── Étape 2 : instructions USSD ── */}
-            {step === "ussd" && opConfig && (
+            {step === "ussd" && opConfig && opConfig.id === "iwopay" && (
+              <div className="flex flex-col gap-4">
+                <IwopayDebitForm amount={due} motif={title} />
+                <div className="flex gap-2">
+                  {payableIds.length > 1 && (
+                    <button type="button" onClick={() => setStep("choose")} className="flex-1 text-xs py-2 rounded-xl" style={{ color: "var(--text-muted)" }}>
+                      ← Changer d&apos;opérateur
+                    </button>
+                  )}
+                  <button type="button" onClick={handleClose} className="flex-1 text-xs py-2 rounded-xl font-bold" style={{ color: "#EF4444", background: "#EF444415" }}>
+                    ✕ Annuler
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {step === "ussd" && opConfig && isAltPay(opConfig.id) && (
+              <div className="flex flex-col gap-4">
+                <PayInstruction
+                  kind={opConfig.id}
+                  fcfa={due}
+                  direction="in"
+                  onLine={setPayLine}
+                />
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-black uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
+                    Votre prénom *
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Jean-Paul, Aminata…"
+                    value={prenom}
+                    onChange={e => setPrenom(e.target.value)}
+                    maxLength={50}
+                    className="w-full px-4 py-3 rounded-2xl text-white text-sm outline-none"
+                    style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={handleConfirm}
+                  className="flex items-center justify-center gap-2 w-full py-4 rounded-full font-black text-white text-sm"
+                  style={{ background: "#25D366" }}
+                >
+                  <Image src={IMAGES.whatsapp} alt="" width={20} height={20} unoptimized className="shrink-0" />
+                  J&apos;ai payé — Continuer sur WhatsApp
+                </button>
+                <div className="flex gap-2">
+                  {payableIds.length > 1 && (
+                    <button type="button" onClick={() => setStep("choose")} className="flex-1 text-xs py-2 rounded-xl" style={{ color: "var(--text-muted)" }}>
+                      ← Changer d&apos;opérateur
+                    </button>
+                  )}
+                  <button type="button" onClick={handleClose} className="flex-1 text-xs py-2 rounded-xl font-bold" style={{ color: "#EF4444", background: "#EF444415" }}>
+                    ✕ Annuler
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {step === "ussd" && opConfig && opConfig.id !== "iwopay" && !isAltPay(opConfig.id) && (
               <div className="flex flex-col gap-4">
                 {/* Étapes numérotées */}
                 <div className="flex flex-col gap-3">
@@ -234,7 +355,7 @@ export default function USSDOrderFlow({
                   <div className="flex items-start gap-3">
                     <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black shrink-0 mt-0.5" style={{ background: opConfig.color, color: "#000" }}>1</span>
                     <div>
-                      <p className="text-xs font-bold text-white">Code Marchand</p>
+                      <p className="text-xs font-bold text-white">{opConfig.id === "mtn" ? "Numéro de dépôt" : "Code Marchand"}</p>
                       <p className="text-base font-black tabular-nums mt-0.5" style={{ color: opConfig.color }}>{opConfig.merchant}</p>
                       <p className="text-[11px]" style={{ color: "var(--text-muted)" }}>Nom : {opConfig.merchantName}</p>
                     </div>
@@ -244,12 +365,12 @@ export default function USSDOrderFlow({
                   <div className="flex items-start gap-3">
                     <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black shrink-0 mt-0.5" style={{ background: opConfig.color, color: "#000" }}>2</span>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-white mb-1">Composez directement</p>
+                      <p className="text-xs font-bold text-white mb-1">{opConfig.id === "orange" ? "Composez directement" : "Instruction"}</p>
                       <div
                         className="rounded-xl px-3 py-2 font-mono text-sm font-black break-all"
                         style={{ background: "#0A0A0A", color: opConfig.color, border: `1px solid ${opConfig.color}33` }}
                       >
-                        {opConfig.ussdFn(total)}
+                        {opConfig.ussdFn(due)}
                       </div>
                     </div>
                   </div>
@@ -276,8 +397,13 @@ export default function USSDOrderFlow({
                     <div>
                       <p className="text-xs font-bold text-white">Montant à régler</p>
                       <p className="text-2xl font-black tabular-nums mt-0.5" style={{ color: opConfig.color }}>
-                        {total.toLocaleString("fr-FR")} FCFA
+                        {due.toLocaleString("fr-FR")} FCFA
                       </p>
+                      {fee > 0 && (
+                        <p className="text-[11px] mt-1" style={{ color: "var(--text-muted)" }}>
+                          Dont {opConfig.id === "mtn" ? "frais de retrait MTN 1,5 %" : "commission Orange Money 1 %"} : {fee.toLocaleString("fr-FR")} FCFA
+                        </p>
+                      )}
                     </div>
                   </div>
 
@@ -318,7 +444,7 @@ export default function USSDOrderFlow({
                     J&apos;ai payé — Continuer sur WhatsApp
                   </button>
                   <div className="flex gap-2">
-                    {ops.length > 1 && (
+                    {payableIds.length > 1 && (
                       <button
                         type="button"
                         onClick={() => setStep("choose")}

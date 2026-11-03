@@ -96,18 +96,41 @@ export async function getIwopayToken(cfg: IwopayConfig = getIwopayConfig() as Iw
 
 // ── Création d'une demande de paiement ───────────────────────────────────────
 
+/**
+ * Sens Iwomi (doc 1.3, exemple officiel) :
+ *   collect = "credit"  → débite le téléphone du client (encaissement)
+ *   payout  = "debit"   → envoie de l'argent vers ce téléphone
+ * La ligne du tableau « payment = debit » contredit l'exemple ;
+ * on suit l'exemple : `$op_type = 'credit'; // payout = debit ; collect = credit`.
+ */
+export type IwopayDirection = "collect" | "payout";
+
+const IWOPAY_OP_TYPE: Record<IwopayDirection, "credit" | "debit"> = {
+  collect: "credit",
+  payout: "debit",
+};
+
 export interface CreateIwopayPaymentParams {
   operator: IwopayOperator;
+  /** collect débite le client ; payout (admin seulement) lui envoie l'argent. */
+  direction?: IwopayDirection;
   /** Montant en FCFA (entier) */
   amount: number;
   /** Numéro Mobile Money : 9 chiffres (sans indicatif) ou avec 237 */
   phone: string;
-  /** Référence unique côté marchand */
+  /** Référence unique côté marchand (Iwomi : 16 caractères max) */
   externalId: string;
   motif?: string;
   clientName?: string;
   clientEmail?: string;
   callbackUrl?: string;
+}
+
+/** Référence marchand tenue dans la limite Iwomi (16 caractères). */
+export function iwopayExternalId(): string {
+  const stamp = Date.now().toString(36).toUpperCase();
+  const rand = Math.random().toString(36).slice(2, 6).toUpperCase();
+  return (`CE${stamp}${rand}`).replace(/[^A-Z0-9]/g, "").slice(0, 16);
 }
 
 export interface IwopayPaymentResult {
@@ -135,11 +158,15 @@ export async function createIwopayPayment(
 
   const token = await getIwopayToken(cfg);
 
+  const direction = params.direction ?? "collect";
+  const externalId = params.externalId.replace(/[^A-Za-z0-9_-]/g, "").slice(0, 16);
+  if (externalId.length < 4) throw new Error("iwopay_invalid_reference");
+
   const body = {
-    op_type: "credit",
+    op_type: IWOPAY_OP_TYPE[direction],
     type: params.operator,
     amount: String(Math.round(params.amount)),
-    external_id: params.externalId,
+    external_id: externalId,
     motif: params.motif ?? "Paiement Chreol Empire",
     tel: `237${local}`,
     country: "cm",
@@ -163,7 +190,7 @@ export async function createIwopayPayment(
   };
 
   return {
-    ok: res.ok && data.status === "1000",
+    ok: res.ok && (data.status === "1000" || data.status === "01"),
     status: data.status ?? String(res.status),
     internalId: data.internal_id,
     message: data.message,
@@ -174,8 +201,10 @@ export async function createIwopayPayment(
 
 export interface IwopayStatusResult {
   status: string;
-  /** true si Iwopay considère le paiement comme abouti (statuts 100 / 01) */
+  /** true uniquement si le débit est abouti (statut 01). 1000 = en attente, 100 = échec. */
   paid: boolean;
+  pending: boolean;
+  message?: string;
   raw?: unknown;
 }
 
@@ -195,7 +224,7 @@ export async function getIwopayStatus(
     signal: AbortSignal.timeout(20_000),
   });
 
-  const data = await res.json().catch(() => ({})) as { status?: string };
+  const data = await res.json().catch(() => ({})) as { status?: string; message?: string };
   const status = data.status ?? String(res.status);
-  return { status, paid: status === "100" || status === "01", raw: data };
+  return { status, paid: status === "01", pending: status === "1000", message: data.message, raw: data };
 }

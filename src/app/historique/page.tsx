@@ -4,6 +4,7 @@ import { useHistory } from "@/contexts/HistoryContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import WAPopover from "@/components/WAPopover";
 import Link from "next/link";
+import { IwopayStatusList } from "@/components/IwopayStatusCard";
 
 const STATUS_STYLES = {
   pending:   { label: "En attente", bg: "#1A1500", border: "#C9A84C44", color: "#C9A84C" },
@@ -24,19 +25,22 @@ export default function HistoriquePage() {
 
   if (entries.length === 0) {
     return (
-      <div className="max-w-2xl lg:max-w-3xl mx-auto px-4 sm:px-6 py-20 text-center">
-        <p className="text-6xl mb-4">📋</p>
-        <h1 className="text-2xl font-black text-white mb-2">{t("history.none")}</h1>
-        <p className="mb-6 text-sm" style={{ color: "var(--text-secondary)" }}>
-          {t("history.none.desc")}
-        </p>
-        <Link
-          href="/services"
-          className="inline-block px-6 py-3 rounded-full font-black text-black text-sm"
-          style={{ background: "var(--gold)" }}
-        >
-          {t("btn.see_all")}
-        </Link>
+      <div className="max-w-2xl lg:max-w-3xl mx-auto px-4 sm:px-6 py-10">
+        <IwopayStatusList />
+        <div className="text-center py-10">
+          <p className="text-6xl mb-4">📋</p>
+          <h1 className="text-2xl font-black text-white mb-2">{t("history.none")}</h1>
+          <p className="mb-6 text-sm" style={{ color: "var(--text-secondary)" }}>
+            {t("history.none.desc")}
+          </p>
+          <Link
+            href="/services"
+            className="inline-block px-6 py-3 rounded-full font-black text-black text-sm"
+            style={{ background: "var(--gold)" }}
+          >
+            {t("btn.see_all")}
+          </Link>
+        </div>
       </div>
     );
   }
@@ -66,6 +70,8 @@ export default function HistoriquePage() {
           {t("history.clear")}
         </button>
       </div>
+
+      <IwopayStatusList />
 
       <div className="flex flex-col gap-3">
         {entries.map(entry => {

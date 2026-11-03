@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { CONTACT } from '@/lib/services';
+import { CONTACT, IWOPAY_SCOPE, MTN_MONEY } from '@/lib/services';
 import { useToast } from "@/components/Toast";
 import TransferRatesModal from '@/components/TransferRatesModal';
 import faq from '@/data/transfert-faq.json';
@@ -64,8 +64,11 @@ export default function TransfertPage() {
 
           <div>
             <h3 className="font-bold">🔹 OPTION B – Paiement par code USSD</h3>
-            <p><strong>MTN (Flotte)</strong> : composez <code>*126*14*672416141*montant#</code> (Nom : ETS Content)</p>
-            <p><strong>ORANGE (Transfert UV)</strong> : composez <code>#150*14*518554*692251299*montant#</code> (Nom : Ets Tagny)</p>
+            <p><strong>MTN Mobile Money</strong> : déposez le montant majoré de <strong>1,5 %</strong> au <strong>+237 683 682 958</strong> (Vernatus Mesue Etube).</p>
+            <p><strong>ORANGE (Scan &amp; Pay)</strong> : composez <code>#150*47#</code> puis le code marchand <strong>1052061</strong> (Nom : CHREOL EMPIRE). Commission opérateur 1&nbsp;%.</p>
+            <p><strong>Iwopay</strong> : {IWOPAY_SCOPE}</p>
+            <p><strong>GIMAC</strong> : transfert CEMAC vers le Cameroun, destinataire {MTN_MONEY.phoneDisplay} ({MTN_MONEY.accountName}).</p>
+            <p><strong>PayPal</strong> : uniquement « Proches et Familles », adresse {CONTACT.paypalEmail}.</p>
           </div>
 
           <div>
@@ -270,7 +273,7 @@ function TransferForm() {
           {errors.name && (touched.name || submitAttempted) ? <p className="text-xs text-red-500 mt-1">{errors.name}</p> : null}
         </div>
         <div>
-          <input name="phone" value={form.phone} onChange={onChange} onBlur={() => onBlurField('phone')} placeholder="Numéro WhatsApp (ex: +237 697 657 734)" className={inputClass('phone')} />
+          <input name="phone" value={form.phone} onChange={onChange} onBlur={() => onBlurField('phone')} placeholder="Téléphone (ex: +237 6XX XX XX XX)" className={inputClass('phone')} />
           {errors.phone && (touched.phone || submitAttempted) ? <p className="text-xs text-red-500 mt-1">{errors.phone}</p> : null}
         </div>
         <div>

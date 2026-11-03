@@ -5,39 +5,90 @@ import Image from "next/image";
 import { track } from "@vercel/analytics";
 import { useCart } from "@/contexts/CartContext";
 import { supabase } from "@/lib/supabase";
-import { IMAGES, CONTACT } from "@/lib/services";
+import { IMAGES, CONTACT, ORANGE_MONEY_COMMERCE, MTN_MONEY, MOMO_OPERATORS, collectionFee, collectionFeeLabel, isAltPay } from "@/lib/services";
 import WAPopover from "@/components/WAPopover";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { saveClientInfo, loadClientInfo, saveLastOrder, loadRecentOrder } from "@/lib/clientInfo";
 import { makeId } from "@/lib/uid";
+import IwopayDebitForm from "@/components/IwopayDebitForm";
+import PayInstruction from "@/components/PayInstruction";
 
 const OPERATORS = [
   {
     id:         "orange" as const,
     label:      "Orange Money",
     color:      "#FF6600",
-    merchant:   "692251299",
-    merchantName: "Ets Tagny",
-    // montant sera injecté dynamiquement
-    ussdFn:     (amount: number) => `#150*14*518554*692251299*${amount}#`,
+    merchant:   ORANGE_MONEY_COMMERCE.merchantCode,
+    merchantName: ORANGE_MONEY_COMMERCE.merchantName,
+    ussdFn:     () => ORANGE_MONEY_COMMERCE.ussd,
     pin:        4,
     image:      IMAGES.orange,
-    type:       "Transfert UV",
+    type:       "Scan & Pay / Max it",
+    available:  true,
   },
   {
     id:         "mtn" as const,
     label:      "MTN MoMo",
     color:      "#FFC107",
-    merchant:   "672416141",
-    merchantName: "ETS Content",
-    ussdFn:     (amount: number) => `*126*14*672416141*${amount}#`,
+    merchant:   MTN_MONEY.phoneDisplay,
+    merchantName: MTN_MONEY.accountName,
+    ussdFn:     (amount: number) => `Déposez ${amount.toLocaleString("fr-FR")} FCFA au ${MTN_MONEY.phoneDisplay}`,
     pin:        5,
     image:      IMAGES.mtn,
-    type:       "Flotte",
+    type:       "Dépôt",
+    available:  true,
+  },
+  {
+    id:         "iwopay" as const,
+    label:      "Iwopay",
+    color:      "#0EA5E9",
+    merchant:   "Demande sur votre numéro",
+    merchantName: "CHREOL EMPIRE",
+    ussdFn:     () => "Validez la demande reçue sur votre téléphone",
+    pin:        4,
+    image:      "",
+    type:       "Encaissement",
+    available:  true,
+  },
+  {
+    id:         "gimac" as const,
+    label:      "Gimac",
+    color:      "#006B3D",
+    merchant:   MTN_MONEY.phoneDisplay,
+    merchantName: MTN_MONEY.accountName,
+    ussdFn:     (amount: number) => `Transfert GIMAC ${amount.toLocaleString("fr-FR")} FCFA`,
+    pin:        4,
+    image:      "",
+    type:       "Transfert CEMAC",
+    available:  true,
+  },
+  {
+    id:         "paypal" as const,
+    label:      "PayPal",
+    color:      "#003087",
+    merchant:   CONTACT.paypalEmail,
+    merchantName: "Proches et Familles",
+    ussdFn:     () => CONTACT.paypalEmail,
+    pin:        0,
+    image:      IMAGES.paypal,
+    type:       "Proches et Familles",
+    available:  true,
+  },
+  {
+    id:         "crypto" as const,
+    label:      "Crypto",
+    color:      "#26A17B",
+    merchant:   "Wallet boutique",
+    merchantName: "CHREOL EMPIRE",
+    ussdFn:     () => "Adresse selon l'actif",
+    pin:        0,
+    image:      IMAGES.crypto,
+    type:       "Wallet",
+    available:  true,
   },
 ];
-type OpId = "orange" | "mtn";
+type OpId = "orange" | "mtn" | "iwopay" | "gimac" | "paypal" | "crypto";
 
 export default function CartPage() {
   const { items, total, removeItem, adjustQty, clearCart } = useCart();
@@ -51,6 +102,7 @@ export default function CartPage() {
   const [emailError, setEmailError] = useState("");
   const [payStep, setPayStep]       = useState<null | "choose" | "ussd">(null);
   const [selectedOp, setSelectedOp] = useState<OpId | null>(null);
+  const [payLine, setPayLine] = useState("");
 
   // Pré-remplissage depuis localStorage
   const [infoConfirmed, setInfoConfirmed] = useState(false);
@@ -83,9 +135,15 @@ export default function CartPage() {
       }
       return `• ${i.cardName} — ${i.amount} × ${i.qty} = ${(i.price * i.qty).toLocaleString("fr-FR")} FCFA`;
     }).join("\n\n");
+    const fee = collectionFee(total, selectedOp ?? "");
+    const payTotal = total + fee;
     const payLabel = isSell ? "Vente / Échange" : (opLabel ?? "Via WhatsApp");
     const ref = orderId ? `\nRéf commande : #${orderId.slice(-8).toUpperCase()}` : "";
-    return `Je souhaite :${ref}\n${lines}\n\nTotal : ${total.toLocaleString("fr-FR")} FCFA\nPaiement : ${payLabel}\n\nTél : ${phone}${referral ? `\nCode parrainage : ${referral.toUpperCase()}` : ""}`;
+    const feeLine = fee > 0
+      ? `\n${collectionFeeLabel(selectedOp ?? "")} : ${fee.toLocaleString("fr-FR")} FCFA\nTotal à payer : ${payTotal.toLocaleString("fr-FR")} FCFA`
+      : `\nTotal : ${total.toLocaleString("fr-FR")} FCFA`;
+    const alt = payLine ? `\n${payLine}` : "";
+    return `Je souhaite :${ref}\n${lines}${feeLine}\nPaiement : ${payLabel}${alt}\n\nTél : ${phone}${referral ? `\nCode parrainage : ${referral.toUpperCase()}` : ""}`;
   }
 
   async function handleOrderClick(force = false) {
@@ -130,6 +188,8 @@ export default function CartPage() {
     if (loading) return;
     setLoading(true);
 
+    const fee = collectionFee(total, selectedOp ?? "");
+    const payTotal = total + fee;
     const opLabel = opConfig?.label ?? "Via WhatsApp";
     track("cart_checkout", { items: items.length, total, operator: opLabel });
     const orderId = makeId();
@@ -167,7 +227,9 @@ export default function CartPage() {
           amount: i.amount,
           details: i.details,
         })),
-        total,
+        total: payTotal,
+        commission: fee > 0 ? fee : undefined,
+        commissionLabel: fee > 0 ? collectionFeeLabel(selectedOp ?? "") : undefined,
       }),
     }).catch(err => console.error("[cart-wa] notify:", err));
 
@@ -399,21 +461,33 @@ export default function CartPage() {
                 {OPERATORS.map(op => (
                   <button
                     key={op.id}
-                    onClick={() => { setSelectedOp(op.id); setPayStep("ussd"); }}
-                    className="p-4 rounded-2xl flex flex-col items-center gap-3 transition-all hover:scale-[1.02] active:scale-[0.97]"
+                    disabled={!op.available}
+                    onClick={() => { if (!op.available) return; setSelectedOp(op.id); setPayStep("ussd"); }}
+                    className="p-4 rounded-2xl flex flex-col items-center gap-3 transition-all hover:scale-[1.02] active:scale-[0.97] disabled:cursor-not-allowed disabled:hover:scale-100"
                     style={{
-                      background: selectedOp === op.id ? "var(--bg-card)" : "var(--bg-card)",
+                      background: "var(--bg-card)",
                       border: `2px solid ${op.color}44`,
+                      opacity: op.available ? 1 : 0.55,
                     }}
                   >
-                    <div className="relative w-12 h-12 rounded-xl overflow-hidden">
-                      <Image src={op.image} alt={op.label} fill style={{ objectFit: "cover" }} unoptimized />
+                    <div className="relative w-12 h-12 rounded-xl overflow-hidden flex items-center justify-center font-black" style={{ background: op.image ? undefined : op.color, color: "#fff" }}>
+                      {op.image ? <Image src={op.image} alt={op.label} fill style={{ objectFit: "cover" }} unoptimized /> : "💨"}
                     </div>
                     <div className="text-center">
                       <p className="text-xs font-black" style={{ color: op.color }}>{op.label}</p>
-                      <p className="text-[10px] mt-0.5" style={{ color: "var(--text-muted)" }}>{op.type}</p>
+                      <p className="text-[10px] mt-0.5 font-black" style={{ color: op.available ? "#22C55E" : "var(--text-muted)" }}>
+                        {op.available ? "Disponible" : "Indisponible"}
+                      </p>
                     </div>
                   </button>
+                ))}
+              </div>
+              <div className="grid grid-cols-3 gap-2 mb-4">
+                {MOMO_OPERATORS.filter(o => o.id === "eu" || o.id === "yoomee").map(o => (
+                  <div key={o.id} className="rounded-xl p-2 text-center" style={{ background: "var(--bg-card)", border: "1px solid var(--border)", opacity: 0.55 }}>
+                    <p className="text-[10px] font-black" style={{ color: o.color }}>{o.name}</p>
+                    <p className="text-[9px] font-black uppercase" style={{ color: "var(--text-muted)" }}>Indisponible</p>
+                  </div>
                 ))}
               </div>
               <button
@@ -430,8 +504,8 @@ export default function CartPage() {
           {!isSell && payStep === "ussd" && opConfig && (
             <div className="rounded-2xl p-5" style={{ background: "var(--bg-elevated)", border: `2px solid ${opConfig.color}55` }}>
               <div className="flex items-center gap-3 mb-4">
-                <div className="relative w-10 h-10 rounded-xl overflow-hidden shrink-0">
-                  <Image src={opConfig.image} alt={opConfig.label} fill style={{ objectFit: "cover" }} unoptimized />
+                <div className="relative w-10 h-10 rounded-xl overflow-hidden shrink-0 flex items-center justify-center font-black" style={{ background: opConfig.image ? undefined : opConfig.color, color: "#fff" }}>
+                  {opConfig.image ? <Image src={opConfig.image} alt={opConfig.label} fill style={{ objectFit: "cover" }} unoptimized /> : "💨"}
                 </div>
                 <div>
                   <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
@@ -441,12 +515,29 @@ export default function CartPage() {
                 </div>
               </div>
 
-              {/* Étapes numérotées */}
+              {opConfig.id === "iwopay" ? (
+                <IwopayDebitForm amount={total + collectionFee(total, opConfig.id)} motif="Panier Chreol Empire" />
+              ) : isAltPay(opConfig.id) ? (
+                <>
+                  <PayInstruction kind={opConfig.id} fcfa={total} direction="in" onLine={setPayLine} />
+                  <button
+                    onClick={handleConfirmOrder}
+                    disabled={loading}
+                    className="flex items-center justify-center gap-2 w-full py-4 rounded-full font-black text-white text-sm mt-4 mb-2 disabled:opacity-50"
+                    style={{ background: "#25D366" }}
+                  >
+                    {loading ? t("cart.loading") : (
+                      <><Image src={IMAGES.whatsapp} alt="" width={20} height={20} unoptimized className="shrink-0" /> J&apos;ai payé — Continuer sur WhatsApp</>
+                    )}
+                  </button>
+                </>
+              ) : (
+              <>
               <div className="flex flex-col gap-3 mb-4">
                 <div className="flex items-start gap-3">
                   <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black shrink-0 mt-0.5" style={{ background: opConfig.color, color: "#000" }}>1</span>
                   <div>
-                    <p className="text-xs font-bold text-white">Code Marchand</p>
+                    <p className="text-xs font-bold text-white">{opConfig.id === "mtn" ? "Numéro de dépôt" : "Code Marchand"}</p>
                     <p className="text-sm font-black tabular-nums mt-0.5" style={{ color: opConfig.color }}>{opConfig.merchant}</p>
                     <p className="text-[11px]" style={{ color: "var(--text-muted)" }}>Nom : {opConfig.merchantName}</p>
                   </div>
@@ -457,10 +548,12 @@ export default function CartPage() {
                   <div className="flex-1">
                     <p className="text-xs font-bold text-white mb-1">Composez directement</p>
                     <div className="rounded-xl px-3 py-2 font-mono text-sm font-black break-all" style={{ background: "#0A0A0A", color: opConfig.color, border: `1px solid ${opConfig.color}33` }}>
-                      {opConfig.ussdFn(total)}
+                      {opConfig.ussdFn(total + collectionFee(total, opConfig.id))}
                     </div>
                     <p className="text-[11px] mt-1" style={{ color: "var(--text-muted)" }}>
-                      Remplacez <strong style={{ color: "var(--text-secondary)" }}>{total}</strong> par <strong style={{ color: opConfig.color }}>{total.toLocaleString("fr-FR")}</strong> FCFA si demandé
+                      {opConfig.id === "orange"
+                        ? "Puis « Payer un marchand » et saisissez le code marchand."
+                        : "Déposez le total indiqué ci-dessous sur ce numéro."}
                     </p>
                   </div>
                 </div>
@@ -470,8 +563,15 @@ export default function CartPage() {
                   <div>
                     <p className="text-xs font-bold text-white">Montant à régler</p>
                     <p className="text-xl font-black tabular-nums mt-0.5" style={{ color: opConfig.color }}>
-                      {total.toLocaleString("fr-FR")} FCFA
+                      {collectionFee(total, opConfig.id) > 0
+                        ? (total + collectionFee(total, opConfig.id)).toLocaleString("fr-FR")
+                        : total.toLocaleString("fr-FR")} FCFA
                     </p>
+                    {collectionFee(total, opConfig.id) > 0 && (
+                      <p className="text-[11px] mt-1" style={{ color: "var(--text-muted)" }}>
+                        Dont {collectionFeeLabel(opConfig.id)} : {collectionFee(total, opConfig.id).toLocaleString("fr-FR")} FCFA
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -493,6 +593,8 @@ export default function CartPage() {
                   <><Image src={IMAGES.whatsapp} alt="" width={20} height={20} unoptimized className="shrink-0" /> J&apos;ai payé — Continuer sur WhatsApp</>
                 )}
               </button>
+              </>
+              )}
               <div className="flex gap-2">
                 <button
                   onClick={() => setPayStep("choose")}

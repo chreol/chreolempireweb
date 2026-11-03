@@ -1,10 +1,53 @@
 // ── Iwopay fulfillment helpers ────────────────────────────────────────────────
 // Utilisé par le webhook Iwopay (/api/iwopay-webhook) et la simulation (/api/iwopay-simulate).
 
-export const IWOPAY_SUCCESS_STATUSES = ["100", "01"];
+/** 01 = opération réussie. 1000 = en attente de validation. 100 = échec (doc Iwomi 1.3). */
+export const IWOPAY_SUCCESS_STATUSES = ["01"];
 
 export function isIwopaySuccess(status?: string): boolean {
   return !!status && IWOPAY_SUCCESS_STATUSES.includes(status);
+}
+
+export type IwopayCustomerState = "pending" | "paid" | "refused" | "cancelled" | "unknown";
+
+/** Libellé montré au client. 01 validé, 1000 en attente, 100 / 409 refusé. */
+export function mapIwopayCustomerState(status: string, message?: string): {
+  state: IwopayCustomerState;
+  label: string;
+  detail: string;
+} {
+  const msg = (message ?? "").toLowerCase();
+  if (status === "01") {
+    return {
+      state: "paid",
+      label: "Validé",
+      detail: "Le débit est confirmé. La commande est traitée sous 15 à 30 minutes.",
+    };
+  }
+  if (status === "1000") {
+    return {
+      state: "pending",
+      label: "En attente",
+      detail: "Validez la demande sur votre téléphone avec votre code secret.",
+    };
+  }
+  if (/annul|cancel/.test(msg)) {
+    return {
+      state: "cancelled",
+      label: "Annulé",
+      detail: "Le débit a été annulé. Vous pouvez relancer le paiement.",
+    };
+  }
+  if (status === "409") {
+    return { state: "refused", label: "Refusé", detail: "Solde insuffisant sur ce numéro." };
+  }
+  if (status === "100") {
+    return { state: "refused", label: "Refusé", detail: "Iwopay a refusé le débit." };
+  }
+  if (status === "404") {
+    return { state: "unknown", label: "Introuvable", detail: "Cette référence est inconnue chez Iwopay." };
+  }
+  return { state: "unknown", label: "Indisponible", detail: "Le statut n'a pas pu être lu. Réessayez." };
 }
 
 export interface IwopayFulfillParams {

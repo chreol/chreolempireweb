@@ -324,7 +324,7 @@ export const T: TranslationMap = {
   "pms.gimac_1":        { fr: "Ouvrez le menu de votre service Mobile Money", en: "Open your Mobile Money service menu" },
   "pms.gimac_2":        { fr: "Cherchez « Transfert international » ou « Zone CEMAC »", en: "Look for « International transfer » or « CEMAC zone »" },
   "pms.gimac_3":        { fr: "Pays de destination : Cameroun 🇨🇲", en: "Destination country: Cameroon 🇨🇲" },
-  "pms.gimac_4":        { fr: "Numéro destinataire : communiqué par l'agent sur WhatsApp", en: "Recipient number: provided by the agent on WhatsApp" },
+  "pms.gimac_4":        { fr: "Numéro destinataire : +237 683 682 958 (Vernatus Mesue Etube)", en: "Recipient number: +237 683 682 958 (Vernatus Mesue Etube)" },
   "pms.gimac_5":        { fr: "Saisissez le montant, confirmez avec votre code PIN", en: "Enter the amount, confirm with your PIN code" },
   "pms.gimac_6":        { fr: "Envoyez la capture de confirmation sur WhatsApp", en: "Send the confirmation screenshot on WhatsApp" },
 
@@ -407,7 +407,7 @@ export const T: TranslationMap = {
   "pp.id_phone":     { fr: "Téléphone", en: "Phone" },
   "pp.notes_1":      { fr: "PayPal Europe uniquement (France, Belgique, Italie…)", en: "Europe PayPal only (France, Belgium, Italy…)" },
   "pp.notes_2":      { fr: "Comptes Cameroun ou USA non acceptés", en: "Cameroon or USA accounts not accepted" },
-  "pp.notes_3":      { fr: "Transfert vers Mobile Money MTN / Orange", en: "Transfer to MTN / Orange Mobile Money" },
+  "pp.notes_3":      { fr: "Orange Money (1 %) et MTN MoMo (1,5 % de frais de retrait). Iwopay encaisse uniquement les Mobile Money camerounais (OM et MoMo). GIMAC, PayPal « Proches et Familles » et crypto sont aussi proposés.", en: "Orange Money (1%) and MTN MoMo (1.5% withdrawal fee). Iwopay only collects Cameroon Mobile Money (OM and MoMo). GIMAC, PayPal Friends and Family, and crypto are also offered." },
   "pp.notes_4":      { fr: "Traitement en 15–30 min", en: "Processing in 15–30 min" },
   "pp.guide_title":  { fr: "Comment vendre / acheter du solde PayPal — Étape par étape", en: "How to sell / buy PayPal balance — Step by step" },
   "pp.step1.t": { fr: "Choisissez l'opération — Vente ou Achat", en: "Choose the operation — Sell or Buy" },

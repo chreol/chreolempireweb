@@ -4,10 +4,11 @@ import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { track } from "@vercel/analytics";
 import { motion, AnimatePresence } from "framer-motion";
-import { PAYPAL_RATES, PAYPAL_LIMITS, MOMO_OPERATORS, IMAGES, ORANGE_MONEY_COMMERCE, orangeMoneyFee } from "@/lib/services";
+import { PAYPAL_RATES, PAYPAL_LIMITS, MOMO_OPERATORS, IWOPAY_METHOD, PAYPAL_PAY_METHOD, CRYPTO_PAY_METHOD, IWOPAY_SCOPE, IMAGES, CONTACT, ORANGE_MONEY_COMMERCE, MTN_MONEY, collectionFee, collectionFeeLabel, isAltPay } from "@/lib/services";
 import { saveClientInfo } from "@/lib/clientInfo";
 import WAPopover from "@/components/WAPopover";
 import USSDOrderFlow from "@/components/USSDOrderFlow";
+import PayInstruction from "@/components/PayInstruction";
 import RelatedServices from "@/components/RelatedServices";
 import { useCart } from "@/contexts/CartContext";
 import { useHistory } from "@/contexts/HistoryContext";
@@ -120,11 +121,31 @@ export default function PaypalPage() {
   const [momoDialCode, setMomoDialCode] = useState("+237");
   const [momoPhone, setMomoPhone]     = useState("");
   const [errors, setErrors]           = useState<Record<string, string>>();
+  const [publicRef, setPublicRef]     = useState("");
+  const [payoutWallet, setPayoutWallet] = useState("");
+  const [payLine, setPayLine]         = useState("");
 
-  // Seul Orange Money est ouvert aujourd'hui (compte marchand CHREOL EMPIRE).
-  // Les autres opérateurs restent dans MOMO_OPERATORS pour les autres services.
-  const AVAILABLE_OPS: readonly string[] = ["orange"];
-  const PAYPAL_OPS = MOMO_OPERATORS.filter(o => AVAILABLE_OPS.includes(o.id));
+  const AVAILABLE_OPS: readonly string[] = direction === "sell"
+    ? ["orange", "mtn", "crypto"]
+    : ["orange", "mtn", "iwopay", "gimac", "paypal", "crypto"];
+  const PAY_CHOICES = [
+    ...MOMO_OPERATORS.filter(o => o.id === "orange" || o.id === "mtn"),
+    IWOPAY_METHOD,
+    ...MOMO_OPERATORS.filter(o => o.id === "gimac"),
+    PAYPAL_PAY_METHOD,
+    CRYPTO_PAY_METHOD,
+    ...MOMO_OPERATORS.filter(o => o.id === "eu" || o.id === "yoomee"),
+  ];
+
+  useEffect(() => {
+    if (!AVAILABLE_OPS.includes(momoOp)) setMomoOp("orange");
+  }, [direction]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    const id = makeId(`paypal-${direction}`);
+    orderIdRef.current = id;
+    setPublicRef(id.slice(-8).toUpperCase());
+  }, [direction]);
 
   const ID_FORMATS = [
     { id: "email",    label: "Email",         placeholder: "exemple@email.com",  icon: "✉️" },
@@ -179,8 +200,9 @@ export default function PaypalPage() {
   // ── Commission Orange Money (1 %) ──────────────────────────────────────────
   // Les encaissements marchands Orange Money sont facturés 1 %. On l'affiche
   // séparément et on l'ajoute au montant à régler (uniquement à l'achat).
-  const orangeFee  = direction === "buy" ? orangeMoneyFee(buyFcfa, momoOp) : 0;
-  const buyTotal   = buyFcfa + orangeFee;
+  const operatorFee = direction === "buy" ? collectionFee(buyFcfa, momoOp) : 0;
+  const feeLabel   = collectionFeeLabel(momoOp);
+  const buyTotal   = buyFcfa + operatorFee;
   const totalDue   = direction === "sell" ? fcfaResult : buyTotal;
 
   function validate() {
@@ -202,9 +224,13 @@ export default function PaypalPage() {
     }
     // Le numéro Mobile Money sert aussi de contact : il est désormais obligatoire
     // dans les deux sens (le champ « numéro WhatsApp » a été supprimé).
-    const mpD = momoPhone.replace(/\D/g, "").replace(/^237/, "");
-    const mpLen = momoDialCode === "+237" ? 9 : 6;
-    if (mpD.length < mpLen) e.momoPhone = t("err.phone_invalid");
+    if (direction === "sell" && momoOp === "crypto") {
+      if (payoutWallet.trim().length < 8) e.payoutWallet = "Adresse de réception requise";
+    } else {
+      const mpD = momoPhone.replace(/\D/g, "").replace(/^237/, "");
+      const mpLen = momoDialCode === "+237" ? 9 : 6;
+      if (mpD.length < mpLen) e.momoPhone = t("err.phone_invalid");
+    }
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -212,30 +238,41 @@ export default function PaypalPage() {
   const idLabel = ID_FORMATS.find(f => f.id === idFormat)?.label ?? "Email";
 
   function buildDetails() {
-    const op = MOMO_OPERATORS.find(o => o.id === momoOp)?.name ?? momoOp;
+    const op = PAY_CHOICES.find(o => o.id === momoOp)?.name ?? momoOp;
     const idLine = `PayPal (${idLabel}) : ${paypalId}`;
     const contact = `${op} ${momoDialCode} ${momoPhone}`;
     if (direction === "sell")
       return `${idLine} | ${displayEur.toFixed(2)}€ → ${fcfaResult.toLocaleString("fr-FR")} FCFA\n${contact}`;
-    return `${idLine} | ${buyFcfa.toLocaleString("fr-FR")} FCFA → ${eurResult}€\nFrais Orange Money (1 %) : ${orangeFee.toLocaleString("fr-FR")} FCFA\nTotal à payer : ${buyTotal.toLocaleString("fr-FR")} FCFA\n${contact}`;
+    return `${idLine} | ${buyFcfa.toLocaleString("fr-FR")} FCFA → ${eurResult}€\n${feeLabel} : ${operatorFee.toLocaleString("fr-FR")} FCFA\nTotal à payer : ${buyTotal.toLocaleString("fr-FR")} FCFA\n${contact}`;
   }
 
   function buildMsgPlain() {
-    const op  = MOMO_OPERATORS.find(o => o.id === momoOp)?.name ?? momoOp;
+    const op  = PAY_CHOICES.find(o => o.id === momoOp)?.name ?? momoOp;
     const ref = orderIdRef.current ? ` — Réf #${orderIdRef.current.slice(-8).toUpperCase()}` : "";
-    if (direction === "sell")
-      return `💸 VENTE PAYPAL${ref}\nCompte PayPal (${idLabel}) : ${paypalId}\nMontant : ${displayEur.toFixed(2)}€\nÀ recevoir : ${fcfaResult.toLocaleString("fr-FR")} FCFA\nTaux : 1€ = ${sellRate} FCFA\n\n💰 Réception MoMo\nOpérateur : ${op}\nNuméro : ${momoDialCode} ${momoPhone}`;
-    return `💳 ACHAT PAYPAL${ref}\nCompte PayPal (${idLabel}) : ${paypalId}\nMontant : ${buyFcfa.toLocaleString("fr-FR")} FCFA\nFrais Orange Money (1 %) : ${orangeFee.toLocaleString("fr-FR")} FCFA\nTotal payé : ${buyTotal.toLocaleString("fr-FR")} FCFA\nÀ recevoir : ${eurResult}€\nTaux : 1€ = ${buyRate} FCFA\n\n💰 Paiement MoMo\nOpérateur : ${op}\nNuméro : ${momoDialCode} ${momoPhone}`;
+    if (direction === "sell") {
+      const reception = momoOp === "crypto"
+        ? `\n\n💰 Réception crypto\n${payLine || payoutWallet}`
+        : `\n\n💰 Réception MoMo\nOpérateur : ${op}\nNuméro : ${momoDialCode} ${momoPhone}`;
+      return `💸 VENTE PAYPAL${ref}\nCompte PayPal (${idLabel}) : ${paypalId}\nMontant : ${displayEur.toFixed(2)}€\nÀ recevoir : ${fcfaResult.toLocaleString("fr-FR")} FCFA\nTaux : 1€ = ${sellRate} FCFA${reception}`;
+    }
+    const payDetail = isAltPay(momoOp) && payLine ? `\n${payLine}` : `\nNuméro : ${momoDialCode} ${momoPhone}`;
+    return `💳 ACHAT PAYPAL${ref}\nCompte PayPal (${idLabel}) : ${paypalId}\nMontant : ${buyFcfa.toLocaleString("fr-FR")} FCFA\n${feeLabel} : ${operatorFee.toLocaleString("fr-FR")} FCFA\nTotal payé : ${buyTotal.toLocaleString("fr-FR")} FCFA\nÀ recevoir : ${eurResult}€\nTaux : 1€ = ${buyRate} FCFA\n\n💰 Paiement\nOpérateur : ${op}${payDetail}`;
   }
 
-  function sendNotification() {
-    const op = MOMO_OPERATORS.find(o => o.id === momoOp)?.name ?? momoOp;
+  async function sendNotification() {
+    const op = PAY_CHOICES.find(o => o.id === momoOp)?.name ?? momoOp;
     const phone = `${momoDialCode}${momoPhone}`.replace(/\D/g, "");
-    fetch("/api/notify-order", {
+    if (!orderIdRef.current) {
+      const id = makeId(`paypal-${direction}`);
+      orderIdRef.current = id;
+      setPublicRef(id.slice(-8).toUpperCase());
+    }
+    try {
+      const res = await fetch("/api/notify-order", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        orderId: (() => { const id = makeId(`paypal-${direction}`); orderIdRef.current = id; return id; })(),
+        orderId: orderIdRef.current,
         clientName: effectiveEmail.split("@")[0] || "Client PayPal",
         clientEmail: effectiveEmail,
         clientPhone: phone,
@@ -250,8 +287,8 @@ export default function PaypalPage() {
           details: buildDetails(),
         }],
         total: totalDue,
-        commission: orangeFee > 0 ? orangeFee : undefined,
-        commissionLabel: orangeFee > 0 ? "Frais Orange Money (1 %)" : undefined,
+        commission: operatorFee > 0 ? operatorFee : undefined,
+        commissionLabel: operatorFee > 0 ? feeLabel : undefined,
         // Permet à l'email de distinguer une vente (le client envoie des €)
         // d'un achat (le client règle en FCFA) et d'afficher les bonnes instructions.
         flow: direction,
@@ -261,19 +298,30 @@ export default function PaypalPage() {
         payoutTarget: `${op} · ${momoDialCode} ${momoPhone}`,
         sourceUrl: window.location.pathname,
       }),
-    }).catch(() => {});
+    });
+      const data = await res.json().catch(() => ({} as { error?: string; telegram?: number }));
+      if (!res.ok) {
+        showToast(typeof data.error === "string" ? data.error : "L'email de confirmation n'a pas pu partir.", "error");
+        return;
+      }
+      if (!data.telegram) {
+        console.warn("[paypal] email envoyé, Telegram non joint", data);
+      }
+    } catch {
+      showToast("Impossible de joindre le serveur de notification. Réessayez.", "error");
+    }
   }
 
   function handleAddToCart() {
     if (!validate()) { showToast(t("err.fix"), "error"); return; }
     saveClientInfo({ email: effectiveEmail, phone: momoPhone, dialCode: momoDialCode, name: effectiveEmail.split("@")[0] });
-    const op = MOMO_OPERATORS.find(o => o.id === momoOp)?.name ?? momoOp;
+    const op = PAY_CHOICES.find(o => o.id === momoOp)?.name ?? momoOp;
     addItem({
       id: makeId(`paypal-${direction}`),
       cardName: direction === "sell" ? "Vente PayPal Europe" : "Achat PayPal Europe",
       amount: direction === "sell"
         ? `${displayEur.toFixed(2)}€ → ${fcfaResult.toLocaleString("fr-FR")} FCFA via ${op}`
-        : `${buyFcfa.toLocaleString("fr-FR")} FCFA → ${eurResult}€ (frais Orange 1 % : ${orangeFee.toLocaleString("fr-FR")} FCFA)`,
+        : `${buyFcfa.toLocaleString("fr-FR")} FCFA → ${eurResult}€ (${feeLabel} : ${operatorFee.toLocaleString("fr-FR")} FCFA)`,
       price: totalDue,
       type: direction === "sell" ? "sell" : "buy",
       details: buildDetails(),
@@ -401,7 +449,7 @@ export default function PaypalPage() {
                 <>
                   <CalcRow label={t("pp.fcfa_to_pay")} value={`${buyFcfa.toLocaleString("fr-FR")} FCFA`} />
                   <CalcRow label={t("pp.buy_rate")} value={`1€ = ${buyRate} FCFA`} />
-                  <CalcRow label="Commission Orange Money (1 %)" value={`+ ${orangeFee.toLocaleString("fr-FR")} FCFA`} />
+                  <CalcRow label={feeLabel} value={`+ ${operatorFee.toLocaleString("fr-FR")} FCFA`} />
                   <CalcRow label="Total à payer" value={`${buyTotal.toLocaleString("fr-FR")} FCFA`} />
                   <CalcRow label={t("common.you_receive")} value={`${eurResult}€`} highlight />
                 </>
@@ -419,27 +467,61 @@ export default function PaypalPage() {
             ID_FORMATS={ID_FORMATS}
           />}
 
+          {direction === "sell" && displayEur > 0 && (
+            <div className="rounded-2xl p-4" style={{ background: "#00308718", border: "1px solid #00308755" }}>
+              <p className="text-xs font-black uppercase tracking-wider mb-2" style={{ color: "#5B8FE8" }}>
+                💶 Envoyez {displayEur.toFixed(2)}€ sur notre compte PayPal
+              </p>
+              <p className="text-sm font-black break-all" style={{ color: "var(--text-primary)" }}>{CONTACT.paypalEmail}</p>
+              <p className="text-xs mt-2" style={{ color: "var(--text-secondary)" }}>
+                Motif : <strong className="tabular-nums">#{publicRef || "REF"}</strong> · type d&apos;envoi : <strong>Proches et Familles</strong>
+              </p>
+              <p className="text-[11px] mt-2" style={{ color: "var(--text-muted)" }}>
+                Le même motif est repris dans l&apos;email de confirmation et la notification Telegram.
+              </p>
+            </div>
+          )}
+
           <Field label={direction === "sell" ? t("f.momo_receive") : t("f.momo_pay")} error={errors?.momoPhone}>
             <div className="flex flex-col gap-2">
-              <div className={`grid gap-2 ${PAYPAL_OPS.length > 1 ? "grid-cols-3" : "grid-cols-1"}`}>
-                {PAYPAL_OPS.map(o => (
-                  <button type="button" key={o.id} onClick={() => setMomoOp(o.id)}
-                    className="flex items-center gap-2 p-2.5 rounded-xl transition-all"
-                    style={{ background: momoOp === o.id ? o.color + "20" : "var(--bg-card)", border: `2px solid ${momoOp === o.id ? o.color : "var(--border)"}` }}>
-                    {o.image ? (
-                      <div className="relative w-7 h-7 rounded-lg overflow-hidden shrink-0">
-                        <Image src={o.image} alt={o.name} fill style={{ objectFit: "cover" }} unoptimized />
-                      </div>
-                    ) : (
-                      <div className="w-7 h-7 rounded-lg flex items-center justify-center font-black text-white text-[11px] shrink-0"
-                        style={{ background: o.color }}>G</div>
-                    )}
-                    <span className="text-[10px] font-bold leading-tight" style={{ color: momoOp === o.id ? o.color : "var(--text-secondary)" }}>{o.name}</span>
-                  </button>
-                ))}
+              <div className="grid grid-cols-2 gap-2">
+                {PAY_CHOICES.map(o => {
+                  const open = AVAILABLE_OPS.includes(o.id);
+                  const active = open && momoOp === o.id;
+                  return (
+                    <button
+                      type="button"
+                      key={o.id}
+                      disabled={!open}
+                      onClick={() => { if (open) setMomoOp(o.id); }}
+                      className="flex items-center gap-2 p-2.5 rounded-xl transition-all text-left disabled:cursor-not-allowed"
+                      style={{
+                        background: active ? o.color + "20" : "var(--bg-card)",
+                        border: `2px solid ${active ? o.color : "var(--border)"}`,
+                        opacity: open ? 1 : 0.55,
+                      }}
+                    >
+                      {o.image ? (
+                        <div className="relative w-7 h-7 rounded-lg overflow-hidden shrink-0">
+                          <Image src={o.image} alt={o.name} fill style={{ objectFit: "cover" }} unoptimized />
+                        </div>
+                      ) : (
+                        <div className="w-7 h-7 rounded-lg flex items-center justify-center font-black text-white text-[11px] shrink-0"
+                          style={{ background: o.color }}>{o.name.slice(0, 1)}</div>
+                      )}
+                      <span className="min-w-0">
+                        <span className="block text-[10px] font-bold leading-tight" style={{ color: active ? o.color : "var(--text-secondary)" }}>{o.name}</span>
+                        <span className="block text-[9px] font-black uppercase tracking-wide" style={{ color: open ? "#22C55E" : "var(--text-muted)" }}>
+                          {open ? "Disponible" : "Indisponible"}
+                        </span>
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
 
               {/* Indicatif et numéro : deux champs distincts, séparés par un petit espace */}
+              {!(direction === "sell" && momoOp === "crypto") && (
               <div className="flex items-stretch gap-2">
                 <input
                   type="text"
@@ -467,6 +549,7 @@ export default function PaypalPage() {
                   style={errors?.momoPhone ? inputErr : inputBase}
                 />
               </div>
+              )}
             </div>
           </Field>
 
@@ -496,9 +579,37 @@ export default function PaypalPage() {
               </div>
               <p className="text-[11px] mt-3" style={{ color: "var(--text-muted)" }}>
                 Scannez le QR avec Orange Money / Max it, ou composez <strong>{ORANGE_MONEY_COMMERCE.ussd}</strong> → «&nbsp;Payer un marchand&nbsp;» → code <strong>{ORANGE_MONEY_COMMERCE.merchantCode}</strong>.
-                {direction === "buy" && <> Les encaissements Orange Money sont soumis à une commission de <strong>1 %</strong>, ajoutée au total.</>}
               </p>
+              <a href={ORANGE_MONEY_COMMERCE.poster} target="_blank" rel="noopener noreferrer" className="inline-block text-[11px] font-bold mt-2" style={{ color: "#FF6600" }}>
+                Voir l&apos;affiche complète (Orange Chreol Empire.jpeg)
+              </a>
             </div>
+          )}
+
+          {momoOp === "mtn" && direction === "buy" && (
+            <div className="rounded-2xl p-4 text-xs" style={{ background: "#FFC10710", border: "1px solid #FFC10744" }}>
+              <p className="text-xs font-black uppercase tracking-wider mb-2" style={{ color: "#FFC107" }}>🟡 Dépôt MTN Mobile Money</p>
+              <p style={{ color: "var(--text-secondary)" }}>Numéro : <strong className="tabular-nums text-white">{MTN_MONEY.phoneDisplay}</strong></p>
+              <p className="mt-1" style={{ color: "var(--text-secondary)" }}>Nom : <strong className="text-white">{MTN_MONEY.accountName}</strong></p>
+            </div>
+          )}
+
+          {momoOp === "iwopay" && direction === "buy" && (
+            <div className="rounded-2xl p-4 text-xs" style={{ background: "#0EA5E910", border: "1px solid #0EA5E944" }}>
+              <p className="text-xs font-black uppercase tracking-wider mb-2" style={{ color: "#0EA5E9" }}>💨 Encaissement Iwopay</p>
+              <p style={{ color: "var(--text-secondary)" }}>{IWOPAY_SCOPE} Vous validez la demande reçue sur votre téléphone avec votre code secret.</p>
+            </div>
+          )}
+
+          {direction === "buy" && isAltPay(momoOp) && (
+            <PayInstruction kind={momoOp} fcfa={buyTotal} direction="in" onLine={setPayLine} />
+          )}
+
+          {direction === "sell" && momoOp === "crypto" && (
+            <>
+              <PayInstruction kind="crypto" fcfa={fcfaResult} direction="out" target={payoutWallet} onTarget={setPayoutWallet} onLine={setPayLine} />
+              {errors?.payoutWallet && <p className="text-xs font-bold" style={{ color: "#FCA5A5" }}>{errors.payoutWallet}</p>}
+            </>
           )}
 
           {/* ── Identifiant PayPal — affiché après le numéro Mobile Money en mode ACHAT ── */}
@@ -556,7 +667,7 @@ export default function PaypalPage() {
             total={buyTotal}
             getMsg={buildMsgPlain}
             onBeforeOpen={() => { const ok = validate(); if (!ok) { showToast(t("err.fix"), "error"); return false; } sendNotification(); return true; }}
-            availableOps={["orange"]}
+            availableOps={["orange", "mtn", "iwopay", "gimac", "paypal", "crypto"]}
             merchantOverride={{
               orange: {
                 merchant: ORANGE_MONEY_COMMERCE.merchantCode,

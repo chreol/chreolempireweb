@@ -2,17 +2,27 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { MOMO_OPERATORS } from "@/lib/services";
+import { MOMO_OPERATORS, IWOPAY_METHOD, IWOPAY_SCOPE, PAYPAL_PAY_METHOD, CRYPTO_PAY_METHOD, isAltPay } from "@/lib/services";
+import PayInstruction from "@/components/PayInstruction";
 import { savePaymentMethod, loadPaymentMethod } from "@/lib/clientInfo";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 // Les 3 opérateurs proposés en chips (les 2 principaux + Gimac CEMAC)
-const SELECTABLE = MOMO_OPERATORS.filter(o => ["orange", "mtn", "gimac"].includes(o.id));
+const SELECTABLE = [
+  ...MOMO_OPERATORS.filter(o => o.id === "orange" || o.id === "mtn"),
+  IWOPAY_METHOD,
+  ...MOMO_OPERATORS.filter(o => o.id === "gimac"),
+  PAYPAL_PAY_METHOD,
+  CRYPTO_PAY_METHOD,
+];
 
 export const PAYMENT_LABELS: Record<string, string> = {
   orange: "Orange Money",
   mtn:    "MTN MoMo",
+  iwopay: "Iwopay",
   gimac:  "Gimac (CEMAC)",
+  paypal: "PayPal (Proches et Familles)",
+  crypto: "Crypto",
 };
 
 // Retourne le libellé "Mode de paiement" envoyé à l'API selon l'id sélectionné.
@@ -25,9 +35,11 @@ export function resolvePaymentMethod(opId: string | null): string {
 interface Props {
   value: string | null;
   onChange: (opId: string | null) => void;
+  /** Montant catalogue en FCFA, pour afficher le tarif du moyen choisi. */
+  amount?: number;
 }
 
-export default function PaymentMethodSelector({ value, onChange }: Props) {
+export default function PaymentMethodSelector({ value, onChange, amount = 0 }: Props) {
   const [hydrated, setHydrated] = useState(false);
   const { t } = useLanguage();
 
@@ -54,7 +66,7 @@ export default function PaymentMethodSelector({ value, onChange }: Props) {
         {t("pms.label")} <span style={{ opacity: 0.7 }}>{t("f.optional")}</span>
       </p>
 
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
         {SELECTABLE.map(o => {
           const active = value === o.id;
           return (
@@ -74,16 +86,24 @@ export default function PaymentMethodSelector({ value, onChange }: Props) {
                 </div>
               ) : (
                 <div className="w-6 h-6 rounded-md flex items-center justify-center font-black text-white text-[10px] shrink-0"
-                  style={{ background: o.color }}>G</div>
+                  style={{ background: o.color }}>{o.name.slice(0, 1)}</div>
               )}
               <span className="text-[11px] font-bold leading-tight"
                 style={{ color: active ? o.color : "var(--text-secondary)" }}>
-                {o.id === "gimac" ? "Gimac" : o.name}
+                {o.name}
               </span>
             </button>
           );
         })}
       </div>
+
+      {hydrated && value === "iwopay" && (
+        <p className="text-[11px] mt-1" style={{ color: "var(--text-secondary)" }}>{IWOPAY_SCOPE}</p>
+      )}
+
+      {hydrated && value && isAltPay(value) && value !== "gimac" && (
+        <PayInstruction kind={value} fcfa={amount} direction="in" />
+      )}
 
       {/* Instructions Gimac (transfert CEMAC) */}
       {hydrated && value === "gimac" && (

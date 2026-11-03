@@ -4,9 +4,9 @@ import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { track } from "@vercel/analytics";
 import { useCart } from "@/contexts/CartContext";
-import { GIFT_CARDS, IMAGES } from "@/lib/services";
+import { GIFT_CARDS, IMAGES, paymentQuote } from "@/lib/services";
 import USSDOrderFlow from "@/components/USSDOrderFlow";
-import PaymentMethodSelector, { resolvePaymentMethod } from "@/components/PaymentMethodSelector";
+import PaymentMethodSelector, { resolvePaymentMethod, PAYMENT_LABELS } from "@/components/PaymentMethodSelector";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/components/Toast";
@@ -151,9 +151,11 @@ export default function CartesCadeauxPage() {
   function buildMsgPlain() {
     if (!card) return "";
     const finalLabel = customPrice ? `${customVal}€ (personnalisé)` : amountLabel ?? "";
-    const finalPrice = (customPrice ?? amount?.price ?? 0).toLocaleString("fr-FR");
+    const base = customPrice ?? amount?.price ?? 0;
+    const finalPrice = base.toLocaleString("fr-FR");
+    const quote = paymentQuote(base, payOp);
     const ref = orderIdRef.current ? ` — Réf #${orderIdRef.current.slice(-8).toUpperCase()}` : "";
-    const pay = payOp ? `\nPaiement : ${resolvePaymentMethod(payOp)}` : "";
+    const pay = payOp ? `\nPaiement : ${resolvePaymentMethod(payOp)}\nÀ régler : ${quote.amount}` : "";
     return `Je veux commander ${card.name} ${finalLabel} [${region}] — ${finalPrice} FCFA${ref}${pay}`;
   }
 
@@ -168,11 +170,6 @@ export default function CartesCadeauxPage() {
         </div>
         <h1 className="text-3xl font-black text-white mb-1">{tl("p.giftcards.title")}</h1>
         <p style={{ color: "var(--text-secondary)" }}>{tl("p.giftcards.sub")}</p>
-        <div className="mt-4 rounded-2xl p-4" style={{ background: "#1B5E2022", border: "1px solid #25D36633" }}>
-          <p className="text-sm font-black" style={{ color: "#25D366" }}>🔥 HOT DEAL · Nouveaux tarifs EUR/USD · Plus que 3 cartes à ces conditions</p>
-          <p className="text-xs mt-1" style={{ color: "var(--text-secondary)" }}>Codes authentiques · Livraison WhatsApp 15–30 min · Paiement MTN MoMo / Orange Money</p>
-          <p className="text-xs mt-1" style={{ color: "var(--text-secondary)" }}>Cartes européennes et américaines : livraison rapide — idéal pour achats internationaux. Les prix sont mis à jour en temps réel.</p>
-        </div>
       </div>
 
       {/* Tabs */}
@@ -314,8 +311,18 @@ export default function CartesCadeauxPage() {
               <p className="text-xs mb-3" style={{ color: "var(--text-secondary)" }}>
                 {customPrice ? `${customVal}€ ${tl("gc.custom_suffix")}` : amountLabel}
               </p>
-              <p className="text-2xl font-black mb-4" style={{ color: "var(--gold)" }}>
+              <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Tarif catalogue</p>
+              <p className="text-lg font-black mb-2 text-white">
                 {(customPrice ?? amount?.price ?? 0).toLocaleString("fr-FR")} FCFA
+              </p>
+              <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
+                À régler{payOp ? ` · ${PAYMENT_LABELS[payOp] ?? ""}` : ""}
+              </p>
+              <p className="text-2xl font-black" style={{ color: "var(--gold)" }}>
+                {paymentQuote(customPrice ?? amount?.price ?? 0, payOp).amount}
+              </p>
+              <p className="text-[11px] mb-4" style={{ color: "var(--text-secondary)" }}>
+                {paymentQuote(customPrice ?? amount?.price ?? 0, payOp).note}
               </p>
 
               <p className="text-xs mb-2" style={{ color: "var(--text-secondary)" }}>
@@ -343,7 +350,7 @@ export default function CartesCadeauxPage() {
 
               {/* Mode de paiement préféré (optionnel) */}
               <div className="mb-3 mt-1">
-                <PaymentMethodSelector value={payOp} onChange={setPayOp} />
+                <PaymentMethodSelector value={payOp} onChange={setPayOp} amount={customPrice ?? amount?.price ?? 0} />
               </div>
 
               <div className="flex flex-col gap-2">

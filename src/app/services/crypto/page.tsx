@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { track } from "@vercel/analytics";
 import { motion, AnimatePresence } from "framer-motion";
-import { CRYPTO_RATES, CRYPTO_NETWORKS, CRYPTO_WALLETS, MOMO_OPERATORS, IMAGES } from "@/lib/services";
+import { CRYPTO_RATES, CRYPTO_NETWORKS, CRYPTO_WALLETS, MOMO_OPERATORS, IMAGES, fcfaToPaypalEur } from "@/lib/services";
 import { saveClientInfo } from "@/lib/clientInfo";
 import WAPopover from "@/components/WAPopover";
 import USSDOrderFlow from "@/components/USSDOrderFlow";
@@ -16,6 +16,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import FAQ from "@/components/FAQ";
 import StepGuide from "@/components/StepGuide";
 import { Field, CalcRow } from "@/components/FormField";
+import PayInstruction from "@/components/PayInstruction";
 import { makeId } from "@/lib/uid";
 
 // FAQ en français pour le JSON-LD SEO (marché camerounais francophone-dominant)
@@ -48,6 +49,8 @@ export default function CryptoPage() {
   const [beneficiary, setBeneficiary] = useState("");
   const [momoOp, setMomoOp]       = useState("orange");
   const [momoPhone, setMomoPhone] = useState("");
+  const [receiveMode, setReceiveMode] = useState<"momo" | "paypal">("momo");
+  const [paypalPayout, setPaypalPayout] = useState("");
   const [walletAddr, setWalletAddr] = useState("");
   const [email, setEmail]           = useState("");
   const [errors, setErrors]       = useState<Record<string, string>>({});
@@ -88,8 +91,12 @@ export default function CryptoPage() {
     if (direction === "sell") {
       if (txid && txid.length < 20) e.txid = t("c.txid_invalid");
       if (!beneficiary.trim()) e.beneficiary = t("err.name_required");
-      const mpD = momoPhone.replace(/\D/g, "").replace(/^237/, "");
-      if (mpD.length < 9) e.momoPhone = t("err.phone_invalid");
+      if (receiveMode === "paypal") {
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(paypalPayout.trim())) e.paypalPayout = "Email PayPal requis";
+      } else {
+        const mpD = momoPhone.replace(/\D/g, "").replace(/^237/, "");
+        if (mpD.length < 9) e.momoPhone = t("err.phone_invalid");
+      }
     } else {
       if (!walletAddr.trim()) e.walletAddr = t("c.wallet_receive");
     }
@@ -105,7 +112,7 @@ export default function CryptoPage() {
         `Crypto : ${crypto.name} | Réseau : ${network} | Montant : ${amount} ${crypto.unit}`,
         `Wallet Chreol Empire (${network}) : ${depositAddr}`,
         txid ? `TxID : ${txid}` : `TxID : en attente`,
-        `Bénéficiaire : ${beneficiary} | ${op} +237 ${momoPhone}`,
+        `Bénéficiaire : ${beneficiary} | ${receiveMode === "paypal" ? `PayPal ${paypalPayout}` : `${op} +237 ${momoPhone}`}`,
         `Email : ${email}`,
       ].join("\n");
     }
@@ -128,9 +135,9 @@ export default function CryptoPage() {
         depositAddr,
         txid ? `\n🔗 TxID : ${txid}` : `\n⏳ TxID : à fournir après envoi`,
         ``,
-        `💰 Réception MoMo`,
-        `Opérateur : ${op}`,
-        `Numéro : +237 ${momoPhone}`,
+        receiveMode === "paypal"
+          ? `💰 Réception PayPal « Proches et Familles »\nEmail : ${paypalPayout}\nMontant : ${fcfaToPaypalEur(fcfaReceived, "out").toFixed(2)} €`
+          : `💰 Réception MoMo\nOpérateur : ${op}\nNuméro : +237 ${momoPhone}`,
         `Nom : ${beneficiary}`,
         `Email : ${email}`,
       ].join("\n");
@@ -379,6 +386,32 @@ export default function CryptoPage() {
                   className={inputCls} style={errors.beneficiary ? inputErr : inputBase}
                 />
               </Field>
+              <div className="grid grid-cols-2 gap-2">
+                {([
+                  { id: "momo" as const, label: "Mobile Money" },
+                  { id: "paypal" as const, label: "PayPal" },
+                ]).map(mode => (
+                  <button
+                    type="button"
+                    key={mode.id}
+                    onClick={() => setReceiveMode(mode.id)}
+                    className="py-2.5 rounded-xl text-xs font-black"
+                    style={{
+                      background: receiveMode === mode.id ? "var(--gold)" : "var(--bg-card)",
+                      color: receiveMode === mode.id ? "#000" : "var(--text-secondary)",
+                      border: "1px solid var(--border)",
+                    }}
+                  >
+                    {mode.label}
+                  </button>
+                ))}
+              </div>
+              {receiveMode === "paypal" ? (
+                <>
+                  <PayInstruction kind="paypal" fcfa={fcfaReceived} direction="out" target={paypalPayout} onTarget={setPaypalPayout} />
+                  {errors.paypalPayout && <p className="text-xs font-bold" style={{ color: "#FCA5A5" }}>{errors.paypalPayout}</p>}
+                </>
+              ) : (
               <Field label={t("f.momo_receive")} error={errors.momoPhone}>
                 <div className="flex flex-col gap-2">
                   <div className="flex gap-2">
@@ -393,16 +426,22 @@ export default function CryptoPage() {
                       </button>
                     ))}
                   </div>
-                  <div className="flex items-center rounded-2xl overflow-hidden" style={errors.momoPhone ? inputErr : inputBase}>
-                    <span className="px-3 text-sm font-bold shrink-0" style={{ color: "var(--text-muted)" }}>+237</span>
+                  <div className="flex items-stretch gap-2">
+                    <span
+                      className="px-3 py-3 rounded-2xl text-sm font-bold text-center w-20 shrink-0"
+                      style={{ background: "var(--bg-elevated)", border: "2px solid var(--gold)", color: "var(--text-primary)" }}
+                    >+237</span>
                     <input type="tel" placeholder="6XXXXXXXX" value={momoPhone}
                       maxLength={9}
-                      onChange={e => { setMomoPhone(e.target.value); setErrors(p => ({ ...p, momoPhone: "" })); }}
-                      className="flex-1 py-3 pr-4 bg-transparent text-white text-sm outline-none"
+                      aria-label="Numéro Mobile Money"
+                      onChange={e => { setMomoPhone(e.target.value.replace(/\D/g, "")); setErrors(p => ({ ...p, momoPhone: "" })); }}
+                      className="flex-1 px-4 py-3 rounded-2xl text-white text-sm outline-none"
+                      style={errors.momoPhone ? inputErr : inputBase}
                     />
                   </div>
                 </div>
               </Field>
+              )}
             </>
           )}
 

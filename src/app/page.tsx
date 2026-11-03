@@ -549,7 +549,8 @@ export default function HomePage() {
             { image: null,                 label: "Virements bancaires", sub: "Afriland First · UBA",  emoji: "🏦" },
             { image: null,                 label: "Espèces",            sub: "Paiement en boutique",     emoji: "💵" },
             { image: IMAGES.whatsapp,     label: "WhatsApp",           sub: "Paiement direct",          emoji: "💬" },
-            { image: null,                 label: "Paiement rapide",    sub: "Iwopay — validation auto", emoji: "💨" },
+            { image: null,                 label: "Paiement rapide",    sub: "Iwopay · OM et MoMo Cameroun", emoji: "💨" },
+            { image: null,                 label: "Gimac",              sub: "Transfert CEMAC",          emoji: "🌍" },
           ] as Array<{ image: string | null; label: string; sub: string; emoji: string }>).map(p => (
             <div key={p.label} className="flex items-center gap-4 px-5 py-4 rounded-2xl"
               style={{ background: "var(--bg-card)", boxShadow: "var(--shadow-border)" }}>
@@ -571,7 +572,7 @@ export default function HomePage() {
         <div className="mt-6 text-center">
           <Link href="/paiement" className="inline-flex items-center gap-2 px-6 py-3 rounded-full font-black text-sm text-white transition-opacity hover:opacity-80"
             style={{ background: "#C9A84C22", border: "1px solid #C9A84C55" }}>
-            💨 Paiement rapide via Iwopay — voir les instructions →
+            💨 Iwopay (OM et MoMo Cameroun), GIMAC, PayPal et crypto — voir les instructions →
           </Link>
         </div>
       </section>
