@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Modal from "@/components/admin/Modal";
 import { patchForWorkflow, workflowOf, type OrderWorkflow } from "@/lib/orderWorkflow";
 
@@ -50,6 +50,19 @@ export default function OrderDetailsModal({
   const [busy, setBusy] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [toast, setToast] = useState<{ text: string; ok: boolean } | null>(null);
+
+  useEffect(() => {
+    if (!toast) return;
+    const timer = window.setTimeout(() => setToast(null), 3200);
+    return () => window.clearTimeout(timer);
+  }, [toast]);
+
+  function notify(text: string, ok: boolean) {
+    if (ok) setMessage(text);
+    else setError(text);
+    setToast({ text, ok });
+  }
 
   async function changeStatus(next: OrderWorkflow) {
     setWorkflow(next);
@@ -64,14 +77,16 @@ export default function OrderDetailsModal({
       });
       if (!res.ok) {
         setError("Statut non mis à jour.");
+        setToast({ text: "Statut non mis à jour.", ok: false });
         setWorkflow(workflowOf(order.status, order.payment_status));
         return;
       }
       const patch = patchForWorkflow(next);
       onUpdated({ ...order, status: patch.status, payment_status: patch.payment_status });
-      setMessage("Statut mis à jour.");
+      notify("Statut mis à jour.", true);
     } catch {
       setError("Statut non mis à jour.");
+      setToast({ text: "Statut non mis à jour.", ok: false });
     } finally {
       setBusy("");
     }
@@ -89,13 +104,15 @@ export default function OrderDetailsModal({
       });
       if (!res.ok) {
         setError("Note non enregistrée.");
+        setToast({ text: "Note non enregistrée.", ok: false });
         return;
       }
       const nextDetails = { ...details, internalNote: note };
       onUpdated({ ...order, details: nextDetails });
-      setMessage("Note interne enregistrée.");
+      notify("Note interne enregistrée.", true);
     } catch {
       setError("Note non enregistrée.");
+      setToast({ text: "Note non enregistrée.", ok: false });
     } finally {
       setBusy("");
     }
@@ -113,12 +130,15 @@ export default function OrderDetailsModal({
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(typeof data.error === "string" ? data.error : "Envoi de la facture impossible.");
+        const text = typeof data.error === "string" ? data.error : "Envoi de la facture impossible.";
+        setError(text);
+        setToast({ text, ok: false });
         return;
       }
-      setMessage("Facture envoyée au client.");
+      notify("Facture envoyée au client.", true);
     } catch {
       setError("Envoi de la facture impossible.");
+      setToast({ text: "Envoi de la facture impossible.", ok: false });
     } finally {
       setBusy("");
     }
@@ -129,9 +149,11 @@ export default function OrderDetailsModal({
     : "—";
 
   return (
+    <>
     <Modal title={`Commande #${order.id.slice(-8).toUpperCase()}`} onClose={onClose}>
       <dl className="flex flex-col gap-2 text-sm">
         {[
+          ["ID", order.id],
           ["Nom", order.client_name || "—"],
           ["Email", order.client_email || "—"],
           ["Téléphone", order.client_phone || "—"],
@@ -170,11 +192,11 @@ export default function OrderDetailsModal({
         })}
       </div>
 
-      {sourceUrl && (
-        <p className="text-xs mt-3 break-all" style={{ color: "var(--text-muted)" }}>
-          Lien source : <a href={sourceUrl} target="_blank" rel="noopener noreferrer" className="underline" style={{ color: "var(--gold)" }}>{sourceUrl}</a>
-        </p>
-      )}
+      <p className="text-xs mt-3 break-all" style={{ color: "var(--text-muted)" }}>
+        Lien source : {sourceUrl
+          ? <a href={sourceUrl} target="_blank" rel="noopener noreferrer" className="underline" style={{ color: "var(--gold)" }}>{sourceUrl}</a>
+          : "—"}
+      </p>
 
       <label className="block mt-4 text-xs font-bold" style={{ color: "var(--text-muted)" }}>
         STATUT
@@ -224,5 +246,19 @@ export default function OrderDetailsModal({
       {error && <p className="text-xs mt-3" style={{ color: "#EF4444" }}>{error}</p>}
       {message && <p className="text-xs mt-3" style={{ color: "#10B981" }}>{message}</p>}
     </Modal>
+    {toast && (
+      <div
+        role="status"
+        className="fixed bottom-5 left-1/2 z-[80] -translate-x-1/2 px-4 py-3 rounded-full text-sm font-bold"
+        style={{
+          background: toast.ok ? "#065F46" : "#7F1D1D",
+          color: "#fff",
+          boxShadow: "0 8px 24px rgba(0,0,0,0.35)",
+        }}
+      >
+        {toast.text}
+      </div>
+    )}
+    </>
   );
 }
