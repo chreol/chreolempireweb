@@ -1,7 +1,8 @@
 export const runtime = "edge";
 
 import { isAuthorizedInternal, unauthorized } from "@/lib/internalAuth";
-import { CONTACT, ORANGE_MONEY_COMMERCE, MTN_MONEY } from "@/lib/services";
+import { normalizeOrderPhone, toWhatsAppNumber } from "@/lib/cmPhone";
+import { CONTACT, ORANGE_MONEY_COMMERCE, MTN_MONEY, collectionFee } from "@/lib/services";
 
 /** Base absolue des images utilisées dans les emails (les clients mail n'acceptent pas les chemins relatifs). */
 const EMAIL_ASSET_BASE = "https://shop.chreolempire.com";
@@ -78,6 +79,9 @@ export interface NotifyPayload {
   eurAmount?: number;
   /** Destination du versement FCFA (ex: "Orange Money · +237 6XX XX XX XX") */
   payoutTarget?: string;
+  /** Wallet crypto et réseau utilisés pour l'encaissement (achat) */
+  cryptoWallet?: string;
+  cryptoNetwork?: string;
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -91,11 +95,47 @@ function esc(s: string): string {
 }
 
 function toWaNumber(phone: string): string {
-  const digits = phone.replace(/\D/g, "");
-  if (!digits) return "";
-  // Déjà international (237…, 33…, etc.) : ne pas préfixer une seconde fois.
-  if (digits.startsWith("237") || digits.length > 9) return digits;
-  return `237${digits}`;
+  return toWhatsAppNumber(phone);
+}
+
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://shop.chreolempire.com").replace(/\/$/, "");
+
+/** Remplace localhost et les chemins relatifs par l'URL publique du shop. */
+function publicSourceUrl(raw: string | undefined): string | undefined {
+  if (!raw) return undefined;
+  try {
+    const url = raw.startsWith("/") ? new URL(raw, SITE_URL) : new URL(raw);
+    const local = url.hostname === "localhost" || url.hostname === "127.0.0.1";
+    if (local || raw.startsWith("/")) return `${SITE_URL}${url.pathname}${url.search}`;
+    return url.toString();
+  } catch {
+    return raw.startsWith("/") ? `${SITE_URL}${raw}` : raw;
+  }
+}
+
+function pricedTotal(p: NotifyPayload): NotifyPayload {
+  if (p.flow === "sell") return p;
+  const base = p.items.reduce((sum, item) => {
+    const price = Math.round(Number(item.price) || 0);
+    const qty = Math.max(1, Math.round(Number(item.qty) || 1));
+    return sum + price * qty;
+  }, 0);
+  if (base <= 0) return p;
+  const method = p.paymentMethod.toLowerCase();
+  const operator = method.includes("mtn") ? "mtn" : method.includes("orange") ? "orange" : null;
+  const fee = operator ? collectionFee(base, operator) : 0;
+  if (!operator || fee <= 0) return p;
+  const label = operator === "mtn" ? "frais de retrait MTN (1,5%)" : "frais Orange Money (1%)";
+  const posted = Math.round(Number(p.total) || 0);
+  // Le client a envoyé le prix catalogue : le serveur ajoute les frais opérateur.
+  if (posted === base) {
+    return { ...p, total: base + fee, commission: fee, commissionLabel: label };
+  }
+  // Le total inclut déjà exactement ces frais : on aligne le libellé.
+  if (posted === base + fee && (!p.commission || p.commission === fee)) {
+    return { ...p, total: posted, commission: fee, commissionLabel: label };
+  }
+  return p;
 }
 
 function formatDate(): string {
@@ -118,10 +158,12 @@ function getMomoPaymentRows(method: string, total: number): string {
   const lower = method.toLowerCase();
   const isMtn    = lower.includes("mtn");
   const isOrange = lower.includes("orange");
-  // Si méthode inconnue / Via WhatsApp → proposer les deux opérateurs
-  const showBoth = !isMtn && !isOrange;
+  // On ne propose les deux operateurs (Orange + MTN) que si la methode n'est pas identifiee.
+  // GIMAC, Crypto, PayPal, Iwopay ont leur propre section : ne pas leur forcer Orange/MTN.
+  const isKnownAlt = lower.includes("gimac") || lower.includes("crypto") || lower.includes("paypal") || lower.includes("iwopay");
+  const showBoth = !isMtn && !isOrange && !isKnownAlt;
 
-  type Op = { icon: string; name: string; merchant: string; merchantName: string; ussd: string; color: string };
+  type Op = { icon: string; name: string; merchant: string; merchantName: string; ussd: string; color: string; qr?: string; qrCode?: string };
   const ops: Op[] = [];
   if (isMtn || showBoth) ops.push({
     icon: "🟡", name: "MTN Mobile Money", merchant: MTN_MONEY.phoneDisplay,
@@ -132,6 +174,8 @@ function getMomoPaymentRows(method: string, total: number): string {
     icon: "🟠", name: "Orange Money", merchant: ORANGE_MONEY_COMMERCE.merchantCode,
     merchantName: ORANGE_MONEY_COMMERCE.merchantName, color: "#FF6600",
     ussd: `${ORANGE_MONEY_COMMERCE.ussd} puis code marchand ${ORANGE_MONEY_COMMERCE.merchantCode} (commission opérateur 1 %)`,
+    qr: ORANGE_MONEY_COMMERCE.image,
+    qrCode: ORANGE_MONEY_COMMERCE.qrCode,
   });
 
   const waProof = `https://wa.me/237697657734?text=${encodeURIComponent(`Bonjour, voici ma preuve de paiement — Montant : ${total.toLocaleString("fr-FR")} FCFA`)}`;
@@ -151,7 +195,7 @@ function getMomoPaymentRows(method: string, total: number): string {
             <table width="100%" cellpadding="0" cellspacing="0">
               <tr>
                 <td style="width:50%;vertical-align:top">
-                  <p style="margin:0;font-size:9px;color:#9CA3AF;letter-spacing:1px">CODE MARCHAND</p>
+                  ${op.qr ? `<img src="${EMAIL_ASSET_BASE}${op.qr}" alt="QR code Orange Money ${op.qrCode}" width="140" style="display:block;width:140px;height:auto;border-radius:8px;border:1px solid #E5E7EB" /><p style="margin:6px 0 0;font-size:9px;color:#9CA3AF;text-align:center">Réf. QR ${op.qrCode}</p>` : ""}<p style="margin:0;font-size:9px;color:#9CA3AF;letter-spacing:1px">CODE MARCHAND</p>
                   <p style="margin:4px 0 2px;font-size:20px;font-weight:900;color:${op.color};letter-spacing:2px">${op.merchant}</p>
                   <p style="margin:0;font-size:10px;color:#6B7280">${op.merchantName}</p>
                 </td>
@@ -177,7 +221,121 @@ function getMomoPaymentRows(method: string, total: number): string {
   </tr>`;
 }
 
-// ── Vente PayPal : instructions d'envoi (le client envoie des €) ──────────────
+// ── Crypto : wallet boutique + réseau (achat) ──────────────────────────────────
+
+function getCryptoPaymentRows(p: NotifyPayload): string {
+  const network = p.cryptoNetwork ?? "TRC20";
+  const wallet  = p.cryptoWallet ?? "";
+  const ref = p.orderId.slice(-8).toUpperCase();
+  const waText = encodeURIComponent(
+    `Bonjour, voici ma preuve de paiement crypto de ${p.total.toLocaleString("fr-FR")} FCFA — Réf #${ref}`,
+  );
+  const waProof = `https://wa.me/237697657734?text=${waText}`;
+  return `
+  <tr>
+    <td colspan="2" style="padding:14px 20px 0;background:#0A0A0A">
+      <table width="100%" cellpadding="0" cellspacing="0"
+        style="border:1.5px solid #26A17D55;border-radius:10px;overflow:hidden">
+        <tr><td style="padding:10px 14px;background:#26A17D18">
+          <p style="margin:0;font-size:11px;font-weight:900;color:#26A17B">
+            ₿ PAYER VIA CRYPTO
+          </p>
+        </td></tr>
+        <tr>
+          <td style="padding:12px 14px;font-size:12px;color:#FFFFFF">
+            Réseau : <strong style="color:#26A17B">${network}</strong><br>
+            Wallet boutique (CHREOL EMPIRE) : <strong style="font-family:monospace;word-break:break-all">${wallet}</strong><br>
+            <span style="color:#9CA3AF">Montant : <strong>${p.total.toLocaleString("fr-FR")} FCFA</strong> — vérifiez le réseau avant envoi.</span>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" style="padding:10px 20px 12px;background:#0A0A0A;text-align:center">
+      <a href="${waProof}"
+        style="display:inline-block;background:#25D366;color:#FFFFFF;text-decoration:none;padding:9px 22px;border-radius:8px;font-weight:900;font-size:12px">
+        📱 Envoyer la preuve de paiement via WhatsApp
+      </a>
+    </td>
+  </tr>`;
+}
+
+// ── Iwopay : bloc d’instructions dans l’email client ──────────────────────────
+
+function getIwopayPaymentRows(p: NotifyPayload): string {
+  const ref = p.orderId.slice(-8).toUpperCase();
+  const waText = encodeURIComponent(
+    `Bonjour, voici ma preuve de paiement Iwopay de ${p.total.toLocaleString("fr-FR")} FCFA — Réf #${ref}`,
+  );
+  const waProof = `https://wa.me/237697657734?text=${waText}`;
+  return `
+  <tr>
+    <td colspan="2" style="padding:14px 20px 0;background:#0A0A0A">
+      <table width="100%" cellpadding="0" cellspacing="0"
+        style="border:1.5px solid #0EA5E955;border-radius:10px;overflow:hidden">
+        <tr><td style="padding:10px 14px;background:#0EA5E918">
+          <p style="margin:0;font-size:11px;font-weight:900;color:#0EA5E9">
+            💨 IWOPAY — ENCAISSEMENT MOBILE MONEY
+          </p>
+        </td></tr>
+        <tr>
+          <td style="padding:12px 14px;font-size:12px;color:#FFFFFF">
+            <span style="color:#9CA3AF">Validez la demande de débit reçue sur votre téléphone (Orange Money / MTN MoMo).</span>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" style="padding:10px 20px 12px;background:#0A0A0A;text-align:center">
+      <a href="${waProof}"
+        style="display:inline-block;background:#25D366;color:#FFFFFF;text-decoration:none;padding:9px 22px;border-radius:8px;font-weight:900;font-size:12px">
+        📱 Envoyer la preuve de paiement via WhatsApp
+      </a>
+    </td>
+  </tr>`;
+}
+
+// ── GIMAC (Transfert CEMAC) : bloc d’instructions dans l’email client ───────────────
+
+function getGimacPaymentRows(total: number, orderId: string): string {
+  const ref = orderId.slice(-8).toUpperCase();
+  const waText = encodeURIComponent(
+    `Bonjour, voici ma preuve de transfert GIMAC de ${total.toLocaleString('fr-FR')} FCFA — Réf #${ref}`,
+  );
+  const waProof = `https://wa.me/237697657734?text=${waText}`;
+  return `
+  <tr>
+    <td colspan="2" style="padding:14px 20px 0;background:#0A0A0A">
+      <table width="100%" cellpadding="0" cellspacing="0"
+        style="border:1.5px solid #006B3D55;border-radius:10px;overflow:hidden">
+        <tr><td style="padding:10px 14px;background:#006B3D18">
+          <p style="margin:0;font-size:11px;font-weight:900;color:#00A65A">
+            🏦 PAYER VIA GIMAC (TRANSFERT CEMAC)
+          </p>
+        </td></tr>
+        <tr>
+          <td style="padding:12px 14px;font-size:12px;color:#FFFFFF">
+            Effectuez un virement interbancaire CEMAC via votre banque&nbsp;:<br>
+            <strong style="color:#00A65A;font-size:14px">${MTN_MONEY.phoneDisplay}</strong><br>
+            <span style="color:#9CA3AF">Titulaire&nbsp;: ${MTN_MONEY.accountName} &mdash; Réf&nbsp;: <strong>#${ref}</strong></span>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" style="padding:10px 20px 12px;background:#0A0A0A;text-align:center">
+      <a href="${waProof}"
+        style="display:inline-block;background:#25D366;color:#FFFFFF;text-decoration:none;padding:9px 22px;border-radius:8px;font-weight:900;font-size:12px">
+        📱 Envoyer la preuve de virement via WhatsApp
+      </a>
+    </td>
+  </tr>`;
+}
+
+// ── Vente PayPal : instructions d’envoi (le client envoie des €) ──────────────
 
 function getPaypalSellRows(p: NotifyPayload): string {
   const ref = p.orderId.slice(-8).toUpperCase();
@@ -247,50 +405,30 @@ function getPaypalSellRows(p: NotifyPayload): string {
   </tr>`;
 }
 
-// ── Achat PayPal : encaissement Orange Money (QR + code marchand) ────────────
+// ── Achat PayPal : instructions d'envoi au marchand + capture ────────────────
 
 function getPaypalBuyRows(p: NotifyPayload): string {
-  const c   = ORANGE_MONEY_COMMERCE;
   const ref = p.orderId.slice(-8).toUpperCase();
+  const account = CONTACT.paypalEmail;
 
   return `
   <tr>
     <td colspan="2" style="padding:14px 20px 0;background:#FFFFFF">
       <table width="100%" cellpadding="0" cellspacing="0"
-        style="border:1.5px solid #FF660055;border-radius:10px;overflow:hidden">
-        <tr><td style="padding:10px 14px;background:#FF660018">
-          <p style="margin:0;font-size:11px;font-weight:900;color:#FF6600">
-            🟠 PAYER VIA ORANGE MONEY
+        style="border:1.5px solid #00308755;border-radius:10px;overflow:hidden">
+        <tr><td style="padding:10px 14px;background:#00308718">
+          <p style="margin:0;font-size:11px;font-weight:900;color:#003087">
+            💳 PAYER VIA PAYPAL
           </p>
         </td></tr>
         <tr>
           <td style="padding:12px 14px">
-            <table width="100%" cellpadding="0" cellspacing="0">
-              <tr>
-                <td width="150" valign="top" style="padding-right:12px">
-                  <img src="${EMAIL_ASSET_BASE}${c.image}" alt="QR code Orange Money ${c.merchantName}"
-                    width="140" style="display:block;width:140px;height:auto;border-radius:8px;border:1px solid #E5E7EB" />
-                  <p style="margin:6px 0 0;font-size:9px;color:#9CA3AF;text-align:center">Réf. QR ${c.qrCode}</p>
-                </td>
-                <td valign="top">
-                  <p style="margin:0;font-size:9px;color:#9CA3AF;letter-spacing:1px">CODE MARCHAND</p>
-                  <p style="margin:4px 0 2px;font-size:20px;font-weight:900;color:#FF6600;letter-spacing:2px">${c.merchantCode}</p>
-                  <p style="margin:0;font-size:10px;color:#6B7280">${c.merchantName}</p>
-                  <p style="margin:10px 0 0;font-size:9px;color:#9CA3AF;letter-spacing:1px">CODE USSD</p>
-                  <p style="margin:4px 0 0;font-size:14px;font-weight:900;color:#1F2937;font-family:monospace">${c.ussd}</p>
-                  <p style="margin:10px 0 0;font-size:11px;color:#6B7280">
-                    Scannez le QR avec Orange Money / Max it, ou composez le code USSD
-                    → «&nbsp;Payer un marchand&nbsp;» → code <strong>${c.merchantCode}</strong>.
-                  </p>
-                </td>
-              </tr>
-            </table>
-          </td>
-        </tr>
-        <tr>
-          <td style="padding:0 14px 12px">
-            <p style="margin:0;font-size:10px;color:#9CA3AF">
-              Motif / référence à rappeler : <strong style="color:#B45309;font-family:monospace">#${ref}</strong>
+            <p style="margin:0;font-size:9px;color:#9CA3AF;letter-spacing:1px">ADRESSE PAYPAL DU MARCHAND</p>
+            <p style="margin:4px 0 10px;font-size:16px;font-weight:900;color:#1F2937;word-break:break-all">${esc(account)}</p>
+            <p style="margin:0;font-size:10px;color:#6B7280;letter-spacing:1px">MOTIF À INDIQUER</p>
+            <p style="margin:4px 0 0;font-size:13px;font-weight:900;color:#003087;font-family:monospace">#${ref}</p>
+            <p style="margin:10px 0 0;font-size:11px;color:#6B7280">
+              Veuillez envoyer le montant exact de <strong>${p.total.toLocaleString("fr-FR")} FCFA</strong> à l'adresse PayPal suivante : <strong>${esc(account)}</strong>. Envoyez ensuite la capture d'écran.
             </p>
           </td>
         </tr>
@@ -299,11 +437,11 @@ function getPaypalBuyRows(p: NotifyPayload): string {
   </tr>`;
 }
 
-/** Bouton de preuve de paiement (achat PayPal via Orange Money). */
+/** Bouton de preuve de paiement (achat PayPal : envoi au marchand + capture). */
 function getPaypalBuyProofRows(p: NotifyPayload): string {
   const ref = p.orderId.slice(-8).toUpperCase();
   const waProof = `https://wa.me/237697657734?text=${encodeURIComponent(
-    `Bonjour, voici ma preuve de paiement Orange Money de ${p.total.toLocaleString("fr-FR")} FCFA — Réf #${ref}`,
+    `Bonjour, voici ma preuve de paiement PayPal de ${p.total.toLocaleString("fr-FR")} FCFA — Réf #${ref}`,
   )}`;
 
   return `
@@ -318,6 +456,23 @@ function getPaypalBuyProofRows(p: NotifyPayload): string {
       </p>
     </td>
   </tr>`;
+}
+
+// ── Sélecteur strict des instructions de paiement (par mode) ──────────────────
+
+// Retourne le bloc d’instructions correspondant EXACTEMENT au mode de paiement.
+// Orange / MTN MoMo → bloc Mobile Money · PayPal → instructions d’envoi au marchand ·
+// Crypto / GIMAC / Iwopay → leur propre bloc. Mode non reconnu → aucun bloc (zéro défaut).
+function getPaymentRows(p: NotifyPayload): string {
+  const lower = p.paymentMethod.toLowerCase();
+
+  if (lower.includes("paypal")) return getPaypalBuyRows(p);
+  if (lower.includes("gimac"))  return getGimacPaymentRows(p.total, p.orderId);
+  if (lower.includes("crypto")) return getCryptoPaymentRows(p);
+  if (lower.includes("iwopay")) return getIwopayPaymentRows(p);
+  if (lower.includes("mtn"))    return getMomoPaymentRows(p.paymentMethod, p.total);
+  if (lower.includes("orange")) return getMomoPaymentRows(p.paymentMethod, p.total);
+  return "";
 }
 
 // ── Admin email ───────────────────────────────────────────────────────────────
@@ -437,13 +592,17 @@ function buildAdminEmail(p: NotifyPayload, markDoneUrl: string, markCancelUrl: s
             ${p.flow === "sell" ? "FCFA À VERSER AU CLIENT" : "MONTANT À PERCEVOIR DU CLIENT"}
           </td>
           <td style="padding:18px 20px;font-size:28px;font-weight:900;color:#B45309;text-align:right;white-space:nowrap">
-            ${p.total.toLocaleString("fr-FR")} FCFA
+            ${p.total.toLocaleString("fr-FR")} FCFA${p.commission ? `<div style="font-size:12px;font-weight:700;color:#92400E;margin-top:4px">dont ${esc(p.commissionLabel ?? "frais")} : ${p.commission.toLocaleString("fr-FR")} FCFA</div>` : ""}
           </td>
         </tr>
       </table>
 
       ${p.flow === "sell" ? `<p style="font-size:13px;color:#1F2937;margin:0 0 16px">Le client doit envoyer <strong>${(p.eurAmount ?? 0).toFixed(2)}€</strong> sur <strong>${esc(CONTACT.paypalEmail)}</strong>, motif <strong>#${ref}</strong>, en « Proches et Familles ». Versement FCFA : ${esc(p.payoutTarget ?? p.paymentMethod)}.</p>` : ""}
-      ${p.flow === "buy" ? `<p style="font-size:13px;color:#1F2937;margin:0 0 16px">Encaissement Orange Money — marchand <strong>${ORANGE_MONEY_COMMERCE.merchantCode}</strong> (${esc(ORANGE_MONEY_COMMERCE.merchantName)}), USSD ${ORANGE_MONEY_COMMERCE.ussd}. Commission opérateur 1&nbsp;% incluse dans le total quand elle est indiquée. Compte PayPal du client : <strong>${esc(p.paypalId ?? "—")}</strong>.</p>` : ""}
+      ${p.flow === "buy" && p.paymentMethod.toLowerCase().includes("orange") ? `<p style="font-size:13px;color:#1F2937;margin:0 0 16px">Encaissement Orange Money — marchand <strong>${ORANGE_MONEY_COMMERCE.merchantCode}</strong> (${esc(ORANGE_MONEY_COMMERCE.merchantName)}), USSD ${ORANGE_MONEY_COMMERCE.ussd}. Commission opérateur 1&nbsp;% incluse dans le total quand elle est indiquée. Compte PayPal du client : <strong>${esc(p.paypalId ?? "—")}</strong>.</p>` : ""}
+      ${p.flow === "buy" && p.paymentMethod.toLowerCase().includes("mtn") ? `<p style="font-size:13px;color:#1F2937;margin:0 0 16px">Encaissement MTN MoMo — numéro de dépôt <strong>${MTN_MONEY.phoneDisplay}</strong> (${esc(MTN_MONEY.accountName)}). Compte PayPal du client : <strong>${esc(p.paypalId ?? "—")}</strong>.</p>` : ""}
+      ${p.flow === "buy" && p.paymentMethod.toLowerCase().includes("gimac") ? `<p style="font-size:13px;color:#1F2937;margin:0 0 16px">GIMAC — transfert CEMAC vers le Cameroun : destinataire <strong>${MTN_MONEY.phoneDisplay}</strong> (${esc(MTN_MONEY.accountName)}). Réf. commande : <strong>#${ref}</strong>.</p>` : ""}
+      ${p.flow === "buy" && p.paymentMethod.toLowerCase().includes("crypto") ? `<p style="font-size:13px;color:#1F2937;margin:0 0 16px">Crypto — wallet <strong>${esc(p.cryptoWallet ?? "")}</strong> réseau <strong>${esc(p.cryptoNetwork ?? "TRC20")}</strong>. Montant : <strong>${p.total.toLocaleString("fr-FR")} FCFA</strong>.</p>` : ""}
+      ${p.flow === "buy" && p.paymentMethod.toLowerCase().includes("paypal") ? `<p style="font-size:13px;color:#1F2937;margin:0 0 16px">Paiement PayPal — envoyer <strong>${p.total.toLocaleString("fr-FR")} FCFA</strong> à l'adresse <strong>${esc(CONTACT.paypalEmail)}</strong>, motif <strong>#${ref}</strong>. Envoyez ensuite la capture d'écran.</p>` : ""}
       ${p.campayReference ? `<p style="font-size:12px;color:#9CA3AF;margin-bottom:16px">Réf. Campay : <code>${esc(p.campayReference)}</code></p>` : ""}
 
       <!-- Source URL -->
@@ -603,7 +762,7 @@ function buildClientEmail(p: NotifyPayload): string {
           <td style="padding:10px 20px;font-size:12px;color:#92400E;border-bottom:1px dashed #FDE68A">Compte PayPal client</td>
           <td style="padding:10px 20px;font-size:12px;font-weight:700;color:#B45309;text-align:right;border-bottom:1px dashed #FDE68A;word-break:break-all">${esc(p.paypalId)}</td>
         </tr>` : ""}
-        ${isSell ? getPaypalSellRows(p) : p.flow === "buy" ? getPaypalBuyRows(p) : getMomoPaymentRows(p.paymentMethod, p.total)}
+        ${isSell ? getPaypalSellRows(p) : getPaymentRows(p)}
         ${!isSell && p.commission ? `
         <tr style="background:#FFFBEB">
           <td style="padding:10px 20px;font-size:12px;color:#92400E;border-bottom:1px dashed #FDE68A">Montant articles</td>
@@ -615,10 +774,29 @@ function buildClientEmail(p: NotifyPayload): string {
         </tr>` : ""}
         <tr style="background:#FFFBEB">
           <td style="padding:14px 20px;font-size:14px;font-weight:900;color:#78350F">${isSell ? "MONTANT QUE VOUS RECEVEZ" : "TOTAL À RÉGLER"}</td>
-          <td style="padding:14px 20px;font-size:24px;font-weight:900;color:#B45309;text-align:right;white-space:nowrap">${p.total.toLocaleString("fr-FR")} FCFA</td>
+          <td style="padding:14px 20px;font-size:24px;font-weight:900;color:#B45309;text-align:right;white-space:nowrap">${p.total.toLocaleString("fr-FR")} FCFA${p.commission ? `<div style="font-size:12px;font-weight:700;color:#92400E;margin-top:4px">dont ${esc(p.commissionLabel ?? "frais")} : ${p.commission.toLocaleString("fr-FR")} FCFA</div>` : ""}</td>
         </tr>
-        ${p.flow === "buy" ? getPaypalBuyProofRows(p) : ""}
+        ${!isSell && p.paymentMethod.toLowerCase().includes("paypal") ? getPaypalBuyProofRows(p) : ""}
+        ${psnInstructionRow(p)}
       </table>
+
+      <!-- Source URL -->
+      ${p.sourceUrl ? `
+      <table width="100%" cellpadding="0" cellspacing="0" style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;margin-bottom:16px">
+        <tr><td style="padding:10px 16px">
+          <p style="margin:0;font-size:10px;color:#64748B;font-weight:900;letter-spacing:1px">SOURCE DE LA COMMANDE</p>
+          <a href="${esc(p.sourceUrl)}" style="font-size:13px;color:#B45309;text-decoration:none;font-weight:700">${esc(p.sourceUrl)}</a>
+        </td></tr>
+      </table>` : ""}
+
+      <!-- Coordonnées client -->
+      ${p.clientPhone ? `
+      <table width="100%" cellpadding="0" cellspacing="0" style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;margin-bottom:16px">
+        <tr><td style="padding:10px 16px">
+          <p style="margin:0;font-size:10px;color:#64748B;font-weight:900;letter-spacing:1px">CONTACT CLIENT</p>
+          <p style="margin:4px 0 0;font-size:13px;color:#1F2937">📱 <strong>+${toWaNumber(p.clientPhone)}</strong></p>
+        </td></tr>
+      </table>` : ""}
 
       <!-- Canal de commande -->
       <table width="100%" cellpadding="0" cellspacing="0" style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;margin-bottom:16px">
@@ -722,6 +900,46 @@ function buildClientEmail(p: NotifyPayload): string {
 </body></html>`;
 }
 
+function isPsnOrder(p: NotifyPayload): boolean {
+  if (p.paymentMethod.toLowerCase().includes("psn")) return true;
+  return p.items.some(item => /psn|playstation/i.test(`${item.name} ${item.details ?? ""}`));
+}
+
+function psnInstructionRow(p: NotifyPayload): string {
+  if (!isPsnOrder(p)) return "";
+  return `
+        <tr style="background:#FFFBEB">
+          <td colspan="2" style="padding:12px 20px;font-size:12px;color:#1F2937">
+            🎮 PSN : le code PlayStation est envoyé par email après confirmation du paiement, pour la région indiquée sur la carte.
+          </td>
+        </tr>`;
+}
+
+function paymentTelegramLines(p: NotifyPayload): string[] {
+  const lower = p.paymentMethod.trim().toLowerCase();
+  const ref = p.orderId.slice(-8).toUpperCase();
+  const lines: string[] = [];
+  if (lower.includes("paypal") && p.flow !== "sell") {
+    lines.push(`💳 PayPal : envoyez <b>${p.total.toLocaleString("fr-FR")} FCFA</b> à <code>${esc(CONTACT.paypalEmail)}</code>, motif <code>#${ref}</code>`);
+  }
+  if (lower.includes("orange")) {
+    lines.push(`🟠 Orange Money — marchand <code>${ORANGE_MONEY_COMMERCE.merchantCode}</code> (${esc(ORANGE_MONEY_COMMERCE.merchantName)})`);
+  }
+  if (lower.includes("mtn")) {
+    lines.push(`🟡 MTN MoMo — dépôt <code>${esc(MTN_MONEY.phoneDisplay)}</code> (${esc(MTN_MONEY.accountName)})`);
+  }
+  if (lower.includes("gimac")) {
+    lines.push(`🏦 GIMAC — destinataire <code>${esc(MTN_MONEY.phoneDisplay)}</code> — ${esc(MTN_MONEY.accountName)}`);
+  }
+  if (lower.includes("crypto")) {
+    lines.push(`₿ Crypto — wallet <code>${esc(p.cryptoWallet ?? "")}</code>${p.cryptoNetwork ? ` réseau <code>${esc(p.cryptoNetwork)}</code>` : ""}`);
+  }
+  if (isPsnOrder(p)) {
+    lines.push("🎮 PSN : le code PlayStation est envoyé par email après confirmation du paiement, pour la région indiquée sur la carte.");
+  }
+  return lines;
+}
+
 // ── Telegram notification ─────────────────────────────────────────────────────
 
 function buildTelegramMsg(p: NotifyPayload): string {
@@ -729,6 +947,9 @@ function buildTelegramMsg(p: NotifyPayload): string {
   const waNum  = toWaNumber(p.clientPhone);
   const pIcon  = p.paymentMethod.toLowerCase().includes("mtn")    ? "🟡"
                : p.paymentMethod.toLowerCase().includes("orange") ? "🟠"
+               : p.paymentMethod.toLowerCase().includes("gimac")  ? "🏦"
+               : p.paymentMethod.toLowerCase().includes("crypto") ? "₿"
+               : p.paymentMethod.toLowerCase().includes("paypal") ? "💳"
                : "💬";
 
   const itemLines = p.items.map(item => {
@@ -737,7 +958,7 @@ function buildTelegramMsg(p: NotifyPayload): string {
     return item.details ? `${line}\n  <i>${esc(item.details)}</i>` : line;
   }).join("\n");
 
-  return [
+  const lines = [
     `🛍️ <b>NOUVELLE COMMANDE #${ref}</b>`,
     p.flow === "sell" ? `💸 <b>VENTE PAYPAL</b> — le client envoie <b>${(p.eurAmount ?? 0).toFixed(2)}€</b> sur <code>${esc(CONTACT.paypalEmail)}</code>` : "",
     ``,
@@ -754,12 +975,15 @@ function buildTelegramMsg(p: NotifyPayload): string {
     ``,
     `💰 <b>${p.flow === "sell" ? "À RECEVOIR" : "TOTAL"} : ${p.total.toLocaleString("fr-FR")} FCFA</b>`,
     p.commission ? `🧾 dont ${esc(p.commissionLabel ?? "frais de service")} : ${p.commission.toLocaleString("fr-FR")} FCFA` : "",
-    p.flow === "buy" ? `🟠 Encaissement Orange Money — marchand <code>${ORANGE_MONEY_COMMERCE.merchantCode}</code> (${ORANGE_MONEY_COMMERCE.merchantName})` : "",
+    ...paymentTelegramLines(p),
     p.campayReference ? `🔑 Réf. Campay : <code>${esc(p.campayReference)}</code>` : "",
     ``,
-    p.sourceUrl ? `🌐 <a href="${esc(p.sourceUrl)}">Voir la page source</a>` : "",
+    p.sourceUrl && /^https?:\/\//i.test(p.sourceUrl)
+      ? `<a href="${esc(p.sourceUrl)}">🌐 Voir la page source</a>`
+      : "",
     `<a href="https://wa.me/${waNum}">💬 Ouvrir WhatsApp client</a>`,
-  ].filter(l => l !== undefined && l !== "").join("\n");
+  ];
+  return lines.filter(l => l !== undefined && l !== "").join("\n");
 }
 
 async function sendTelegram(p: NotifyPayload, markDoneUrl: string, markCancelUrl: string): Promise<number> {
@@ -832,6 +1056,10 @@ async function saveOrderToSupabase(p: NotifyPayload): Promise<void> {
         sourceUrl: p.sourceUrl ?? null,
         items: p.items,
         commission: p.commission ?? 0,
+        cryptoWallet: p.cryptoWallet ?? null,
+        cryptoNetwork: p.cryptoNetwork ?? null,
+        paypalEmail: CONTACT.paypalEmail,
+        payoutTarget: p.payoutTarget ?? null,
       },
     }),
   }).catch(() => {});
@@ -857,6 +1085,27 @@ export async function POST(request: Request): Promise<Response> {
 
   if (!p.orderId || !p.clientEmail || !p.total || !Array.isArray(p.items)) {
     return Response.json({ error: "Champs requis manquants" }, { status: 400 });
+  }
+  // Règle absolue : paymentMethod doit être fourni explicitement.
+  // Pas de fallback silencieux — une commande sans paymentMethod est invalide.
+  if (!p.paymentMethod || typeof p.paymentMethod !== "string" || !p.paymentMethod.trim()) {
+    return Response.json({ error: "Mode de paiement manquant ou invalide" }, { status: 400 });
+  }
+  // Règle absolue : aucune donnée requise ne passe par un fallback.
+  // Le téléphone client est obligatoire (Mobile Money / crypto / PayPal / etc.).
+  const clientPhone = typeof p.clientPhone === "string" ? normalizeOrderPhone(p.clientPhone) : null;
+  if (!clientPhone) {
+    return Response.json({ error: "Numero invalide. +237 exige 9 chiffres ; les autres indicatifs, 7 à 12 chiffres." }, { status: 400 });
+  }
+  p = pricedTotal({
+    ...p,
+    clientPhone,
+    paymentMethod: p.paymentMethod.trim(),
+    sourceUrl: publicSourceUrl(p.sourceUrl),
+  });
+  // Mode Crypto : l'adresse du wallet est obligatoire et propagée aux templates.
+  if (p.paymentMethod.toLowerCase().includes("crypto") && (!p.cryptoWallet || typeof p.cryptoWallet !== "string" || !p.cryptoWallet.trim())) {
+    return Response.json({ error: "Adresse wallet crypto requise pour le mode Crypto" }, { status: 400 });
   }
 
   // ── Anti-doublon : on ne bloque que si une commande pending identique
@@ -899,12 +1148,6 @@ export async function POST(request: Request): Promise<Response> {
   if (duplicateOrder) {
     // Commande déjà notifiée / enregistrée → on évite un double email + double insert
     return Response.json({ ok: true, duplicate: true, ref, admin: 0, client: 0, telegram: 0 });
-  }
-
-  // Résoudre l'URL complète de la source à partir de l'origine de la requête
-  if (p.sourceUrl && p.sourceUrl.startsWith("/")) {
-    const origin = new URL(request.url).origin;
-    p = { ...p, sourceUrl: `${origin}${p.sourceUrl}` };
   }
 
   const [markDoneUrl, markCancelUrl] = await Promise.all([

@@ -11,6 +11,8 @@ import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { saveClientInfo, loadClientInfo, saveLastOrder, loadRecentOrder } from "@/lib/clientInfo";
 import { makeId } from "@/lib/uid";
+import { composePhone, phoneFieldError, splitPhone } from "@/lib/cmPhone";
+import PhoneFields from "@/components/PhoneFields";
 import IwopayDebitForm from "@/components/IwopayDebitForm";
 import PayInstruction from "@/components/PayInstruction";
 
@@ -95,11 +97,14 @@ export default function CartPage() {
   const { t } = useLanguage();
   const [name, setName]             = useState("");
   const [email, setEmail]           = useState("");
-  const [phone, setPhone]           = useState("");
+  const [dial, setDial]             = useState("+237");
+  const [localPhone, setLocalPhone] = useState("");
+  const phone = composePhone(dial, localPhone) ?? "";
   const [loading, setLoading]       = useState(false);
   const [done, setDone]             = useState<string | null>(null);
   const [referral, setReferral]     = useState("");
   const [emailError, setEmailError] = useState("");
+  const [phoneError, setPhoneError] = useState("");
   const [payStep, setPayStep]       = useState<null | "choose" | "ussd">(null);
   const [selectedOp, setSelectedOp] = useState<OpId | null>(null);
   const [payLine, setPayLine] = useState("");
@@ -114,7 +119,11 @@ export default function CartPage() {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- pré-remplissage depuis localStorage au montage
     if (saved.name)  setName(saved.name);
     if (saved.email) setEmail(saved.email);
-    if (saved.phone) setPhone(saved.phone);
+    if (saved.phone) {
+      const parts = splitPhone(saved.phone);
+      setDial(parts.dial);
+      setLocalPhone(parts.local);
+    }
     if (saved.name && saved.email && saved.phone) setInfoConfirmed(true);
   }, []);
 
@@ -152,6 +161,13 @@ export default function CartPage() {
       return;
     }
     setEmailError("");
+    const clientPhone = composePhone(dial, localPhone);
+    if (!clientPhone) {
+      setPhoneError(phoneFieldError(dial));
+      setEditingInfo(true);
+      return;
+    }
+    setPhoneError("");
 
     if (!force) {
       // 1. Vérification client (localStorage)
@@ -188,9 +204,15 @@ export default function CartPage() {
     if (loading) return;
     setLoading(true);
 
+    const clientPhone = composePhone(dial, localPhone);
+    if (!clientPhone || !opConfig) {
+      setPhoneError(phoneFieldError(dial));
+      setLoading(false);
+      return;
+    }
     const fee = collectionFee(total, selectedOp ?? "");
     const payTotal = total + fee;
-    const opLabel = opConfig?.label ?? "Via WhatsApp";
+    const opLabel = opConfig.label;
     track("cart_checkout", { items: items.length, total, operator: opLabel });
     const orderId = makeId();
 
@@ -198,7 +220,7 @@ export default function CartPage() {
       id: orderId,
       type: "achat",
       summary,
-      total,
+      total: payTotal,
       item_count: items.length,
       payment_method: opLabel,
       status: "pending",
@@ -217,7 +239,7 @@ export default function CartPage() {
         orderId,
         clientName: name || "Client",
         clientEmail: email,
-        clientPhone: phone.replace(/\D/g, "") || "000000000",
+        clientPhone,
         paymentMethod: opLabel,
         sourceUrl: `${window.location.origin}/cart`,
         items: items.map(i => ({
@@ -409,7 +431,13 @@ export default function CartPage() {
                   <input type="email" placeholder={t("cart.email")} value={email} onChange={e => { setEmail(e.target.value); if (e.target.value) setEmailError(""); }} className="w-full px-4 py-3 rounded-2xl text-white text-sm outline-none" style={{ background: "var(--bg-card)", border: `1px solid ${emailError ? "#EF4444" : "var(--border)"}` }} />
                   {emailError && <p className="text-xs mt-1 px-1" style={{ color: "#EF4444" }}>{emailError}</p>}
                 </div>
-                <input type="tel" placeholder={t("cart.phone")} value={phone} onChange={e => setPhone(e.target.value)} className="w-full px-4 py-3 rounded-2xl text-white text-sm outline-none" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }} />
+                <PhoneFields
+                  dial={dial}
+                  local={localPhone}
+                  error={phoneError}
+                  onDial={value => { setDial(value); setPhoneError(""); }}
+                  onLocal={value => { setLocalPhone(value); setPhoneError(""); }}
+                />
                 {infoConfirmed && (
                   <button type="button" onClick={() => setEditingInfo(false)} className="text-xs font-bold text-left transition-opacity hover:opacity-70" style={{ color: "var(--text-muted)" }}>
                     {t("cart.cancel")}

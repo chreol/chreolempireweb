@@ -9,6 +9,8 @@ import GoogleReviewsOptIn from "@/components/GoogleReviewsOptIn";
 import GoogleReviewPrompt from "@/components/GoogleReviewPrompt";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { makeId } from "@/lib/uid";
+import { composePhone, phoneFieldError } from "@/lib/cmPhone";
+import PhoneFields from "@/components/PhoneFields";
 import IwopayDebitForm from "@/components/IwopayDebitForm";
 import PayInstruction from "@/components/PayInstruction";
 
@@ -118,6 +120,9 @@ function CheckoutInner() {
   const [payLine, setPayLine] = useState("");
   const [email, setEmail]           = useState("");
   const [emailError, setEmailError] = useState(false);
+  const [dial, setDial]             = useState("+237");
+  const [localPhone, setLocalPhone] = useState("");
+  const [phoneError, setPhoneError] = useState("");
   const [orderId]                   = useState(() => makeId("CE"));
   const opConfig = OPERATORS.find(o => o.id === selectedOp);
   const notifiedRef = useRef(false);
@@ -129,7 +134,8 @@ function CheckoutInner() {
     );
   }
 
-  function sendNotification(opLabel: string, due: number, fee: number) {
+  function sendNotification(opLabel: string, amount: number, fee: number, clientPhone: string) {
+    const due = amount + fee;
     fetch("/api/notify-order", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -137,13 +143,13 @@ function CheckoutInner() {
         orderId: orderId,
         clientName: email.split("@")[0],
         clientEmail: email,
-        clientPhone: "",
+        clientPhone,
         paymentMethod: opLabel,
-        items: [{ name: label, qty: 1, price: due, amount: `${due.toLocaleString("fr-FR")} FCFA` }],
+        items: [{ name: label, qty: 1, price: amount, amount: `${amount.toLocaleString("fr-FR")} FCFA${fee > 0 ? ` (dont ${fee.toLocaleString("fr-FR")} FCFA de frais)` : ""}` }],
         total: due,
         commission: fee > 0 ? fee : undefined,
         commissionLabel: fee > 0 ? collectionFeeLabel(selectedOp ?? "") : undefined,
-        sourceUrl: window.location.pathname,
+        sourceUrl: window.location.href,
       }),
     }).catch(() => {});
   }
@@ -212,6 +218,17 @@ function CheckoutInner() {
             </p>
           </div>
 
+          <div className="mb-5">
+            <PhoneFields
+              variant="checkout"
+              dial={dial}
+              local={localPhone}
+              error={phoneError}
+              onDial={value => { setDial(value); setPhoneError(""); }}
+              onLocal={value => { setLocalPhone(value); setPhoneError(""); }}
+            />
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             {OPERATORS.map(op => (
               <button
@@ -223,10 +240,15 @@ function CheckoutInner() {
                     setEmailError(true);
                     return;
                   }
+                  const clientPhone = composePhone(dial, localPhone);
+                  if (!clientPhone) {
+                    setPhoneError(phoneFieldError(dial));
+                    return;
+                  }
                   const fee = collectionFee(amount, op.id);
                   setSelectedOp(op.id);
                   setStep("ussd");
-                  if (!notifiedRef.current) { notifiedRef.current = true; sendNotification(op.label, amount + fee, fee); }
+                  if (!notifiedRef.current) { notifiedRef.current = true; sendNotification(op.label, amount, fee, clientPhone); }
                 }}
                 className="p-5 rounded-2xl flex flex-col items-center gap-3 transition-all hover:scale-[1.02] active:scale-[0.97] disabled:cursor-not-allowed disabled:hover:scale-100"
                 style={{ background: "var(--bg-elevated)", border: `2px solid ${op.color}55`, opacity: op.available ? 1 : 0.55 }}

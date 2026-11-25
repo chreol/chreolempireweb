@@ -14,6 +14,9 @@ import FAQ from "@/components/FAQ";
 import StepGuide from "@/components/StepGuide";
 import RelatedServices from "@/components/RelatedServices";
 import GoogleReviewPrompt from "@/components/GoogleReviewPrompt";
+import { loadClientInfo, saveClientInfo } from "@/lib/clientInfo";
+import { composePhone, phoneFieldError, splitPhone } from "@/lib/cmPhone";
+import PhoneFields from "@/components/PhoneFields";
 
 // FAQ en français pour le JSON-LD SEO
 const FAQ_FR = [
@@ -66,6 +69,9 @@ export default function CartesCadeauxPage() {
   const [added, setAdded] = useState(false);
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("");
+  const [dial, setDial] = useState("+237");
+  const [localPhone, setLocalPhone] = useState("");
+  const [phoneError, setPhoneError] = useState("");
   const [payOp, setPayOp] = useState<string | null>(null);
 
   useEffect(() => {
@@ -79,6 +85,13 @@ export default function CartesCadeauxPage() {
     if (requestedCard && GIFT_CARDS.some(item => item.id === requestedCard)) setCardId(requestedCard);
     if (requestedRegion && REGIONS.some(item => item.code === requestedRegion)) setRegion(requestedRegion);
     if (requestedAmount) setAmountLabel(requestedAmount);
+    const saved = loadClientInfo();
+    if (saved?.email) setEmail(saved.email);
+    if (saved?.phone) {
+      const parts = splitPhone(saved.phone);
+      setDial(parts.dial);
+      setLocalPhone(parts.local);
+    }
   }, []);
   const STEPS_CADEAUX = [
     { icon: "🎮", title: tl("gc.step1.t"), description: tl("gc.step1.d"), tip: tl("gc.step1.tip") },
@@ -109,19 +122,34 @@ export default function CartesCadeauxPage() {
     setTab(t); setCardId(null); setAmountLabel(null); setCustomVal(""); setEmail(""); setEmailError("");
   }
 
-  function validateEmail() {
+  function validateContact() {
+    let ok = true;
     if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       setEmailError(tl("gc.email_required"));
-      return false;
+      ok = false;
+    } else {
+      setEmailError("");
     }
-    setEmailError("");
-    return true;
+    if (!composePhone(dial, localPhone)) {
+      setPhoneError(phoneFieldError(dial));
+      ok = false;
+    } else {
+      setPhoneError("");
+    }
+    if (!payOp || !PAYMENT_LABELS[payOp]) {
+      showToast("Choisissez le mode de paiement.", "error");
+      ok = false;
+    }
+    return ok;
   }
 
   function sendNotification() {
     if (!card) return;
     const finalPrice = customPrice ?? amount?.price ?? 0;
     const finalLabel = customPrice ? `${customVal}€ (personnalisé)` : amountLabel ?? "";
+    const clientPhone = composePhone(dial, localPhone);
+    if (!clientPhone || !payOp || !PAYMENT_LABELS[payOp]) return;
+    saveClientInfo({ email, phone: clientPhone, name: email.split("@")[0] });
     fetch("/api/notify-order", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -129,11 +157,11 @@ export default function CartesCadeauxPage() {
         orderId: (() => { const id = `carte-${card.id}-${Date.now()}`; orderIdRef.current = id; return id; })(),
         clientName: email.split("@")[0],
         clientEmail: email,
-        clientPhone: "",
-        paymentMethod: resolvePaymentMethod(payOp),
+        clientPhone,
+        paymentMethod: PAYMENT_LABELS[payOp],
         items: [{ name: `${card.name} [${region}]`, qty: 1, price: finalPrice, amount: `${finalLabel} — ${finalPrice.toLocaleString("fr-FR")} FCFA` }],
         total: finalPrice,
-        sourceUrl: window.location.pathname,
+        sourceUrl: window.location.href,
       }),
     }).catch(() => {});
   }
@@ -156,7 +184,8 @@ export default function CartesCadeauxPage() {
     const quote = paymentQuote(base, payOp);
     const ref = orderIdRef.current ? ` — Réf #${orderIdRef.current.slice(-8).toUpperCase()}` : "";
     const pay = payOp ? `\nPaiement : ${resolvePaymentMethod(payOp)}\nÀ régler : ${quote.amount}` : "";
-    return `Je veux commander ${card.name} ${finalLabel} [${region}] — ${finalPrice} FCFA${ref}${pay}`;
+    const clientPhone = composePhone(dial, localPhone) ?? "";
+    return `Je veux commander ${card.name} ${finalLabel} [${region}] — ${finalPrice} FCFA${ref}${pay}\nTél : ${clientPhone}`;
   }
 
   return (
@@ -348,6 +377,16 @@ export default function CartesCadeauxPage() {
                 {emailError && <p className="text-xs mt-1 px-1" style={{ color: "#EF4444" }}>{emailError}</p>}
               </div>
 
+              <div className="mb-1 mt-2">
+                <PhoneFields
+                  dial={dial}
+                  local={localPhone}
+                  error={phoneError}
+                  onDial={value => { setDial(value); setPhoneError(""); }}
+                  onLocal={value => { setLocalPhone(value); setPhoneError(""); }}
+                />
+              </div>
+
               {/* Mode de paiement préféré (optionnel) */}
               <div className="mb-3 mt-1">
                 <PaymentMethodSelector value={payOp} onChange={setPayOp} amount={customPrice ?? amount?.price ?? 0} />
@@ -358,7 +397,7 @@ export default function CartesCadeauxPage() {
                   total={customPrice ?? amount?.price ?? 0}
                   getMsg={buildMsgPlain}
                   onBeforeOpen={() => {
-                    if (!validateEmail()) { showToast(tl("gc.enter_email"), "error"); return false; }
+                    if (!validateContact()) { showToast(tl("gc.enter_email"), "error"); return false; }
                     sendNotification();
                     return true;
                   }}
