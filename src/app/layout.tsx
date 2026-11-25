@@ -133,20 +133,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     : "";
   return (
     <html lang="fr" data-scroll-behavior="smooth" className={`${geist.variable} antialiased`} suppressHydrationWarning>
-      <head suppressHydrationWarning>
-        {/* Anti-flicker: apply saved theme before first paint */}
-        <Script id="anti-flicker" strategy="beforeInteractive">
-          {ANTI_FLICKER}
-        </Script>
+      <body className="min-h-screen flex flex-col" suppressHydrationWarning>
+        <script suppressHydrationWarning dangerouslySetInnerHTML={{ __html: ANTI_FLICKER }} />
         <link rel="preconnect" href="https://wa.me" />
         <link rel="preconnect" href="https://api.brevo.com" />
         <link rel="preconnect" href="https://api.telegram.org" />
         <link rel="dns-prefetch" href="https://campay.net" />
         <link rel="dns-prefetch" href="https://maps.app.goo.gl" />
-        <meta name="google-site-verification" content="f4xnHmrVIpddzFQKvb_TRGFigd8dOSciEyPabjA8F1A" />
-        <Script id="renderOptInFn" strategy="beforeInteractive">
-          {`window.renderOptIn = window.renderOptIn || function() {};`}
-        </Script>
+        <script suppressHydrationWarning dangerouslySetInnerHTML={{ __html: "window.renderOptIn = window.renderOptIn || function() {};" }} />
         <Script src="https://apis.google.com/js/platform.js?onload=renderOptIn" strategy="afterInteractive" />
         {GA_MEASUREMENT_ID ? (
           <>
@@ -156,10 +150,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         ) : null}
         <script
           type="application/ld+json"
+          suppressHydrationWarning
           dangerouslySetInnerHTML={{ __html: JSON.stringify(LOCAL_BUSINESS_JSON) }}
         />
-      </head>
-      <body className="min-h-screen flex flex-col">
         <script dangerouslySetInnerHTML={{ __html: `if ('serviceWorker' in navigator) { window.addEventListener('load', function() { navigator.serviceWorker.register('/sw.js').catch(function() {}); }); }` }} />
         <PromoModal />
         <Providers>

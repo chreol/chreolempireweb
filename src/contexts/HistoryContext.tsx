@@ -11,6 +11,9 @@ export interface HistoryEntry {
   currency: string;
   status: "pending" | "completed" | "cancelled";
   waText?: string;
+  /** Identifiant complet en base, pour la facture PDF. */
+  orderId?: string;
+  invoice?: boolean;
 }
 
 interface HistoryContextValue {

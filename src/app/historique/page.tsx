@@ -1,10 +1,13 @@
 "use client";
 
-import { useHistory } from "@/contexts/HistoryContext";
+import { useEffect, useState } from "react";
+import { useHistory, HistoryEntry } from "@/contexts/HistoryContext";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { loadClientInfo } from "@/lib/clientInfo";
 import WAPopover from "@/components/WAPopover";
 import Link from "next/link";
 import { IwopayStatusList } from "@/components/IwopayStatusCard";
+import { canDownloadInvoice } from "@/lib/companyInfo";
 
 const STATUS_STYLES = {
   pending:   { label: "En attente", bg: "#1A1500", border: "#C9A84C44", color: "#C9A84C" },
@@ -22,8 +25,44 @@ function formatDate(iso: string) {
 export default function HistoriquePage() {
   const { entries, clearHistory } = useHistory();
   const { t } = useLanguage();
+  const [dbOrders, setDbOrders] = useState<HistoryEntry[]>([]);
 
-  if (entries.length === 0) {
+  // Historique des commandes : lecture depuis la base (Supabase) par email client.
+  useEffect(() => {
+    const info = loadClientInfo();
+    const email = info?.email?.trim().toLowerCase();
+    if (!email) return;
+    let cancelled = false;
+    fetch(`/api/orders?email=${encodeURIComponent(email)}`)
+      .then(r => (r.ok ? r.json() : []))
+      .then((rows: unknown[]) => {
+        if (cancelled) return;
+        const list = (Array.isArray(rows) ? rows : []) as Array<Record<string, unknown>>;
+        const mapped = list.map((r) => {
+          const details = (r.details ?? {}) as { service?: string; sourceUrl?: string } | null;
+          const status = ["pending", "completed", "cancelled"].includes(String(r.status)) ? String(r.status) : "pending";
+          const fullId = String(r.id ?? "");
+          return {
+            id: fullId.slice(-8).toUpperCase(),
+            orderId: fullId,
+            date: String(r.created_at ?? ""),
+            service: String(details?.service ?? r.summary ?? "Commande"),
+            details: String(details?.sourceUrl ?? details?.service ?? r.summary ?? ""),
+            amount: Number(r.total ?? 0),
+            currency: "FCFA",
+            status: status as HistoryEntry["status"],
+            invoice: canDownloadInvoice(String(r.status ?? ""), String(r.payment_status ?? "")),
+          };
+        });
+        setDbOrders(mapped);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  const visible = dbOrders.length > 0 ? dbOrders : entries;
+
+  if (visible.length === 0) {
     return (
       <div className="max-w-2xl lg:max-w-3xl mx-auto px-4 sm:px-6 py-10">
         <IwopayStatusList />
@@ -57,7 +96,7 @@ export default function HistoriquePage() {
         <div>
           <h1 className="text-3xl font-black text-white">{t("history.title")}</h1>
           <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>
-            {entries.length} {entries.length > 1 ? t("history.tx.p") : t("history.tx.s")}
+            {visible.length} {visible.length > 1 ? t("history.tx.p") : t("history.tx.s")}
           </p>
         </div>
         <button
@@ -74,7 +113,7 @@ export default function HistoriquePage() {
       <IwopayStatusList />
 
       <div className="flex flex-col gap-3">
-        {entries.map(entry => {
+        {visible.map(entry => {
           const s = STATUS_STYLES[entry.status];
           return (
             <div
@@ -106,6 +145,18 @@ export default function HistoriquePage() {
                     {formatDate(entry.date)}
                   </p>
                 </div>
+
+                {entry.invoice && entry.orderId && (
+                  <a
+                    href={`/api/invoices/${encodeURIComponent(entry.orderId)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs px-3 py-1.5 rounded-full font-bold shrink-0"
+                    style={{ background: "#C9A84C22", color: "var(--gold)", border: "1px solid #C9A84C55" }}
+                  >
+                    Télécharger la facture
+                  </a>
+                )}
 
                 {entry.waText && (
                   <WAPopover
