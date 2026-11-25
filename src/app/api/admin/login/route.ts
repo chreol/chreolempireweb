@@ -1,5 +1,7 @@
-export const runtime = "edge";
 import { createAdminToken, getAdminSecret } from "@/lib/adminAuth";
+import { verifyAdminPassword } from "@/lib/adminPassword";
+
+export const runtime = "nodejs";
 
 const attempts = new Map<string, { count: number; resetAt: number }>();
 
@@ -14,7 +16,7 @@ export async function POST(request: Request): Promise<Response> {
   }
   if (!secret) return Response.json({ error: "Authentification admin non configurée" }, { status: 503 });
 
-  if (password !== secret) {
+  if (!(await verifyAdminPassword(String(password ?? "")))) {
     if (!entry || now >= entry.resetAt) attempts.set(ip, { count: 1, resetAt: now + 60_000 });
     else entry.count++;
     return Response.json({ error: "Mot de passe incorrect" }, { status: 401 });

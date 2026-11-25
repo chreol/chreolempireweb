@@ -2,6 +2,9 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import OrderDetailsModal, { type AdminOrderView } from "@/components/admin/OrderDetailsModal";
+import PasswordModal from "@/components/admin/PasswordModal";
+import { workflowOf } from "@/lib/orderWorkflow";
 
 const SERVICES_LIST = [
   "cartes-cadeaux", "crypto", "paypal", "coupons", "uba", "factures", "autre",
@@ -44,7 +47,8 @@ interface Order {
   client_name: string;
   client_email: string;
   client_phone: string;
-  status: "pending" | "done" | "cancelled";
+  status: "pending" | "done" | "cancelled" | string;
+  payment_status?: string | null;
   created_at: string;
   proof_url?: string | null;
   details?: { sourceUrl?: string; items?: { name: string; qty: number; price: number }[] };
@@ -102,6 +106,9 @@ export default function AdminPage() {
   const [campResult, setCampResult]   = useState<{ sent?: number; error?: string } | null>(null);
   const [campLoading, setCampLoading] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
+  const [detail, setDetail] = useState<Order | null>(null);
+  const [passwordOpen, setPasswordOpen] = useState(false);
   const [offers, setOffers]             = useState<Offer[]>([]);
   const [offerLoading, setOfferLoading] = useState(false);
   const [offerForm, setOfferForm]       = useState<Partial<Offer>>({ currency: "FCFA", active: true, service: "cartes-cadeaux" });
@@ -109,12 +116,12 @@ export default function AdminPage() {
 
   const fetchOrders = useCallback(async () => {
     setLoading(true);
-    const res = await fetch(`/api/admin/orders?status=${statusFilter}&limit=100`);
+    const res = await fetch("/api/admin/orders?status=all&limit=200");
     if (res.status === 401) { router.push("/admin/login"); return; }
     const data = await res.json();
     setOrders(Array.isArray(data) ? data : []);
     setLoading(false);
-  }, [statusFilter, router]);
+  }, [router]);
 
   // eslint-disable-next-line react-hooks/set-state-in-effect -- chargement des commandes (setLoading dans fetchOrders)
   useEffect(() => { fetchOrders(); }, [fetchOrders]);
@@ -237,10 +244,22 @@ export default function AdminPage() {
 
   const counts = {
     all:       orders.length,
-    pending:   orders.filter(o => o.status === "pending").length,
+    pending:   orders.filter(o => workflowOf(o.status, o.payment_status) === "PENDING").length,
+    paid:      orders.filter(o => workflowOf(o.status, o.payment_status) === "PAID").length,
+    delivered: orders.filter(o => workflowOf(o.status, o.payment_status) === "DELIVERED").length,
     done:      orders.filter(o => o.status === "done").length,
-    cancelled: orders.filter(o => o.status === "cancelled").length,
   };
+  const q = query.trim().toLowerCase().replace(/\s+/g, "");
+  const visibleOrders = orders.filter(order => {
+    const flow = workflowOf(order.status, order.payment_status);
+    if (statusFilter === "pending" && flow !== "PENDING") return false;
+    if (statusFilter === "paid" && flow !== "PAID") return false;
+    if (statusFilter === "delivered" && flow !== "DELIVERED") return false;
+    if (!q) return true;
+    const email = (order.client_email || "").toLowerCase();
+    const phone = (order.client_phone || "").replace(/\s+/g, "").toLowerCase();
+    return email.includes(q) || phone.includes(q) || order.id.toLowerCase().includes(q);
+  });
 
   const totalRevenue = orders.filter(o => o.status === "done").reduce((s, o) => s + (o.total ?? 0), 0);
 
@@ -255,10 +274,16 @@ export default function AdminPage() {
           </p>
           <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>Tableau de bord</p>
         </div>
-        <button onClick={logout} className="shrink-0 text-xs px-3 sm:px-4 py-2 rounded-full transition-opacity hover:opacity-70 whitespace-nowrap"
-          style={{ background: "var(--bg-card)", color: "var(--text-secondary)", border: "1px solid var(--border)" }}>
-          Déconnexion
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          <button type="button" onClick={() => setPasswordOpen(true)} className="text-xs px-3 sm:px-4 py-2 rounded-full whitespace-nowrap active:scale-[0.96]"
+            style={{ background: "var(--bg-card)", color: "var(--gold)", border: "1px solid var(--border)", transition: "scale 150ms" }}>
+            Mot de passe
+          </button>
+          <button type="button" onClick={logout} className="text-xs px-3 sm:px-4 py-2 rounded-full whitespace-nowrap active:scale-[0.96]"
+            style={{ background: "var(--bg-card)", color: "var(--text-secondary)", border: "1px solid var(--border)", transition: "scale 150ms" }}>
+            Déconnexion
+          </button>
+        </div>
       </div>
 
       {/* Stats */}
@@ -303,23 +328,36 @@ export default function AdminPage() {
       {tab === "orders" && (
         <>
           {/* Filter */}
+          <input
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            placeholder="Rechercher par e-mail, téléphone ou ID"
+            className="w-full px-4 py-3 rounded-xl text-sm text-white outline-none mb-3"
+            style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
+          />
           <div className="flex gap-2 mb-4 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
-            {(["all", "pending", "done", "cancelled"] as const).map(s => (
-              <button key={s} onClick={() => setFilter(s)}
-                className="shrink-0 px-4 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap"
+            {([
+              ["all", `Toutes (${counts.all})`],
+              ["pending", `En attente (${counts.pending})`],
+              ["paid", `Payées (${counts.paid})`],
+              ["delivered", `Livrées (${counts.delivered})`],
+            ] as const).map(([s, label]) => (
+              <button key={s} type="button" onClick={() => setFilter(s)}
+                className="shrink-0 px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap active:scale-[0.96]"
                 style={{
                   background: statusFilter === s ? "var(--gold)" : "var(--bg-elevated)",
                   color: statusFilter === s ? "#0A0A0A" : "var(--text-secondary)",
                   border: "1px solid var(--border)",
+                  transition: "scale 150ms",
                 }}>
-                {s === "all" ? `Toutes (${counts.all})` : `${STATUS_LABEL[s]?.label} (${counts[s]})`}
+                {label}
               </button>
             ))}
             <button onClick={fetchOrders} className="shrink-0 ml-auto px-4 py-1.5 rounded-full text-xs font-bold transition-opacity hover:opacity-70 whitespace-nowrap"
               style={{ background: "var(--bg-elevated)", color: "var(--text-muted)", border: "1px solid var(--border)" }}>
               🔄
             </button>
-            <button onClick={() => window.open(`/api/admin/orders/export?status=${statusFilter === "all" ? "" : statusFilter}`, "_blank")}
+            <button onClick={() => window.open(`/api/admin/orders/export?status=${statusFilter === "delivered" ? "done" : statusFilter === "pending" ? "pending" : ""}`, "_blank")}
               className="shrink-0 px-4 py-1.5 rounded-full text-xs font-bold transition-opacity hover:opacity-70 whitespace-nowrap"
               style={{ background: "var(--bg-elevated)", color: "var(--text-secondary)", border: "1px solid var(--border)" }}>
               ⬇️ CSV
@@ -329,14 +367,21 @@ export default function AdminPage() {
           {/* Orders list */}
           {loading ? (
             <div className="text-center py-16" style={{ color: "var(--text-muted)" }}>Chargement...</div>
-          ) : orders.length === 0 ? (
+          ) : visibleOrders.length === 0 ? (
             <div className="text-center py-16 rounded-2xl" style={{ background: "var(--bg-card)", color: "var(--text-muted)" }}>
               Aucune commande trouvée
             </div>
           ) : (
             <div className="flex flex-col gap-3">
-              {orders.map(order => {
-                const st = STATUS_LABEL[order.status] ?? STATUS_LABEL.pending;
+              {visibleOrders.map(order => {
+                const flow = workflowOf(order.status, order.payment_status);
+                const st = flow === "PAID"
+                  ? { label: "Payée", color: "#1D4ED8", bg: "#DBEAFE" }
+                  : flow === "DELIVERED"
+                    ? { label: "Livrée", color: "#10B981", bg: "#D1FAE5" }
+                    : flow === "CANCELLED"
+                      ? STATUS_LABEL.cancelled
+                      : STATUS_LABEL.pending;
                 const expanded = expandedId === order.id;
                 return (
                   <div key={order.id} className="rounded-2xl overflow-hidden"
@@ -367,6 +412,14 @@ export default function AdminPage() {
                         {order.created_at ? formatDate(order.created_at) : "—"}
                       </p>
                       {/* Chevron */}
+                      <button
+                        type="button"
+                        onClick={e => { e.stopPropagation(); setDetail(order); }}
+                        className="shrink-0 text-xs px-3 py-1.5 rounded-full font-bold active:scale-[0.96]"
+                        style={{ background: "#C9A84C22", color: "var(--gold)", border: "1px solid #C9A84C55", transition: "scale 150ms" }}
+                      >
+                        Détails
+                      </button>
                       <span style={{ color: "var(--text-muted)" }}>{expanded ? "▲" : "▼"}</span>
                     </div>
 
@@ -1000,6 +1053,20 @@ export default function AdminPage() {
           </div>
         </div>
       )}
+      {detail && (
+        <OrderDetailsModal
+          key={detail.id}
+          order={detail}
+          onClose={() => setDetail(null)}
+              onUpdated={next => {
+                const details = next.details as Order["details"];
+                const status = next.status as Order["status"];
+                setOrders(prev => prev.map(o => o.id === next.id ? { ...o, status, payment_status: next.payment_status, details } : o));
+                setDetail(current => current && current.id === next.id ? { ...current, status, payment_status: next.payment_status, details } : current);
+              }}
+        />
+      )}
+      {passwordOpen && <PasswordModal onClose={() => setPasswordOpen(false)} />}
     </div>
   );
 }

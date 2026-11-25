@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import PasswordField from "@/components/admin/PasswordField";
 
 export default function AdminLogin() {
   const router = useRouter();
@@ -36,14 +37,14 @@ export default function AdminLogin() {
             <label className="block text-xs font-bold mb-2" style={{ color: "var(--text-muted)" }}>
               MOT DE PASSE
             </label>
-            <input
-              type="password"
+            <PasswordField
               value={password}
               onChange={e => setPassword(e.target.value)}
               placeholder="••••••••"
               className="w-full px-4 py-3 rounded-xl text-white text-sm outline-none"
               style={{ background: "var(--bg-elevated)", border: `1px solid ${error ? "#EF4444" : "var(--border)"}` }}
               autoFocus
+              autoComplete="current-password"
             />
             {error && <p className="text-xs mt-2" style={{ color: "#EF4444" }}>{error}</p>}
           </div>
