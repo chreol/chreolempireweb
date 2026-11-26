@@ -7,6 +7,7 @@ import { track } from "@vercel/analytics";
 import { PROMOS, type Promo } from "@/lib/promos";
 import { CONTACT, GIFT_CARDS } from "@/lib/services";
 import { GIFT_PROMOS, PROMO_END_DATE, applyGiftPromo, isPromoActive } from "@/config/promoConfig";
+import { useCart } from "@/contexts/CartContext";
 
 // ── Countdown hook ────────────────────────────────────────────────────────
 function useCountdown(target: string | null): string {
@@ -186,6 +187,8 @@ function PromoCard({ promo, campaignLive }: { promo: Promo; campaignLive: boolea
 
 // ── Page ──────────────────────────────────────────────────────────────────
 export default function PromoPage() {
+  const { addItem } = useCart();
+  const [addedId, setAddedId] = useState<string | null>(null);
   const [campaignLive, setCampaignLive] = useState(isPromoActive);
   const [now, setNow] = useState(() => Date.now());
 
@@ -260,10 +263,9 @@ export default function PromoPage() {
               const tab = card.tier === "itunes" ? "itunes" : "standard";
               const href = `/services/cartes-cadeaux?tab=${tab}&card=${card.id}&amount=${encodeURIComponent(base.label)}&region=EU`;
               return (
-                <Link
+                <article
                   key={offer.id}
-                  href={href}
-                  className="overflow-hidden rounded-2xl transition-[transform,opacity] duration-200 ease-out hover:-translate-y-0.5"
+                  className="overflow-hidden rounded-2xl"
                   style={{ background: "var(--bg-card)", border: "1px solid var(--border-strong)" }}
                 >
                   <div className="relative h-36">
@@ -293,8 +295,31 @@ export default function PromoPage() {
                         {reduced.toLocaleString("fr-FR")} FCFA
                       </span>
                     </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        addItem({
+                          id: `promo-${card.id}-${base.label}-EU`,
+                          cardName: `${card.name} [EU]`,
+                          amount: base.label,
+                          price: base.price,
+                          productId: card.id,
+                          isPromo: true,
+                          promoPrice: reduced,
+                        });
+                        setAddedId(card.id);
+                        window.setTimeout(() => setAddedId((current) => (current === card.id ? null : current)), 1500);
+                      }}
+                      className="mt-4 w-full rounded-full py-2.5 text-sm font-black transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.98]"
+                      style={{ background: "var(--gold)", color: "#0A0A0A" }}
+                    >
+                      {addedId === card.id ? "Ajouté" : "Ajouter au panier"}
+                    </button>
+                    <Link href={href} className="mt-2 block text-center text-xs font-bold" style={{ color: "var(--text-muted)" }}>
+                      Voir la fiche au tarif normal
+                    </Link>
                   </div>
-                </Link>
+                </article>
               );
             })}
           </div>

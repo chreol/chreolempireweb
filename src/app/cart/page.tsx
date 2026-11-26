@@ -109,6 +109,7 @@ export default function CartPage() {
   const [payStep, setPayStep]       = useState<null | "choose" | "ussd">(null);
   const [selectedOp, setSelectedOp] = useState<OpId | null>(null);
   const [payLine, setPayLine] = useState("");
+  const [orderError, setOrderError] = useState("");
 
   // Pré-remplissage depuis localStorage
   const [infoConfirmed, setInfoConfirmed] = useState(false);
@@ -204,6 +205,7 @@ export default function CartPage() {
     if (!selectedOp) return;
     if (loading) return;
     setLoading(true);
+    setOrderError("");
 
     const clientPhone = composePhone(dial, localPhone);
     if (!clientPhone || !opConfig) {
@@ -211,10 +213,56 @@ export default function CartPage() {
       setLoading(false);
       return;
     }
-    const fee = collectionFee(total, selectedOp ?? "");
-    const payTotal = total + fee;
+
+    let goodsTotal = total;
+    let priced = items.map((i) => ({
+      name: i.cardName,
+      qty: i.qty,
+      price: cartUnitPrice(i),
+      amount: i.amount,
+      details: i.details,
+      isPromo: i.isPromo === true,
+      productId: i.productId,
+    }));
+    try {
+      const intakeRes = await fetch("/api/orders/intake", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          items: items.map((i) => ({
+            name: i.cardName,
+            qty: i.qty,
+            price: i.price,
+            amount: i.amount,
+            details: i.details,
+            isPromo: i.isPromo === true,
+            productId: i.productId,
+            promoPrice: i.promoPrice,
+          })),
+        }),
+      });
+      const intake = await intakeRes.json() as {
+        error?: string;
+        subtotal?: number;
+        items?: typeof priced;
+      };
+      if (!intakeRes.ok || !Array.isArray(intake.items) || typeof intake.subtotal !== "number") {
+        setOrderError(intake.error || "Impossible de confirmer le prix. Réessayez.");
+        setLoading(false);
+        return;
+      }
+      goodsTotal = intake.subtotal;
+      priced = intake.items;
+    } catch {
+      setOrderError("Impossible de confirmer le prix. Réessayez.");
+      setLoading(false);
+      return;
+    }
+
+    const fee = collectionFee(goodsTotal, selectedOp ?? "");
+    const payTotal = goodsTotal + fee;
     const opLabel = opConfig.label;
-    track("cart_checkout", { items: items.length, total, operator: opLabel });
+    track("cart_checkout", { items: items.length, total: goodsTotal, operator: opLabel });
     const orderId = makeId();
 
     void supabase.from("orders").insert({
@@ -243,24 +291,25 @@ export default function CartPage() {
         clientPhone,
         paymentMethod: opLabel,
         sourceUrl: `${window.location.origin}/cart`,
-        items: items.map(i => ({
-          name: i.cardName,
-          qty: i.qty,
-          price: cartUnitPrice(i),
-          amount: i.amount,
-          details: i.details,
-        })),
+        items: priced,
         total: payTotal,
         commission: fee > 0 ? fee : undefined,
         commissionLabel: fee > 0 ? collectionFeeLabel(selectedOp ?? "") : undefined,
       }),
     }).catch(err => console.error("[cart-wa] notify:", err));
 
-    const waUrl = `https://wa.me/${CONTACT.whatsapp}?text=${encodeURIComponent(buildMsgPlain(opLabel, orderId))}`;
+    const waLines = priced.map((i) => (
+      `• ${i.name} — ${i.amount} × ${i.qty} = ${(i.price * i.qty).toLocaleString("fr-FR")} FCFA${i.isPromo ? " (promotion)" : ""}`
+    )).join("\n\n");
+    const feeLine = fee > 0
+      ? `\n${collectionFeeLabel(selectedOp ?? "")} : ${fee.toLocaleString("fr-FR")} FCFA\nTotal à payer : ${payTotal.toLocaleString("fr-FR")} FCFA`
+      : `\nTotal : ${payTotal.toLocaleString("fr-FR")} FCFA`;
+    const waText = `Je souhaite :\nRéf commande : #${orderId.slice(-8).toUpperCase()}\n${waLines}${feeLine}\nPaiement : ${opLabel}${payLine ? `\n${payLine}` : ""}\n\nTél : ${clientPhone}${referral ? `\nCode parrainage : ${referral.toUpperCase()}` : ""}`;
+    const waUrl = `https://wa.me/${CONTACT.whatsapp}?text=${encodeURIComponent(waText)}`;
     window.open(waUrl, "_blank", "noopener,noreferrer");
 
     saveClientInfo({ name: name || "Client", email, phone });
-    saveLastOrder(orderId, email, total);
+    saveLastOrder(orderId, email, goodsTotal);
     clearCart();
     setDone(orderId);
     setLoading(false);
@@ -345,6 +394,9 @@ export default function CartPage() {
               <div className="flex-1 min-w-0">
                 <p className="font-black text-white text-sm truncate">{item.cardName}</p>
                 <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>{item.amount}</p>
+                {item.isPromo && cartUnitPrice(item) < item.price && (
+                  <p className="text-[10px] font-bold mt-1" style={{ color: "var(--gold)" }}>Article en promotion</p>
+                )}
                 {item.type === "sell" && (
                   <span className="inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: "#26A17B22", color: "#26A17B" }}>
                     Vente
@@ -372,6 +424,11 @@ export default function CartPage() {
               </div>
 
               <div className="text-right shrink-0">
+                {item.isPromo && cartUnitPrice(item) < item.price && (
+                  <p className="text-[10px] line-through tabular-nums" style={{ color: "var(--text-muted)" }}>
+                    {(item.price * item.qty).toLocaleString("fr-FR")} F
+                  </p>
+                )}
                 <p className="font-black tabular-nums" style={{ color: "var(--gold)" }}>
                   {(cartUnitPrice(item) * item.qty).toLocaleString("fr-FR")} F
                 </p>
@@ -530,6 +587,12 @@ export default function CartPage() {
           )}
 
           {/* ── Étape 2 : instructions USSD ── */}
+          {orderError && (
+            <p className="rounded-xl px-3 py-2 text-xs font-bold text-red-300" style={{ background: "rgba(239,68,68,0.12)" }}>
+              {orderError}
+            </p>
+          )}
+
           {!isSell && payStep === "ussd" && opConfig && (
             <div className="rounded-2xl p-5" style={{ background: "var(--bg-elevated)", border: `2px solid ${opConfig.color}55` }}>
               <div className="flex items-center gap-3 mb-4">

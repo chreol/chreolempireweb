@@ -3,6 +3,7 @@ export const runtime = "edge";
 import { isAuthorizedInternal, unauthorized } from "@/lib/internalAuth";
 import { normalizeOrderPhone, toWhatsAppNumber } from "@/lib/cmPhone";
 import { CONTACT, ORANGE_MONEY_COMMERCE, MTN_MONEY, collectionFee } from "@/lib/services";
+import { authoritativeUnitPrice } from "@/config/promoConfig";
 
 /** Base absolue des images utilisées dans les emails (les clients mail n'acceptent pas les chemins relatifs). */
 const EMAIL_ASSET_BASE = "https://shop.chreolempire.com";
@@ -56,6 +57,8 @@ export interface NotifyItem {
   price: number;
   amount: string;
   details?: string;
+  isPromo?: boolean;
+  productId?: string;
 }
 
 export interface NotifyPayload {
@@ -115,25 +118,30 @@ function publicSourceUrl(raw: string | undefined): string | undefined {
 
 function pricedTotal(p: NotifyPayload): NotifyPayload {
   if (p.flow === "sell") return p;
-  const base = p.items.reduce((sum, item) => {
-    const price = Math.round(Number(item.price) || 0);
-    const qty = Math.max(1, Math.round(Number(item.qty) || 1));
-    return sum + price * qty;
-  }, 0);
-  if (base <= 0) return p;
+  const items = p.items.map((item) => ({
+    ...item,
+    qty: Math.max(1, Math.round(Number(item.qty) || 1)),
+    price: authoritativeUnitPrice(item),
+  }));
+  const repriced = items.some((item, index) => item.price !== Math.round(Number(p.items[index]?.price) || 0));
+  const base = items.reduce((sum, item) => sum + item.price * item.qty, 0);
+  if (base <= 0) return repriced ? { ...p, items } : p;
   const method = p.paymentMethod.toLowerCase();
   const operator = method.includes("mtn") ? "mtn" : method.includes("orange") ? "orange" : null;
   const fee = operator ? collectionFee(base, operator) : 0;
-  if (!operator || fee <= 0) return p;
+  if (!operator || fee <= 0) return repriced ? { ...p, items, total: base } : p;
   const label = operator === "mtn" ? "frais de retrait MTN (1,5%)" : "frais Orange Money (1%)";
   const posted = Math.round(Number(p.total) || 0);
   // Le client a envoyé le prix catalogue : le serveur ajoute les frais opérateur.
   if (posted === base) {
-    return { ...p, total: base + fee, commission: fee, commissionLabel: label };
+    return { ...p, items, total: base + fee, commission: fee, commissionLabel: label };
   }
   // Le total inclut déjà exactement ces frais : on aligne le libellé.
   if (posted === base + fee && (!p.commission || p.commission === fee)) {
-    return { ...p, total: posted, commission: fee, commissionLabel: label };
+    return { ...p, items, total: posted, commission: fee, commissionLabel: label };
+  }
+  if (repriced) {
+    return { ...p, items, total: base + fee, commission: fee, commissionLabel: label };
   }
   return p;
 }

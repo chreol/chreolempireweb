@@ -12,8 +12,12 @@ export interface CartItem {
   qty: number;
   type?: "buy" | "sell";
   details?: string;
-  /** Id catalogue (psn, itunes…). Le prix stocké reste le tarif plein. */
+  /** Id catalogue (psn, itunes…). Présent seulement pour une ligne promo. */
   productId?: string;
+  /** true uniquement si l'article a été ajouté depuis /promo. */
+  isPromo?: boolean;
+  /** Prix réduit calculé à l'ajout. Le total affiché est recalculé, pas lu tel quel. */
+  promoPrice?: number;
 }
 
 interface CartCtx {
