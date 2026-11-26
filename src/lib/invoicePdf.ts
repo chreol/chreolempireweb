@@ -1,4 +1,5 @@
 import { readFile } from "fs/promises";
+import { readFileSync } from "fs";
 import path from "path";
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf-lib";
 import { COMPANY } from "@/lib/companyInfo";
@@ -28,14 +29,18 @@ const BLUE = rgb(0.12, 0.35, 0.72);
 const WHITE = rgb(1, 1, 1);
 
 function money(n: number): string {
-  const safe = Number.isFinite(n) ? n : 0;
-  return `${Math.round(safe).toLocaleString("fr-FR")} FCFA`;
+  const safe = Math.round(Number.isFinite(n) ? n : 0);
+  const grouped = Math.abs(safe).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+  return `${safe < 0 ? "-" : ""}${grouped} FCFA`;
 }
 
+/** Helvetica (WinAnsi) refuse les accents et l'espace fine de toLocaleString("fr-FR"). */
 function clip(text: string, max: number): string {
   const clean = text
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
     .replace(/[–—]/g, "-")
-    .replace(/[^\x20-\x7E\xA0-\xFF]/g, "")
+    .replace(/[^\x20-\x7E]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
   return clean.length > max ? `${clean.slice(0, Math.max(0, max - 3))}...` : clean;
@@ -126,7 +131,19 @@ export async function buildInvoicePdf(data: InvoiceData): Promise<Uint8Array> {
   page.drawText("TOTAL", { x: 342, y: y, size: 11, font: bold, color: GOLD });
   page.drawText(money(data.total), { x: 430, y: y, size: 11, font: bold, color: WHITE });
 
-  drawSeal(page, font, bold, 110, 118);
+  let stamped = false;
+  try {
+    const seal = readFileSync(path.join(process.cwd(), "public", "Cachet", "Cachet CHREOL EMPIRE SARL.png"));
+    const image = await doc.embedPng(seal);
+    page.drawImage(image, { x: 36, y: 46, width: 132, height: 132 });
+    stamped = true;
+  } catch (err) {
+    const code = err && typeof err === "object" && "code" in err ? String((err as { code: unknown }).code) : "";
+    if (code !== "ENOENT") {
+      console.error("[invoice-pdf] cachet non charge, facture sans cachet", err);
+    }
+  }
+  if (!stamped) drawSeal(page, font, bold, 110, 118);
   page.drawText("Merci de votre confiance", { x: 190, y: 108, size: 12, font: bold, color: BLACK });
   page.drawText(COMPANY.name, { x: 190, y: 90, size: 8, font, color: MUTED });
 
