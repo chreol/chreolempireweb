@@ -5,6 +5,7 @@ import Image from "next/image";
 import { track } from "@vercel/analytics";
 import { useCart } from "@/contexts/CartContext";
 import { GIFT_CARDS, IMAGES, paymentQuote } from "@/lib/services";
+import { applyGiftPromo } from "@/config/promoConfig";
 import USSDOrderFlow from "@/components/USSDOrderFlow";
 import PaymentMethodSelector, { resolvePaymentMethod, PAYMENT_LABELS } from "@/components/PaymentMethodSelector";
 import Link from "next/link";
@@ -145,7 +146,8 @@ export default function CartesCadeauxPage() {
 
   function sendNotification() {
     if (!card) return;
-    const finalPrice = customPrice ?? amount?.price ?? 0;
+    const basePrice = customPrice ?? amount?.price ?? 0;
+    const finalPrice = applyGiftPromo(card.id, basePrice);
     const finalLabel = customPrice ? `${customVal}€ (personnalisé)` : amountLabel ?? "";
     const clientPhone = composePhone(dial, localPhone);
     if (!clientPhone || !payOp || !PAYMENT_LABELS[payOp]) return;
@@ -168,10 +170,16 @@ export default function CartesCadeauxPage() {
 
   function handleAddToCart() {
     if (!card) return;
-    const finalPrice = customPrice ?? amount?.price;
+    const basePrice = customPrice ?? amount?.price;
     const finalLabel = customPrice ? `${customVal}€ (personnalisé)` : amountLabel!;
-    if (!finalPrice) return;
-    addItem({ id: `${card.id}-${finalLabel}-${region}`, cardName: `${card.name} [${region}]`, amount: finalLabel, price: finalPrice });
+    if (!basePrice) return;
+    addItem({
+      id: `${card.id}-${finalLabel}-${region}`,
+      cardName: `${card.name} [${region}]`,
+      amount: finalLabel,
+      price: basePrice,
+      productId: card.id,
+    });
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
   }
@@ -179,7 +187,7 @@ export default function CartesCadeauxPage() {
   function buildMsgPlain() {
     if (!card) return "";
     const finalLabel = customPrice ? `${customVal}€ (personnalisé)` : amountLabel ?? "";
-    const base = customPrice ?? amount?.price ?? 0;
+    const base = applyGiftPromo(card.id, customPrice ?? amount?.price ?? 0);
     const finalPrice = base.toLocaleString("fr-FR");
     const quote = paymentQuote(base, payOp);
     const ref = orderIdRef.current ? ` — Réf #${orderIdRef.current.slice(-8).toUpperCase()}` : "";
@@ -294,14 +302,24 @@ export default function CartesCadeauxPage() {
                     }}
                   >
                     <p className="text-xs font-black" style={{ color: amountLabel === a.label ? "#0A0A0A" : "white" }}>{a.label}</p>
-                    {a.previousPrice && a.previousPrice !== a.price && (
-                      <p className="text-[9px] mt-0.5 line-through" style={{ color: amountLabel === a.label ? "#0A0A0A99" : "var(--text-muted)" }}>
-                        {a.previousPrice.toLocaleString("fr-FR")} F
-                      </p>
-                    )}
-                    <p className="text-[10px] font-black" style={{ color: amountLabel === a.label ? "#0A0A0A" : "#25D366" }}>
-                      {a.previousPrice && a.previousPrice > a.price ? "🔥" : "🚀"} {a.price.toLocaleString("fr-FR")} F
-                    </p>
+                    {(() => {
+                      const sale = card ? applyGiftPromo(card.id, a.price) : a.price;
+                      const onPromo = sale !== a.price;
+                      const struck = onPromo ? a.price : a.previousPrice;
+                      const showStruck = struck !== undefined && struck !== sale;
+                      return (
+                        <>
+                          {showStruck && (
+                            <p className="text-[9px] mt-0.5 line-through" style={{ color: amountLabel === a.label ? "#0A0A0A99" : "var(--text-muted)" }}>
+                              {struck.toLocaleString("fr-FR")} F
+                            </p>
+                          )}
+                          <p className="text-[10px] font-black" style={{ color: amountLabel === a.label ? "#0A0A0A" : "#25D366" }}>
+                            {onPromo ? "🔥" : "🚀"} {sale.toLocaleString("fr-FR")} F
+                          </p>
+                        </>
+                      );
+                    })()}
                   </button>
                 ))}
               </div>

@@ -2,9 +2,11 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { track } from "@vercel/analytics";
 import { PROMOS, type Promo } from "@/lib/promos";
-import { CONTACT } from "@/lib/services";
+import { CONTACT, GIFT_CARDS } from "@/lib/services";
+import { GIFT_PROMOS, PROMO_END_DATE, applyGiftPromo, isPromoActive } from "@/config/promoConfig";
 
 // ── Countdown hook ────────────────────────────────────────────────────────
 function useCountdown(target: string | null): string {
@@ -31,8 +33,19 @@ function useCountdown(target: string | null): string {
   return display;
 }
 
+function formatPromoCountdown(end: Date, now = Date.now()): string {
+  const diff = end.getTime() - now;
+  if (diff <= 0) return "Expiré";
+  const d = Math.floor(diff / 86_400_000);
+  const h = Math.floor((diff % 86_400_000) / 3_600_000);
+  const m = Math.floor((diff % 3_600_000) / 60_000);
+  const s = Math.floor((diff % 60_000) / 1_000);
+  const clock = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  return d > 0 ? `${d}j ${clock}` : clock;
+}
+
 // ── Promo card ────────────────────────────────────────────────────────────
-function PromoCard({ promo }: { promo: Promo }) {
+function PromoCard({ promo, campaignLive }: { promo: Promo; campaignLive: boolean }) {
   const countdown = useCountdown(promo.expiresAt);
   const expired   = countdown === "Expiré";
   const hasTimer  = promo.expiresAt !== null;
@@ -86,18 +99,22 @@ function PromoCard({ promo }: { promo: Promo }) {
             <span className="text-2xl font-black" style={{ color: promo.badgeColor }}>
               {promo.promoPrice.toLocaleString("fr-FR")} {promo.currency}/unité
             </span>
-            <span className="text-xs ml-2 line-through" style={{ color: "var(--text-muted)" }}>
-              {promo.originalPrice.toLocaleString("fr-FR")} {promo.currency} habituellement
-            </span>
+            {campaignLive && (
+              <span className="text-xs ml-2 line-through" style={{ color: "var(--text-muted)" }}>
+                {promo.originalPrice.toLocaleString("fr-FR")} {promo.currency} habituellement
+              </span>
+            )}
           </div>
         ) : (
           <div className="flex items-baseline gap-3 mb-4">
             <span className="text-2xl font-black" style={{ color: "var(--gold)" }}>
               {promo.promoPrice.toLocaleString("fr-FR")} {promo.currency}
             </span>
-            <span className="text-sm line-through" style={{ color: "var(--text-muted)" }}>
-              {promo.originalPrice.toLocaleString("fr-FR")}
-            </span>
+            {campaignLive && (
+              <span className="text-sm line-through" style={{ color: "var(--text-muted)" }}>
+                {promo.originalPrice.toLocaleString("fr-FR")}
+              </span>
+            )}
             <span className="text-xs font-black px-2 py-0.5 rounded-full"
               style={{ background: "#10B981", color: "white" }}>
               -{promo.discountPct}%
@@ -130,7 +147,7 @@ function PromoCard({ promo }: { promo: Promo }) {
         )}
 
         {/* CTA */}
-        {!expired && !isSoldOut ? (
+        {campaignLive && !expired && !isSoldOut ? (
           <div className="flex flex-col gap-2">
             <a
               href={`https://wa.me/${CONTACT.whatsapp}?text=${encodeURIComponent(promo.whatsappPrefill)}`}
@@ -169,6 +186,20 @@ function PromoCard({ promo }: { promo: Promo }) {
 
 // ── Page ──────────────────────────────────────────────────────────────────
 export default function PromoPage() {
+  const [campaignLive, setCampaignLive] = useState(isPromoActive);
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const tick = () => {
+      const current = Date.now();
+      setNow(current);
+      setCampaignLive(isPromoActive(current));
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, []);
+
   useEffect(() => {
     track("promo_page_view", { active_count: PROMOS.filter(p => p.expiresAt && new Date(p.expiresAt) > new Date()).length });
   }, []);
@@ -189,6 +220,13 @@ export default function PromoPage() {
         <span style={{ color: "var(--gold)" }}>Offres spéciales</span>
       </div>
 
+      {!campaignLive && (
+        <p className="mb-6 rounded-2xl px-4 py-3 text-sm font-black text-red-300"
+          style={{ background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.35)" }}>
+          Offre terminée
+        </p>
+      )}
+
       {/* Header */}
       <div className="mb-8">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-black mb-3"
@@ -205,10 +243,68 @@ export default function PromoPage() {
         </p>
       </div>
 
+      {campaignLive && (
+        <div className="mb-12">
+          <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+            <h2 className="text-xl font-black text-white">Cartes cadeaux en promotion</h2>
+            <p className="text-sm font-black tabular-nums" style={{ color: "var(--gold)" }}>
+              ⏱ {formatPromoCountdown(PROMO_END_DATE, now)}
+            </p>
+          </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            {GIFT_PROMOS.map((offer) => {
+              const card = GIFT_CARDS.find((item) => item.id === offer.id);
+              if (!card) return null;
+              const base = card.amounts.find((amount) => amount.label === "20€") ?? card.amounts[0];
+              const reduced = applyGiftPromo(card.id, base.price);
+              const tab = card.tier === "itunes" ? "itunes" : "standard";
+              const href = `/services/cartes-cadeaux?tab=${tab}&card=${card.id}&amount=${encodeURIComponent(base.label)}&region=EU`;
+              return (
+                <Link
+                  key={offer.id}
+                  href={href}
+                  className="overflow-hidden rounded-2xl transition-[transform,opacity] duration-200 ease-out hover:-translate-y-0.5"
+                  style={{ background: "var(--bg-card)", border: "1px solid var(--border-strong)" }}
+                >
+                  <div className="relative h-36">
+                    <Image
+                      src={card.image}
+                      alt={card.name}
+                      fill
+                      sizes="(max-width: 640px) 100vw, 320px"
+                      className="object-cover outline outline-1 -outline-offset-1 outline-white/10"
+                      unoptimized
+                    />
+                    <span className="absolute left-3 top-3 rounded-full px-2.5 py-1 text-[11px] font-black" style={{ background: "var(--gold)", color: "#0A0A0A" }}>
+                      🔥 PROMO
+                    </span>
+                    <span className="absolute right-3 top-3 rounded-full bg-black/70 px-2 py-1 text-[11px] font-black text-white">
+                      {offer.label}
+                    </span>
+                  </div>
+                  <div className="p-4">
+                    <h3 className="font-black text-white">{card.name}</h3>
+                    <p className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>{base.label} · Europe</p>
+                    <p className="mt-3 flex items-baseline gap-2">
+                      <del className="text-sm" style={{ color: "var(--text-muted)" }}>
+                        {base.price.toLocaleString("fr-FR")} FCFA
+                      </del>
+                      <span className="text-xl font-black tabular-nums" style={{ color: "var(--gold)" }}>
+                        {reduced.toLocaleString("fr-FR")} FCFA
+                      </span>
+                    </p>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Active promos */}
       {activePromos.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-12">
-          {activePromos.map(p => <PromoCard key={p.id} promo={p} />)}
+          {activePromos.map(p => <PromoCard key={p.id} promo={p} campaignLive={campaignLive} />)}
         </div>
       ) : (
         <div className="rounded-2xl p-10 text-center mb-12"
@@ -234,7 +330,7 @@ export default function PromoPage() {
             Offres terminées
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {pastPromos.map(p => <PromoCard key={p.id} promo={p} />)}
+            {pastPromos.map(p => <PromoCard key={p.id} promo={p} campaignLive={campaignLive} />)}
           </div>
         </div>
       )}

@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from "react";
 import { track } from "@vercel/analytics";
+import { cartUnitPrice } from "@/config/promoConfig";
 
 export interface CartItem {
   id: string;
@@ -11,6 +12,8 @@ export interface CartItem {
   qty: number;
   type?: "buy" | "sell";
   details?: string;
+  /** Id catalogue (psn, itunes…). Le prix stocké reste le tarif plein. */
+  productId?: string;
 }
 
 interface CartCtx {
@@ -71,7 +74,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const count = items.reduce((s, i) => s + i.qty, 0);
-  const total = items.reduce((s, i) => s + i.price * i.qty, 0);
+  const total = items.reduce((s, i) => s + cartUnitPrice(i) * i.qty, 0);
 
   return (
     <Ctx.Provider value={{ items, count, total, addItem, removeItem, adjustQty, clearCart }}>

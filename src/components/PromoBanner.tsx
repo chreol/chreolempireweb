@@ -3,51 +3,51 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { PROMOS } from "@/lib/promos";
+import { PROMO_END_DATE, isPromoActive } from "@/config/promoConfig";
 
 const DISMISS_KEY = "promo_banner_dismissed";
-
-function findActivePrimary() {
-  const now = Date.now();
-  return PROMOS.find(p => {
-    const expired = p.expiresAt ? new Date(p.expiresAt).getTime() < now : false;
-    const soldOut = p.remaining !== null && p.remaining === 0;
-    return !expired && !soldOut && p.expiresAt !== null;
-  }) ?? null;
-}
 
 export default function PromoBanner() {
   const [visible, setVisible] = useState(false);
   const [countdown, setCountdown] = useState("");
 
-  const promo = findActivePrimary();
+  const promo = PROMOS.find(p => {
+    const expired = p.expiresAt ? new Date(p.expiresAt).getTime() < Date.now() : false;
+    const soldOut = p.remaining !== null && p.remaining === 0;
+    return !expired && !soldOut;
+  }) ?? PROMOS[0] ?? null;
 
   const calcCountdown = useCallback(() => {
-    if (!promo?.expiresAt) return "";
-    const diff = new Date(promo.expiresAt).getTime() - Date.now();
-    if (diff <= 0) { setVisible(false); return ""; }
-    const h = Math.floor(diff / 3_600_000);
+    const diff = PROMO_END_DATE.getTime() - Date.now();
+    if (diff <= 0) {
+      setVisible(false);
+      return "";
+    }
+    const d = Math.floor(diff / 86_400_000);
+    const h = Math.floor((diff % 86_400_000) / 3_600_000);
     const m = Math.floor((diff % 3_600_000) / 60_000);
     const s = Math.floor((diff % 60_000) / 1_000);
-    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-  }, [promo]);
+    const clock = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+    return d > 0 ? `${d}j ${clock}` : clock;
+  }, []);
 
   useEffect(() => {
-    if (!promo) return;
+    if (!isPromoActive()) return;
     const dismissed = sessionStorage.getItem(DISMISS_KEY);
-    if (dismissed === promo.id) return;
+    if (dismissed === "campaign") return;
     // eslint-disable-next-line react-hooks/set-state-in-effect -- affichage différé après lecture de sessionStorage
     setVisible(true);
     setCountdown(calcCountdown());
     const id = setInterval(() => setCountdown(calcCountdown()), 1000);
     return () => clearInterval(id);
-  }, [promo, calcCountdown]);
+  }, [calcCountdown]);
 
   function dismiss() {
-    if (promo) sessionStorage.setItem(DISMISS_KEY, promo.id);
+    sessionStorage.setItem(DISMISS_KEY, "campaign");
     setVisible(false);
   }
 
-  if (!visible || !promo) return null;
+  if (!visible || !promo || !isPromoActive()) return null;
 
   return (
     <div
@@ -65,8 +65,9 @@ export default function PromoBanner() {
           </span>
         )}
         <Link href="/promo"
-          className="underline underline-offset-2 whitespace-nowrap transition-opacity hover:opacity-75">
-          Voir l&apos;offre →
+          className="shrink-0 rounded-full px-3 py-1 text-[11px] font-black whitespace-nowrap transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
+          style={{ background: "#0A0A0A", color: "#FFFFFF" }}>
+          Voir la promo
         </Link>
       </div>
       <button

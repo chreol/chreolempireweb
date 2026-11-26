@@ -15,6 +15,7 @@ import { composePhone, phoneFieldError, splitPhone } from "@/lib/cmPhone";
 import PhoneFields from "@/components/PhoneFields";
 import IwopayDebitForm from "@/components/IwopayDebitForm";
 import PayInstruction from "@/components/PayInstruction";
+import { cartUnitPrice } from "@/config/promoConfig";
 
 const OPERATORS = [
   {
@@ -140,9 +141,9 @@ export default function CartPage() {
   function buildMsgPlain(opLabel?: string, orderId?: string) {
     const lines = items.map(i => {
       if (i.details) {
-        return `• ${i.cardName}\n  ${i.details}\n  Montant : ${(i.price * i.qty).toLocaleString("fr-FR")} FCFA`;
+        return `• ${i.cardName}\n  ${i.details}\n  Montant : ${(cartUnitPrice(i) * i.qty).toLocaleString("fr-FR")} FCFA`;
       }
-      return `• ${i.cardName} — ${i.amount} × ${i.qty} = ${(i.price * i.qty).toLocaleString("fr-FR")} FCFA`;
+      return `• ${i.cardName} — ${i.amount} × ${i.qty} = ${(cartUnitPrice(i) * i.qty).toLocaleString("fr-FR")} FCFA`;
     }).join("\n\n");
     const fee = collectionFee(total, selectedOp ?? "");
     const payTotal = total + fee;
@@ -245,7 +246,7 @@ export default function CartPage() {
         items: items.map(i => ({
           name: i.cardName,
           qty: i.qty,
-          price: i.price,
+          price: cartUnitPrice(i),
           amount: i.amount,
           details: i.details,
         })),
@@ -372,7 +373,7 @@ export default function CartPage() {
 
               <div className="text-right shrink-0">
                 <p className="font-black tabular-nums" style={{ color: "var(--gold)" }}>
-                  {(item.price * item.qty).toLocaleString("fr-FR")} F
+                  {(cartUnitPrice(item) * item.qty).toLocaleString("fr-FR")} F
                 </p>
                 <button
                   onClick={() => removeItem(item.id)}
