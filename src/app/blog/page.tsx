@@ -3,6 +3,68 @@ import Link from "next/link";
 import Image from "next/image";
 import { POSTS } from "@/lib/blog";
 
+const FEATURED = [
+  {
+    slug: "recharge-uba-cameroun",
+    title: "Comment recharger sa carte prépayée UBA Cameroun en FCFA ?",
+    description: "Découvrez comment recharger votre carte UBA Cameroun facilement avec MTN Mobile Money ou Orange Money. Service rapide et sécurisé chez CHREOL EMPIRE.",
+    date: "26 novembre 2026",
+    dateISO: "2026-11-26",
+    readTime: 3,
+    category: "UBA",
+    emoji: "💳",
+    image: "/assets/Carte UBA Cameroun pour RECHARGE.webp",
+  },
+  {
+    slug: "acheter-usdt-crypto-mobile-money",
+    title: "Acheter ou vendre des USDT (Crypto) au Cameroun via MTN et Orange",
+    description: "Vous cherchez à acheter du USDT ou du Bitcoin au Cameroun en FCFA ? Découvrez comment faire vos transactions crypto en toute sécurité avec CHREOL EMPIRE.",
+    date: "26 novembre 2026",
+    dateISO: "2026-11-26",
+    readTime: 4,
+    category: "Crypto",
+    emoji: "₿",
+    image: "/assets/Cryptomonnaies-visuel.webp",
+  },
+  {
+    slug: "acheter-solde-paypal-cameroun",
+    title: "Comment acheter du solde PayPal au Cameroun en toute sécurité ?",
+    description: "Freelance ou e-commerçant ? Découvrez comment acheter du solde PayPal au Cameroun avec vos Mobile Money. Service d'assistance sécurisé par CHREOL EMPIRE.",
+    date: "26 novembre 2026",
+    dateISO: "2026-11-26",
+    readTime: 3,
+    category: "PayPal",
+    emoji: "💸",
+    image: "/assets/Achat_VentePaypal.webp",
+  },
+  {
+    slug: "payer-netflix-cameroun-sans-carte",
+    title: "Comment payer Netflix, Spotify ou Amazon au Cameroun sans carte Visa ?",
+    description: "Plus besoin de carte bancaire internationale ! Payez vos abonnements Netflix, Spotify et vos achats Amazon avec nos cartes cadeaux en FCFA. Livraison rapide à Yaoundé et Douala.",
+    date: "26 novembre 2026",
+    dateISO: "2026-11-26",
+    readTime: 3,
+    category: "Cartes Cadeaux",
+    emoji: "🎬",
+    image: "/assets/itunes-gifts-for-business-hero_2x.webp",
+  },
+] as const;
+
+const BLOG_CARDS = [
+  ...FEATURED,
+  ...POSTS.map((post) => ({
+    slug: post.slug,
+    title: post.title,
+    description: post.description,
+    date: post.date,
+    dateISO: post.dateISO,
+    readTime: post.readTime,
+    category: post.category,
+    emoji: post.emoji,
+    image: post.image,
+  })),
+];
+
 export const metadata: Metadata = {
   title: { absolute: "Blog — Guides Cartes Cadeaux & Crypto au Cameroun | Chreol Empire" },
   description: "Guides pratiques pour acheter des cartes cadeaux (PSN, Roblox, V-Bucks) et échanger vos cryptomonnaies contre FCFA au Cameroun. Paiement MTN MoMo & Orange Money.",
@@ -20,7 +82,7 @@ const BLOG_LIST_SCHEMA = {
   name: "Blog Chreol Empire",
   description: "Guides pratiques sur les cartes cadeaux et cryptomonnaies au Cameroun",
   url: "https://shop.chreolempire.com/blog",
-  blogPost: POSTS.map(p => ({
+  blogPost: BLOG_CARDS.map(p => ({
     "@type": "BlogPosting",
     headline: p.title,
     description: p.description,
@@ -48,7 +110,7 @@ export default function BlogPage() {
       </p>
 
       <div className="flex flex-col gap-5">
-        {POSTS.map(post => (
+        {BLOG_CARDS.map(post => (
           <Link
             key={post.slug}
             href={`/blog/${post.slug}`}
@@ -72,9 +134,12 @@ export default function BlogPage() {
                 <h2 className="text-base font-black text-white mb-1 group-hover:text-[var(--gold)] transition-colors leading-snug">
                   {post.title}
                 </h2>
-                <p className="text-xs line-clamp-2" style={{ color: "var(--text-secondary)" }}>
+                <p className="text-xs line-clamp-2 leading-relaxed" style={{ color: "var(--text-secondary)" }}>
                   {post.description}
                 </p>
+                <span className="mt-2 inline-block text-xs font-black" style={{ color: "var(--gold)" }}>
+                  Lire la suite →
+                </span>
               </div>
               <span className="shrink-0 text-2xl mt-1 transition-transform group-hover:translate-x-1" style={{ color: "var(--gold)" }}>{post.emoji}</span>
             </div>

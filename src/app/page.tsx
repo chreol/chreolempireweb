@@ -6,6 +6,7 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { IMAGES, SOCIAL_LINKS, SERVICE_STOCK } from "@/lib/services";
 import WAPopover from "@/components/WAPopover";
+import ServiceFanHero from "@/components/ServiceFanHero";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const SERVICE_DATA = [
@@ -23,13 +24,6 @@ const STEPS_DATA = [
   { n: "2", tk: "step.2" },
   { n: "3", tk: "step.3" },
   { n: "4", tk: "step.4" },
-];
-
-const STAT_DATA = [
-  { value: "500+",   lk: "hero.stat.clients" },
-  { value: "0%",     lk: "hero.stat.commission" },
-  { value: "15 min", lk: "hero.stat.delay" },
-  { value: "7j/7",   lk: "hero.stat.support" },
 ];
 
 const AVIS = [
@@ -150,117 +144,11 @@ export default function HomePage() {
     title: t(`${s.tk}.title`),
     desc:  t(`${s.tk}.desc`),
   }));
-  const STATS = STAT_DATA.map(s => ({ ...s, label: t(s.lk) }));
 
   return (
     <div className="overflow-x-hidden">
 
-      {/* ── HERO ── */}
-      <section className="relative min-h-[92vh] flex items-center">
-        {/* Background photo — boutique Chreol Empire */}
-        <div className="absolute inset-0 overflow-hidden">
-          <Image src={IMAGES.boutique} alt="" fill style={{ objectFit: "cover", objectPosition: "center 30%" }} unoptimized priority />
-          <div className="absolute inset-0" style={{ background: "rgba(10,10,10,0.78)" }} />
-          <div className="absolute inset-0" style={{ background: "linear-gradient(to right, rgba(10,10,10,0.55) 0%, rgba(10,10,10,0.1) 60%, rgba(10,10,10,0.45) 100%)" }} />
-        </div>
-        {/* Glow accents */}
-        <div className="absolute -top-64 -right-64 w-[800px] h-[800px] rounded-full pointer-events-none"
-          style={{ background: "var(--gold)", opacity: 0.06, filter: "blur(120px)" }} />
-        <div className="absolute -bottom-48 -left-48 w-[600px] h-[600px] rounded-full pointer-events-none"
-          style={{ background: "#25D366", opacity: 0.045, filter: "blur(100px)" }} />
-
-        <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-16 lg:py-0">
-          <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
-
-            {/* Left — Text */}
-            <div className="flex-1 text-center lg:text-left">
-              <span suppressHydrationWarning className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-black mb-8"
-                style={{ background: "var(--gold)", color: "#0A0A0A" }}>
-                {t("hero.badge")}
-              </span>
-
-              <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black leading-[1.05] tracking-tight mb-6 text-white">
-                <span
-                  className="flex items-center gap-2 mb-3 text-sm sm:text-base font-black tracking-[0.18em] uppercase"
-                  style={{ color: "var(--gold)", fontSize: "clamp(11px, 1.4vw, 16px)", opacity: 0.95 }}
-                >
-                  <span className="px-2.5 py-1 rounded-lg text-[11px] font-black shrink-0"
-                    style={{ background: "var(--gold)", color: "#0A0A0A", letterSpacing: "0.1em" }}>
-                    💳 UBA
-                  </span>
-                  {t("u.buy_unavailable_title")}
-                </span>
-                {t("hero.h1.1")}<br />
-                <span style={{ color: "var(--gold)" }}>&amp; crypto</span><br />
-                {t("hero.h1.3")}
-              </h1>
-
-              <p className="text-lg sm:text-xl mb-10 max-w-xl mx-auto lg:mx-0" style={{ color: "var(--text-secondary)" }}>
-                {t("hero.subtitle")}
-              </p>
-
-              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                <Link href="/services"
-                  className="flex items-center justify-center px-8 py-4 rounded-2xl font-black text-black text-base transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
-                  style={{ background: "var(--gold)" }}>
-                  {t("hero.cta.catalog")}
-                </Link>
-                <WAPopover
-                  dropDown
-                  align="center"
-                  className="flex items-center justify-center gap-2 px-8 py-4 rounded-2xl font-black text-white text-base transition-[opacity,transform] duration-150 ease-out hover:opacity-85 active:scale-[0.96]"
-                  style={{ background: "#25D366" }}
-                >
-                  <Image src={IMAGES.whatsapp} alt="" width={20} height={20} unoptimized className="shrink-0" />
-                  {t("hero.cta.wa")}
-                </WAPopover>
-              </div>
-
-              {/* Stats inline */}
-              <div className="flex flex-wrap gap-8 mt-12 justify-center lg:justify-start">
-                {STATS.map(s => (
-                  <div key={s.label}>
-                    <p className="text-2xl font-black tabular-nums" style={{ color: "var(--gold)" }}>{s.value}</p>
-                    <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>{s.label}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Right — Image mosaic (clickable) */}
-            <div className="hidden lg:flex flex-col gap-4 shrink-0 w-[440px]">
-              {/* Top wide card */}
-              <Link href="/services/cartes-cadeaux"
-                className="relative h-48 rounded-3xl overflow-hidden block transition-transform duration-300 hover:scale-[1.02]"
-                style={{ boxShadow: "var(--shadow-border)" }}>
-                <Image src={IMAGES.psn} alt="PSN" fill style={{ objectFit: "cover" }}
-                  className="outline outline-1 -outline-offset-1 outline-white/10" unoptimized />
-                <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, rgba(0,55,145,0.6) 0%, transparent 60%)" }} />
-                <span className="absolute bottom-3 left-4 text-sm font-black text-white">PSN · iTunes · Roblox</span>
-              </Link>
-              {/* Bottom 2 cards */}
-              <div className="grid grid-cols-2 gap-4">
-                <Link href="/services/crypto"
-                  className="relative h-36 rounded-3xl overflow-hidden block transition-transform duration-300 hover:scale-[1.02]"
-                  style={{ boxShadow: "var(--shadow-border)" }}>
-                  <Image src={IMAGES.cryptoMomo} alt="Crypto" fill style={{ objectFit: "cover" }}
-                    className="outline outline-1 -outline-offset-1 outline-white/10" unoptimized />
-                  <div className="absolute inset-0" style={{ background: "rgba(38,161,123,0.4)" }} />
-                  <span className="absolute bottom-3 left-3 text-xs font-black text-white">Crypto</span>
-                </Link>
-                <Link href="/services/paypal"
-                  className="relative h-36 rounded-3xl overflow-hidden block transition-transform duration-300 hover:scale-[1.02]"
-                  style={{ boxShadow: "var(--shadow-border)" }}>
-                  <Image src={IMAGES.paypal2} alt="PayPal" fill style={{ objectFit: "cover" }}
-                    className="outline outline-1 -outline-offset-1 outline-white/10" unoptimized />
-                  <div className="absolute inset-0" style={{ background: "rgba(0,48,135,0.4)" }} />
-                  <span className="absolute bottom-3 left-3 text-xs font-black text-white">PayPal</span>
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <ServiceFanHero />
 
       {/* ── SERVICES GRID ── */}
       <section className="px-4 sm:px-6 lg:px-12 pb-24 max-w-7xl mx-auto">

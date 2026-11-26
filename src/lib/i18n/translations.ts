@@ -23,6 +23,18 @@ export const T: TranslationMap = {
   "hero.stat.commission": { fr: "Commission crypto",   en: "Crypto fee" },
   "hero.stat.delay":      { fr: "Délai moyen",         en: "Avg. delivery" },
   "hero.stat.support":    { fr: "Support WhatsApp",    en: "WhatsApp support" },
+  "fan.cartes.name":      { fr: "Cartes Cadeaux", en: "Gift cards" },
+  "fan.cartes.desc":      { fr: "PSN, Roblox, iTunes, Google Play... Livraison rapide.", en: "PSN, Roblox, iTunes, Google Play... Fast delivery." },
+  "fan.crypto.name":      { fr: "Crypto & Change", en: "Crypto & exchange" },
+  "fan.crypto.desc":      { fr: "Achetez et vendez vos USDT, BTC en toute simplicité.", en: "Buy and sell your USDT and BTC with ease." },
+  "fan.paypal.name":      { fr: "PayPal", en: "PayPal" },
+  "fan.paypal.desc":      { fr: "Achat de soldes PayPal et assistance sécurisée.", en: "Buy PayPal balances with secure assistance." },
+  "fan.uba.name":         { fr: "Recharge UBA", en: "UBA top-up" },
+  "fan.uba.desc":         { fr: "Rechargez votre carte prépayée UBA instantanément.", en: "Top up your UBA prepaid card instantly." },
+  "fan.coupons.name":     { fr: "Échange coupons", en: "Coupon exchange" },
+  "fan.coupons.desc":     { fr: "Échangez vos coupons PCS et Transcash en toute sécurité.", en: "Exchange your PCS and Transcash coupons securely." },
+  "fan.transfert.name":   { fr: "Transfert", en: "Transfer" },
+  "fan.transfert.desc":   { fr: "Effectuez vos transferts d'argent rapides et sécurisés.", en: "Make fast, secure money transfers." },
 
   // ── Home sections ──
   "section.services":     { fr: "Nos Services",   en: "Our Services" },

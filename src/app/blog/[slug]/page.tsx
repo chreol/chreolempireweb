@@ -135,7 +135,7 @@ export default async function BlogPostPage({ params }: Props) {
         {post.sections.map((s, i) => renderSection(s, i))}
       </article>
 
-      {/* FAQ */}
+      {post.faq.length > 0 && (
       <div className="mt-10 pt-8" style={{ borderTop: "1px solid var(--border)" }}>
         <h2 className="text-xl font-black text-white mb-5">Questions fréquentes</h2>
         <div className="flex flex-col gap-3">
@@ -153,6 +153,7 @@ export default async function BlogPostPage({ params }: Props) {
           ))}
         </div>
       </div>
+      )}
 
       {/* CTA */}
       <div className="mt-10 rounded-2xl p-6 text-center"
@@ -195,7 +196,9 @@ export default async function BlogPostPage({ params }: Props) {
       </div>
 
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
-      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+      {post.faq.length > 0 && (
+        <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+      )}
     </div>
   );
 }

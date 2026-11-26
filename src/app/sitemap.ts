@@ -32,12 +32,27 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: "/mentions-legales",        priority: 0.3, freq: "yearly"  },
   ];
 
-  const blogRoutes: MetadataRoute.Sitemap = POSTS.map(p => ({
-    url: `${BASE}/blog/${p.slug}`,
-    lastModified: new Date(p.dateISO),
-    changeFrequency: "monthly" as const,
-    priority: ["recharger-compte-apple-cameroun", "acheter-robux-vbucks-cameroun"].includes(p.slug) ? 0.85 : 0.7,
-  }));
+  const featuredBlog = [
+    "recharge-uba-cameroun",
+    "acheter-usdt-crypto-mobile-money",
+    "acheter-solde-paypal-cameroun",
+    "payer-netflix-cameroun-sans-carte",
+  ];
+
+  const blogRoutes: MetadataRoute.Sitemap = [
+    ...featuredBlog.map(slug => ({
+      url: `${BASE}/blog/${slug}`,
+      lastModified: new Date("2026-11-26"),
+      changeFrequency: "monthly" as const,
+      priority: 0.8,
+    })),
+    ...POSTS.map(p => ({
+      url: `${BASE}/blog/${p.slug}`,
+      lastModified: new Date(p.dateISO),
+      changeFrequency: "monthly" as const,
+      priority: ["recharger-compte-apple-cameroun", "acheter-robux-vbucks-cameroun"].includes(p.slug) ? 0.85 : 0.7,
+    })),
+  ];
 
   const programmaticRoutes: MetadataRoute.Sitemap = GIFT_CARDS.flatMap(card =>
     REGION_SLUGS.map(region => ({
