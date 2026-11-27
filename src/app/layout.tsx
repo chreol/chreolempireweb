@@ -16,7 +16,6 @@ import GoogleMerchantWidget from "@/components/GoogleMerchantWidget";
 import WAPopover from "@/components/WAPopover";
 import MobileWACTA from "@/components/MobileWACTA";
 import Image from "next/image";
-import PromoModal from "@/components/PromoModal";
 import { CONTACT, IMAGES, SOCIAL_LINKS } from "@/lib/services";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist-sans" });
@@ -154,7 +153,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           dangerouslySetInnerHTML={{ __html: JSON.stringify(LOCAL_BUSINESS_JSON) }}
         />
         <script dangerouslySetInnerHTML={{ __html: `if ('serviceWorker' in navigator) { window.addEventListener('load', function() { navigator.serviceWorker.register('/sw.js').catch(function() {}); }); }` }} />
-        <PromoModal />
         <Providers>
         <ToastProvider>
         <HistoryProvider>

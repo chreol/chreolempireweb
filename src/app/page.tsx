@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { IMAGES, SOCIAL_LINKS, SERVICE_STOCK } from "@/lib/services";
 import WAPopover from "@/components/WAPopover";
 import ServiceFanHero from "@/components/ServiceFanHero";
+import WelcomeToast from "@/components/WelcomeToast";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const SERVICE_DATA = [
@@ -148,6 +149,7 @@ export default function HomePage() {
   return (
     <div className="overflow-x-hidden">
 
+      <WelcomeToast />
       <ServiceFanHero />
 
       {/* ── SERVICES GRID ── */}

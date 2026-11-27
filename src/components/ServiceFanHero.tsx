@@ -124,7 +124,7 @@ export default function ServiceFanHero() {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:hidden">
+        <div className="grid grid-cols-1 gap-3 min-[480px]:grid-cols-2 sm:gap-4 lg:hidden">
           {FAN.map((service) => (
             <Link
               key={service.id}

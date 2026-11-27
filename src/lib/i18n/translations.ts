@@ -11,6 +11,8 @@ export const T: TranslationMap = {
   "nav.payment":  { fr: "Paiement",   en: "Payment" },
   "nav.history":  { fr: "Historique", en: "History" },
   "nav.about":    { fr: "À propos",   en: "About" },
+  "auth.signin.title":    { fr: "Bienvenue sur CHREOL EMPIRE", en: "Welcome to CHREOL EMPIRE" },
+  "auth.signin.subtitle": { fr: "Connectez-vous pour suivre vos commandes et profiter de nos offres exclusives.", en: "Sign in to track your orders and enjoy our exclusive offers." },
 
   // ── Hero ──
   "hero.badge":       { fr: "Magasin officiel · Cameroun", en: "Official store · Douala, Cameroon" },

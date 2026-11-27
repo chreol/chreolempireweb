@@ -2,7 +2,6 @@ import { getServerSession } from "next-auth";
 import type { NextAuthOptions } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
-import Apple from "next-auth/providers/apple";
 import { SupabaseAdapter } from "@auth/supabase-adapter";
 import { createClient as createSupabaseAdminClient } from "@supabase/supabase-js";
 
@@ -85,10 +84,11 @@ export const authOptions: NextAuthOptions = {
       clientId: process.env.GOOGLE_CLIENT_ID ?? "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
     }),
-    Apple({
-      clientId: process.env.APPLE_CLIENT_ID ?? "",
-      clientSecret: process.env.APPLE_CLIENT_SECRET ?? "",
-    }),
+    // Apple désactivé : aucun client Apple n'est configuré pour la boutique.
+    // Apple({
+    //   clientId: process.env.APPLE_CLIENT_ID ?? "",
+    //   clientSecret: process.env.APPLE_CLIENT_SECRET ?? "",
+    // }),
   ],
   // Page de connexion NextAuth (doit correspondre à la route /signin existante)
   pages: { signIn: "/signin" },

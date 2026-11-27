@@ -89,13 +89,13 @@ export default function Navbar() {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 h-16 flex items-center justify-between gap-4">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 shrink-0">
+        <Link href="/" className="flex min-w-0 items-center gap-2 shrink">
           <div className="chreol-logo-wrap w-9 h-9">
             <span className="chreol-logo-stars" aria-hidden="true"><span>✦</span><span>✦</span></span>
             <Image src={IMAGES.logo} alt="Chreol Empire" fill style={{ objectFit: "contain" }} className="chreol-logo-spin" unoptimized />
           </div>
           <span className="flex flex-col leading-tight">
-            <span className="font-black text-[var(--text-primary)] text-lg whitespace-nowrap">
+            <span className="hidden min-[400px]:inline font-black text-[var(--text-primary)] text-lg whitespace-nowrap">
               Chreol<span style={{ color: "var(--gold)" }}>Empire</span>
             </span>
             <span className="hidden sm:block text-[8px] font-bold uppercase tracking-wide whitespace-nowrap" style={{ color: "var(--text-muted)" }}>
@@ -148,6 +148,14 @@ export default function Navbar() {
               {authMenuOpen && (
                 <div className="absolute right-0 top-full mt-2 w-56 rounded-2xl p-2 z-50" style={{ background: "var(--bg-card)", border: "1px solid var(--border-strong)" }}>
                   <p className="px-3 py-2 text-xs font-black truncate" style={{ color: "var(--text-muted)" }}>{sessionName}</p>
+                  <Link
+                    href="/compte"
+                    onClick={() => setAuthMenuOpen(false)}
+                    className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-bold transition-colors"
+                    style={{ color: "var(--text-secondary)" }}
+                  >
+                    <span>👤</span> Mon Espace Client
+                  </Link>
                   <Link
                     href="/historique"
                     onClick={() => setAuthMenuOpen(false)}
@@ -251,7 +259,7 @@ export default function Navbar() {
       {/* Mobile nav */}
       <div>
         <div
-          className="lg:hidden flex overflow-x-auto gap-1 px-4 pb-3 pt-1 no-scrollbar"
+          className="lg:hidden flex overflow-x-auto gap-2 px-4 pb-3 pt-1 no-scrollbar"
           style={{ borderTop: "1px solid var(--border)" }}
         >
           {visibleNavKeys.map(l => l.href === "/services" ? (
@@ -260,7 +268,7 @@ export default function Navbar() {
               key="services"
               type="button"
               onClick={() => setServicesOpen(v => !v)}
-              className="shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors whitespace-nowrap"
+              className="shrink-0 flex min-h-11 items-center gap-1 px-3 py-2 rounded-full text-xs font-semibold transition-colors whitespace-nowrap"
               style={{
                 color: isServicesActive ? "var(--bg-primary)" : "var(--text-secondary)",
                 background: isServicesActive ? "var(--gold)" : "var(--bg-elevated)",
@@ -273,7 +281,7 @@ export default function Navbar() {
             <Link
               key={l.href}
               href={l.href}
-              className="shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors whitespace-nowrap"
+              className="shrink-0 inline-flex min-h-11 items-center px-3 py-2 rounded-full text-xs font-semibold transition-colors whitespace-nowrap"
               style={{
                 color: pathname === l.href ? "var(--bg-primary)" : "var(--text-secondary)",
                 background: pathname === l.href ? "var(--gold)" : "var(--bg-elevated)",
@@ -283,32 +291,15 @@ export default function Navbar() {
             </Link>
           ))}
           {/* Mobile search + theme + auth */}
-          <div className="shrink-0 flex items-center gap-1 ml-auto">
-            {status !== "loading" && !session && (
-              <Link
-                href="/signin"
-                className="shrink-0 flex items-center px-2.5 py-1 rounded-full"
-                style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)" }}
-                title="Se connecter"
-              >
-                <span className="text-xs font-black" style={{ color: "var(--text-secondary)" }}>👤</span>
-              </Link>
-            )}
-            <button
-              onClick={() => setSearchOpen(true)}
-              className="w-7 h-7 flex items-center justify-center rounded-full text-xs"
-              style={{ background: "var(--bg-elevated)" }}
+          {status !== "loading" && !session && (
+            <Link
+              href="/signin"
+              className="ml-auto shrink-0 inline-flex min-h-11 items-center px-3 rounded-full text-xs font-black"
+              style={{ background: "var(--gold)", color: "var(--bg-primary)" }}
             >
-              🔍
-            </button>
-            <button
-              onClick={toggleTheme}
-              className="w-7 h-7 flex items-center justify-center rounded-full text-xs"
-              style={{ background: "var(--bg-elevated)" }}
-            >
-              {theme === "dark" ? "☀️" : "🌙"}
-            </button>
-          </div>
+              Se connecter
+            </Link>
+          )}
         </div>
 
         {/* Services — sous-menu : liste flexible des services */}
