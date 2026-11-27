@@ -1,4 +1,4 @@
-import NextAuth from "next-auth";
+import { getServerSession } from "next-auth";
 import type { NextAuthOptions } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
@@ -11,6 +11,7 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "placeholder
 
 console.log("[Auth] NextAuth Secret loaded:", Boolean(process.env.NEXTAUTH_SECRET));
 console.log("[Auth][Google] GOOGLE_CLIENT_ID:", (process.env.GOOGLE_CLIENT_ID ?? "").slice(0, 12));
+console.log("[Auth][Google] GOOGLE_CLIENT_SECRET loaded:", Boolean(process.env.GOOGLE_CLIENT_SECRET));
 console.log("[Auth][Google] NEXTAUTH_URL:", process.env.NEXTAUTH_URL);
 
 function createAdminSupabaseClient() {
@@ -62,8 +63,30 @@ export const authOptions: NextAuthOptions = {
   // Page de connexion NextAuth (doit correspondre à la route /signin existante)
   pages: { signIn: "/signin" },
   session: { strategy: "jwt" },
+  logger: {
+    error(code, metadata) {
+      const record = metadata && typeof metadata === "object" ? metadata as Record<string, unknown> : {};
+      const nested = record.error;
+      console.error("[Auth][Google]", {
+        code,
+        error: nested instanceof Error ? nested.message : typeof nested === "string" ? nested : undefined,
+        error_description: typeof record.error_description === "string" ? record.error_description : undefined,
+        error_uri: typeof record.error_uri === "string" ? record.error_uri : undefined,
+        message: metadata instanceof Error ? metadata.message : undefined,
+      });
+    },
+  },
   callbacks: {
-    async signIn({ user, email }) {
+    async signIn({ user, account, email }) {
+      const details = account as { error?: string; error_description?: string; error_uri?: string } | null | undefined;
+      if (details?.error || details?.error_description || details?.error_uri) {
+        console.error("[Auth][Google] signIn", {
+          error: details.error,
+          error_description: details.error_description,
+          error_uri: details.error_uri,
+        });
+        return false;
+      }
       console.log(`[Auth] Tentative de connexion réussie pour : ${email ?? user?.email ?? "inconnu"}`);
       return true;
     },
@@ -82,5 +105,7 @@ export const authOptions: NextAuthOptions = {
   },
 };
 
-export const { handlers, auth, signIn, signUp } = NextAuth(authOptions);
-export default auth;
+/** Session serveur NextAuth v4. Le helper `auth()` de la v5 n'existe pas dans ce paquet. */
+export function auth() {
+  return getServerSession(authOptions);
+}
