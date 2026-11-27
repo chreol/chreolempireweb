@@ -8,8 +8,11 @@ import { createClient as createSupabaseAdminClient } from "@supabase/supabase-js
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "https://placeholder.supabase.co";
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "placeholder";
+const secureCookie = process.env.NEXTAUTH_URL?.startsWith("https://") ?? false;
+const cookiePrefix = secureCookie ? "__Secure-" : "";
 
 console.log("[Auth] NextAuth Secret loaded:", Boolean(process.env.NEXTAUTH_SECRET));
+console.log("[Auth] NEXTAUTH_SECRET length >= 32:", (process.env.NEXTAUTH_SECRET ?? "").length >= 32);
 console.log("[Auth][Google] GOOGLE_CLIENT_ID:", (process.env.GOOGLE_CLIENT_ID ?? "").slice(0, 12));
 console.log("[Auth][Google] GOOGLE_CLIENT_SECRET loaded:", Boolean(process.env.GOOGLE_CLIENT_SECRET));
 console.log("[Auth][Google] NEXTAUTH_URL:", process.env.NEXTAUTH_URL);
@@ -23,6 +26,33 @@ function createAdminSupabaseClient() {
 export const authOptions: NextAuthOptions = {
   // Secret explicite (l'App Router peut parfois ne pas injecter NEXTAUTH_SECRET correctement)
   secret: process.env.NEXTAUTH_SECRET,
+  useSecureCookies: secureCookie,
+  cookies: {
+    sessionToken: {
+      name: `${cookiePrefix}next-auth.session-token`,
+      options: { httpOnly: true, sameSite: "lax", path: "/", secure: secureCookie },
+    },
+    callbackUrl: {
+      name: `${cookiePrefix}next-auth.callback-url`,
+      options: { httpOnly: true, sameSite: "lax", path: "/", secure: secureCookie },
+    },
+    csrfToken: {
+      name: `${secureCookie ? "__Host-" : ""}next-auth.csrf-token`,
+      options: { httpOnly: true, sameSite: "lax", path: "/", secure: secureCookie },
+    },
+    pkceCodeVerifier: {
+      name: `${cookiePrefix}next-auth.pkce.code_verifier`,
+      options: { httpOnly: true, sameSite: "lax", path: "/", secure: secureCookie, maxAge: 60 * 15 },
+    },
+    state: {
+      name: `${cookiePrefix}next-auth.state`,
+      options: { httpOnly: true, sameSite: "lax", path: "/", secure: secureCookie, maxAge: 60 * 15 },
+    },
+    nonce: {
+      name: `${cookiePrefix}next-auth.nonce`,
+      options: { httpOnly: true, sameSite: "lax", path: "/", secure: secureCookie },
+    },
+  },
   adapter: SupabaseAdapter({
     url: supabaseUrl,
     secret: process.env.SUPABASE_SECRET ?? "placeholder",
