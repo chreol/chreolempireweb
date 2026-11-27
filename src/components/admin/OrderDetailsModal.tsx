@@ -46,6 +46,7 @@ export default function OrderDetailsModal({
   const items = Array.isArray(details.items) ? details.items : [];
   const sourceUrl = typeof details.sourceUrl === "string" ? details.sourceUrl : "";
   const [note, setNote] = useState(typeof details.internalNote === "string" ? details.internalNote : "");
+  const [cancelReason, setCancelReason] = useState(typeof details.cancelReason === "string" ? details.cancelReason : "");
   const [workflow, setWorkflow] = useState<OrderWorkflow>(workflowOf(order.status, order.payment_status));
   const [busy, setBusy] = useState("");
   const [message, setMessage] = useState("");
@@ -73,7 +74,7 @@ export default function OrderDetailsModal({
       const res = await fetch("/api/admin/orders", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: order.id, workflow: next }),
+        body: JSON.stringify(next === "CANCELLED" ? { id: order.id, status: "cancelled", cancelReason: cancelReason.trim() } : { id: order.id, workflow: next }),
       });
       if (!res.ok) {
         setError("Statut non mis à jour.");
@@ -210,6 +211,21 @@ export default function OrderDetailsModal({
           {OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
         </select>
       </label>
+
+      {workflow === "CANCELLED" && (
+        <label className="block mt-4 text-xs font-bold" style={{ color: "var(--text-muted)" }}>
+          MOTIF D'ANNULATION
+          <textarea
+            value={cancelReason}
+            onChange={e => setCancelReason(e.target.value)}
+            rows={2}
+            maxLength={300}
+            placeholder="Motif de l'annulation (affiché dans l'historique client)"
+            className="mt-1 w-full px-4 py-3 rounded-xl text-sm text-white outline-none resize-y"
+            style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)" }}
+          />
+        </label>
+      )}
 
       <label className="block mt-4 text-xs font-bold" style={{ color: "var(--text-muted)" }}>
         NOTE INTERNE

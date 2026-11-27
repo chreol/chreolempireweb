@@ -1,4 +1,6 @@
-export const runtime = "edge";
+export const runtime = "nodejs";
+
+import { buildInvoicePdf, type InvoiceData } from "@/lib/invoicePdf";
 
 interface OrderSummary {
   it: { n: string; t: number; q: number; d?: string }[];
@@ -424,10 +426,33 @@ export async function GET(request: Request): Promise<Response> {
     : `✅ Votre commande #${ref} a été livrée — Chreol Empire`;
   const html = isCancel ? buildCancelEmail(name, ref, summary) : buildDeliveryEmail(name, ref, summary, sourceUrl);
 
+  const body: Record<string, unknown> = {
+    sender,
+    to: [{ email, name: name || "Client" }],
+    subject,
+    htmlContent: html,
+  };
+  if (!isCancel) {
+    const goods = (summary?.it ?? []).reduce((sum, i) => sum + (Number(i.t) || 0), 0);
+    const invoiceData: InvoiceData = {
+      id: ref,
+      createdAt: new Date().toISOString(),
+      clientName: name || "",
+      clientEmail: email,
+      clientPhone: summary?.ph ?? "",
+      lines: (summary?.it ?? []).map((i) => ({ name: i.n, qty: Math.max(1, i.q || 1), price: (Number(i.t) || 0) / (i.q || 1) })),
+      commission: Math.max(0, (Number(summary?.tot) || 0) - goods),
+      commissionLabel: "Frais",
+      total: Number(summary?.tot) || 0,
+    };
+    const pdf = await buildInvoicePdf(invoiceData);
+    body.attachment = [{ content: Buffer.from(pdf).toString("base64"), name: `facture-${ref}.pdf` }];
+  }
+
   const res = await fetch("https://api.brevo.com/v3/smtp/email", {
     method: "POST",
     headers: { "Content-Type": "application/json", "api-key": brevoKey },
-    body: JSON.stringify({ sender, to: [{ email, name: name || "Client" }], subject, htmlContent: html }),
+    body: JSON.stringify(body),
   });
   // Attempt to notify admin via Telegram regardless of email send result
   try {

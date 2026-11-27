@@ -20,8 +20,8 @@ export const PAYMENT_LABELS: Record<string, string> = {
   orange: "Orange Money",
   mtn:    "MTN MoMo",
   iwopay: "Iwopay",
-  gimac:  "Gimac (CEMAC)",
-  paypal: "PayPal (Proches et Familles)",
+  gimac:  "Gimac",
+  paypal: "PayPal",
   crypto: "Crypto",
 };
 

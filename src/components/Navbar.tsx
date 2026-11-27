@@ -4,11 +4,13 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
 import { useCart } from "@/contexts/CartContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Lang } from "@/lib/i18n/translations";
 import { IMAGES, NAV_SERVICES } from "@/lib/services";
+import { loadClientInfo, loadRecentOrder } from "@/lib/clientInfo";
 import ServicesMenu from "./ServicesMenu";
 import WAPopover from "./WAPopover";
 import GlobalSearch from "./GlobalSearch";
@@ -31,7 +33,41 @@ export default function Navbar() {
   const { lang, setLang, t } = useLanguage();
   const [searchOpen, setSearchOpen] = useState(false);
   const [servicesOpen, setServicesOpen] = useState(false);
+  const [authMenuOpen, setAuthMenuOpen] = useState(false);
+  const [historyVisible, setHistoryVisible] = useState(false);
   const isServicesActive = pathname.startsWith("/services");
+  const { data: session, status } = useSession();
+  const sessionUser = session?.user as { name?: string | null; email?: string | null; id?: string } | null | undefined;
+  const sessionName = sessionUser?.name || sessionUser?.email || "Mon Compte";
+  const sessionInitial = sessionName.trim().charAt(0).toUpperCase() || "C";
+  const visibleNavKeys = NAV_KEYS.filter(l => l.href !== "/historique" || historyVisible);
+
+  // Bouton "Historique" : affiché si l'utilisateur connecté possède ≥1 commande,
+  // ou si l'invité a un email / une commande sauvegardée (checkout précédent).
+  useEffect(() => {
+    async function checkHistoryAccess() {
+      if (status === "authenticated") {
+        const email = sessionUser?.email;
+        const userId = sessionUser?.id;
+        const q = new URLSearchParams();
+        if (email) q.set("email", email);
+        if (userId) q.set("userId", userId);
+        try {
+          const res = await fetch(`/api/orders?${q.toString()}`);
+          const rows = await res.json();
+          setHistoryVisible(Array.isArray(rows) && rows.length > 0);
+        } catch {
+          setHistoryVisible(false);
+        }
+        return;
+      }
+      const info = loadClientInfo();
+      const recent = loadRecentOrder((info?.email ?? "").trim().toLowerCase());
+      setHistoryVisible(Boolean(info?.email || recent?.orderId));
+    }
+    checkHistoryAccess();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, sessionUser]);
 
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
@@ -70,7 +106,7 @@ export default function Navbar() {
 
         {/* Nav links — desktop */}
         <nav className="hidden lg:flex items-center gap-1">
-          {NAV_KEYS.map(l => l.href === "/services" ? (
+          {visibleNavKeys.map(l => l.href === "/services" ? (
             /* Services — sous-menu (dropdown) */
             <ServicesMenu key="services" />
           ) : (
@@ -89,8 +125,60 @@ export default function Navbar() {
           ))}
         </nav>
 
-        {/* Right: toggles + WA + Cart */}
+        {/* Right: auth + toggles + WA + Cart */}
         <div className="flex items-center gap-2 shrink-0">
+
+          {/* Auth — desktop */}
+          {status !== "loading" && session ? (
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setAuthMenuOpen(v => !v)}
+                className="flex items-center gap-2 px-2.5 py-1.5 rounded-full text-sm font-black transition-[opacity,transform] duration-150 ease-out hover:opacity-80 active:scale-[0.96]"
+                style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)", color: "var(--text-primary)" }}
+                title={sessionName}
+              >
+                <span className="w-6 h-6 flex items-center justify-center rounded-full text-[11px] font-black text-black" style={{ background: "var(--gold)" }}>
+                  {sessionInitial}
+                </span>
+                <span className="hidden lg:inline text-xs max-w-[140px] truncate" style={{ color: "var(--text-secondary)" }}>
+                  {sessionName.split("@")[0]}
+                </span>
+              </button>
+              {authMenuOpen && (
+                <div className="absolute right-0 top-full mt-2 w-56 rounded-2xl p-2 z-50" style={{ background: "var(--bg-card)", border: "1px solid var(--border-strong)" }}>
+                  <p className="px-3 py-2 text-xs font-black truncate" style={{ color: "var(--text-muted)" }}>{sessionName}</p>
+                  <Link
+                    href="/historique"
+                    onClick={() => setAuthMenuOpen(false)}
+                    className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-bold transition-colors"
+                    style={{ color: "var(--text-secondary)" }}
+                  >
+                    <span>📜</span> Mon historique
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => { setAuthMenuOpen(false); signOut({ callbackUrl: "/" }); }}
+                    className="flex items-center gap-2 w-full px-3 py-2 rounded-xl text-sm font-bold transition-colors"
+                    style={{ color: "#EF4444" }}
+                  >
+                    <span>🚪</span> Se déconnecter
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            status !== "loading" && (
+              <Link
+                href="/signin"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-black transition-[opacity,transform] duration-150 ease-out hover:opacity-80 active:scale-[0.96]"
+                style={{ background: "var(--gold)", color: "var(--bg-primary)" }}
+              >
+                <span>👤</span>
+                <span className="hidden lg:inline">Se connecter</span>
+              </Link>
+            )
+          )}
 
           {/* Lang toggle — visible on all screen sizes */}
           <div className="flex items-center gap-0.5 rounded-full p-0.5" style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)" }}>
@@ -166,7 +254,7 @@ export default function Navbar() {
           className="lg:hidden flex overflow-x-auto gap-1 px-4 pb-3 pt-1 no-scrollbar"
           style={{ borderTop: "1px solid var(--border)" }}
         >
-          {NAV_KEYS.map(l => l.href === "/services" ? (
+          {visibleNavKeys.map(l => l.href === "/services" ? (
             /* Services — sous-menu (panneau expansible) */
             <button
               key="services"
@@ -194,8 +282,18 @@ export default function Navbar() {
               {t(l.key)}
             </Link>
           ))}
-          {/* Mobile search + theme */}
+          {/* Mobile search + theme + auth */}
           <div className="shrink-0 flex items-center gap-1 ml-auto">
+            {status !== "loading" && !session && (
+              <Link
+                href="/signin"
+                className="shrink-0 flex items-center px-2.5 py-1 rounded-full"
+                style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)" }}
+                title="Se connecter"
+              >
+                <span className="text-xs font-black" style={{ color: "var(--text-secondary)" }}>👤</span>
+              </Link>
+            )}
             <button
               onClick={() => setSearchOpen(true)}
               className="w-7 h-7 flex items-center justify-center rounded-full text-xs"

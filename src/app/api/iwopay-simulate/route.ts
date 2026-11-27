@@ -32,7 +32,7 @@ export async function POST(request: Request): Promise<Response> {
     clientName: body.clientName,
     clientEmail: body.clientEmail,
     clientPhone: body.clientPhone,
-    paymentMethod: body.paymentMethod ?? "Iwopay",
+    paymentMethod: body.paymentMethod,
     sourceUrl: body.sourceUrl,
     items: body.items,
     total: body.total,

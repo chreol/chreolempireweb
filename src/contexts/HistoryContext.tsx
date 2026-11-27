@@ -14,6 +14,7 @@ export interface HistoryEntry {
   /** Identifiant complet en base, pour la facture PDF. */
   orderId?: string;
   invoice?: boolean;
+  cancelReason?: string;
 }
 
 interface HistoryContextValue {

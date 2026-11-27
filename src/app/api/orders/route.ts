@@ -13,10 +13,23 @@ export async function GET(req: NextRequest): Promise<Response> {
   if (!sbUrl) return Response.json({ error: "non configure" }, { status: 503 });
 
   const email = new URL(req.url).searchParams.get("email")?.trim().toLowerCase();
-  if (!email) return Response.json({ error: "email requis" }, { status: 400 });
+  const userId = new URL(req.url).searchParams.get("userId")?.trim();
+  if (!email && !userId) return Response.json({ error: "email requis" }, { status: 400 });
+
+  let query = `select=id,summary,total,status,payment_status,payment_method,client_name,client_email,client_phone,details,created_at&order=created_at.desc&limit=50`;
+  if (userId) {
+    // Commandes du propriétaire (userId) OU commandes dont l'email correspond (achats invités).
+    if (email) {
+      query += `&or=(user_id.eq.${encodeURIComponent(userId)},client_email.eq.${encodeURIComponent(email)})`;
+    } else {
+      query += `&user_id=eq.${encodeURIComponent(userId)}`;
+    }
+  } else {
+    query += `&client_email=eq.${encodeURIComponent(email ?? "")}`;
+  }
 
   const res = await fetch(
-    `${sbUrl}/rest/v1/orders?select=id,summary,total,status,payment_status,payment_method,client_name,client_email,client_phone,details,created_at&client_email=eq.${encodeURIComponent(email)}&order=created_at.desc&limit=50`,
+    `${sbUrl}/rest/v1/orders?${query}`,
     { headers: { apikey: key, Authorization: `Bearer ${key}` } },
   );
 

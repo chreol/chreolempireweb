@@ -117,7 +117,7 @@ export default function PaypalPage() {
   const [idFormat, setIdFormat]       = useState<"email" | "phone" | "paypalme">("email");
   const [paypalId, setPaypalId]       = useState("");
   const [contactEmail, setContactEmail] = useState("");
-  const [momoOp, setMomoOp]           = useState("orange");
+  const [momoOp, setMomoOp]           = useState<string | null>(null);
   const [momoDialCode, setMomoDialCode] = useState("+237");
   const [momoPhone, setMomoPhone]     = useState("");
   const [errors, setErrors]           = useState<Record<string, string>>();
@@ -138,7 +138,7 @@ export default function PaypalPage() {
   ];
 
   useEffect(() => {
-    if (!AVAILABLE_OPS.includes(momoOp)) setMomoOp("orange");
+    if (!AVAILABLE_OPS.includes(momoOp ?? "")) setMomoOp(null);
   }, [direction]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -226,11 +226,12 @@ export default function PaypalPage() {
     // dans les deux sens (le champ « numéro WhatsApp » a été supprimé).
     if (direction === "sell" && momoOp === "crypto") {
       if (payoutWallet.trim().length < 8) e.payoutWallet = "Adresse de réception requise";
-    } else {
-      const mpD = momoPhone.replace(/\D/g, "").replace(/^237/, "");
-      const mpLen = momoDialCode === "+237" ? 9 : 6;
-      if (mpD.length < mpLen) e.momoPhone = t("err.phone_invalid");
     }
+    const mpD = momoPhone.replace(/\D/g, "").replace(/^237/, "");
+    const mpLen = momoDialCode === "+237" ? 9 : 6;
+    if (mpD.length < mpLen) e.momoPhone = t("err.phone_invalid");
+    // L'achat en FCFA nécessite un moyen de paiement choisi (commission associée).
+    if (direction === "buy" && !momoOp) e.momoOp = "Opérateur de paiement requis";
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -238,7 +239,7 @@ export default function PaypalPage() {
   const idLabel = ID_FORMATS.find(f => f.id === idFormat)?.label ?? "Email";
 
   function buildDetails() {
-    const op = PAY_CHOICES.find(o => o.id === momoOp)?.name ?? momoOp;
+    const op = PAY_CHOICES.find(o => o.id === (momoOp ?? ""))?.name ?? momoOp ?? "Via WhatsApp";
     const idLine = `PayPal (${idLabel}) : ${paypalId}`;
     const contact = `${op} ${momoDialCode} ${momoPhone}`;
     if (direction === "sell")
@@ -260,7 +261,7 @@ export default function PaypalPage() {
   }
 
   async function sendNotification() {
-    const op = PAY_CHOICES.find(o => o.id === momoOp)?.name ?? momoOp;
+    const op = PAY_CHOICES.find(o => o.id === (momoOp ?? ""))?.name ?? momoOp ?? "Via WhatsApp";
     const phone = `${momoDialCode}${momoPhone}`.replace(/\D/g, "");
     if (!orderIdRef.current) {
       const id = makeId(`paypal-${direction}`);
@@ -280,7 +281,7 @@ export default function PaypalPage() {
         items: [{
           name: direction === "sell" ? "Vente PayPal Europe" : "Achat PayPal Europe",
           qty: 1,
-          price: direction === "sell" ? fcfaResult : buyTotal,
+          price: direction === "sell" ? fcfaResult : buyFcfa,
           amount: direction === "sell"
             ? `${displayEur.toFixed(2)}€ → ${fcfaResult.toLocaleString("fr-FR")} FCFA`
             : `${buyFcfa.toLocaleString("fr-FR")} FCFA → ${eurResult}€`,
@@ -296,7 +297,7 @@ export default function PaypalPage() {
         paypalIdFormat: idFormat,
         eurAmount: direction === "sell" ? +displayEur.toFixed(2) : eurResult,
         payoutTarget: `${op} · ${momoDialCode} ${momoPhone}`,
-        sourceUrl: window.location.pathname,
+        sourceUrl: window.location.href,
       }),
     });
       const data = await res.json().catch(() => ({} as { error?: string; telegram?: number }));
@@ -315,7 +316,7 @@ export default function PaypalPage() {
   function handleAddToCart() {
     if (!validate()) { showToast(t("err.fix"), "error"); return; }
     saveClientInfo({ email: effectiveEmail, phone: momoPhone, dialCode: momoDialCode, name: effectiveEmail.split("@")[0] });
-    const op = PAY_CHOICES.find(o => o.id === momoOp)?.name ?? momoOp;
+    const op = PAY_CHOICES.find(o => o.id === (momoOp ?? ""))?.name ?? momoOp ?? "Via WhatsApp";
     addItem({
       id: makeId(`paypal-${direction}`),
       cardName: direction === "sell" ? "Vente PayPal Europe" : "Achat PayPal Europe",
@@ -482,7 +483,7 @@ export default function PaypalPage() {
             </div>
           )}
 
-          <Field label={direction === "sell" ? t("f.momo_receive") : t("f.momo_pay")} error={errors?.momoPhone}>
+          <Field label={direction === "sell" ? t("f.momo_receive") : t("f.momo_pay")} error={errors?.momoOp ?? errors?.momoPhone}>
             <div className="flex flex-col gap-2">
               <div className="grid grid-cols-2 gap-2">
                 {PAY_CHOICES.map(o => {
@@ -521,7 +522,6 @@ export default function PaypalPage() {
               </div>
 
               {/* Indicatif et numéro : deux champs distincts, séparés par un petit espace */}
-              {!(direction === "sell" && momoOp === "crypto") && (
               <div className="flex items-stretch gap-2">
                 <input
                   type="text"
@@ -549,7 +549,6 @@ export default function PaypalPage() {
                   style={errors?.momoPhone ? inputErr : inputBase}
                 />
               </div>
-              )}
             </div>
           </Field>
 

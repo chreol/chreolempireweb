@@ -66,6 +66,7 @@ export default function FacturesPage() {
   const [biller, setBiller]   = useState<string | null>(null);
   const [idType, setIdType]   = useState<IdType>("phone");
   const [identifier, setIdentifier] = useState("");
+  const [contactPhone, setContactPhone] = useState("");
   const [amount, setAmount]   = useState("");
   const [facErrors, setFacErrors] = useState<Record<string, string>>({});
 
@@ -87,6 +88,10 @@ export default function FacturesPage() {
     const idD = identifier.replace(/\D/g, "").replace(/^237/, "");
     if (idType === "phone" && idD.length < 9) e.identifier = t("fa.id_phone_err");
     if (idType === "decoder" && idD.length < 14) e.identifier = t("fa.id_decoder_err");
+    if (idType === "decoder") {
+      const contact = contactPhone.replace(/\D/g, "").replace(/^237/, "");
+      if (contact.length < 9) e.contactPhone = "Téléphone de contact requis (9 chiffres).";
+    }
     if (!amount || numFacAmt < 500) e.amount = t("fa.amount_min500");
     if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = t("err.email_valid");
     setFacErrors(e);
@@ -118,19 +123,19 @@ export default function FacturesPage() {
         orderId: (() => { const id = `facture-${biller}-${Date.now()}`; orderIdRef.current = id; return id; })(),
         clientName: email.split("@")[0],
         clientEmail: email,
-        clientPhone: idType === "phone" ? identifier : "",
+        clientPhone: (idType === "phone" ? identifier : contactPhone).replace(/\D/g, ""),
         paymentMethod: resolvePaymentMethod(payOp),
         items: [{
           name: `Facture ${billerName}`,
           qty: 1,
-          price: totalFacture,
+          price: numFacAmt,
           amount: `${numFacAmt.toLocaleString("fr-FR")} FCFA`,
           details: `Identifiant : ${identifier} (${idType === "phone" ? "téléphone" : "décodeur"})`,
         }],
         total: totalFacture,
         commission: FACTURE_COMMISSION,
         commissionLabel: "Commission service",
-        sourceUrl: window.location.pathname,
+        sourceUrl: window.location.href,
       }),
     }).catch(() => {});
     return true;
@@ -188,7 +193,7 @@ export default function FacturesPage() {
           details: `De : +237 ${srcPhone} (${srcName})\nVers : +237 ${dstPhone} (${dstName})`,
         }],
         total: numMomoAmt,
-        sourceUrl: window.location.pathname,
+        sourceUrl: window.location.href,
       }),
     }).catch(() => {});
     return true;
@@ -296,6 +301,23 @@ export default function FacturesPage() {
                 />
               </div>
             </Field>
+
+            {idType === "decoder" && (
+              <Field label="Téléphone de contact" error={facErrors.contactPhone}>
+                <div className="flex items-center rounded-2xl overflow-hidden" style={facErrors.contactPhone ? inputErr : inputBase}>
+                  <span className="px-3 text-sm font-bold shrink-0" style={{ color: "var(--text-muted)" }}>+237</span>
+                  <input
+                    type="tel"
+                    placeholder="6XXXXXXXX"
+                    value={contactPhone}
+                    maxLength={9}
+                    onChange={e => { setContactPhone(e.target.value.replace(/\D/g, "")); setFacErrors(p => ({ ...p, contactPhone: "" })); }}
+                    className="flex-1 px-4 py-3 bg-transparent text-white text-sm outline-none"
+                    style={{ paddingLeft: 0 }}
+                  />
+                </div>
+              </Field>
+            )}
 
             {/* Amount */}
             <Field label={t("fa.bill_amount")} error={facErrors.amount}>

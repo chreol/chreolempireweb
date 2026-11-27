@@ -95,14 +95,51 @@ export const MTN_MONEY = {
 } as const;
 
 /** Frais ajoutés au montant quand le client dépose (Orange 1 %, MTN 1,5 %). */
-export function collectionFee(amount: number, operatorId: string): number {
+export function collectionFee(amount: number, operatorId: string | null | undefined): number {
   if (!Number.isFinite(amount) || amount <= 0) return 0;
   if (operatorId === "orange") return Math.round(amount * ORANGE_MONEY_COMMERCE.feeRate);
   if (operatorId === "mtn") return Math.round(amount * MTN_MONEY.feeRate);
   return 0;
 }
 
-export function collectionFeeLabel(operatorId: string): string {
+// ── Modes de paiement — source unique de vérité ───────────────────────────────
+// Tout mode de paiement envoyé à l'API / enregistré en base doit être référencé
+// ici (ou via les constantes MOMO_OPERATORS / IWOPAY_METHOD / PAYPAL_PAY_METHOD /
+// CRYPTO_PAY_METHOD) afin qu'email, Telegram et base de données restent alignés.
+
+export const PAYMENT_METHODS = {
+  orange:  { id: "orange",  label: "Orange Money" },
+  mtn:     { id: "mtn",     label: "MTN MoMo" },
+  iwopay:  { id: "iwopay",  label: "Iwopay" },
+  gimac:   { id: "gimac",   label: "GIMAC" },
+  paypal:  { id: "paypal",  label: "PayPal" },
+  crypto:  { id: "crypto",  label: "Crypto" },
+} as const;
+
+export type PaymentMethodId = keyof typeof PAYMENT_METHODS;
+
+/** Indique si la valeur fournie est un mode de paiement connu (cas-insensitif). */
+export function isKnownPaymentMethod(value: string | null | undefined): boolean {
+  if (!value) return false;
+  const v = value.trim().toLowerCase();
+  return Object.values(PAYMENT_METHODS).some(m => m.label.toLowerCase() === v);
+}
+
+/** Résout un libellé opérateur (Campay, webhook, saisie) vers un mode de paiement canonique.
+ *  Retourne `null` si l'opérateur est absent ou inconnu — zéro fallback. */
+export function resolveOperatorMethod(raw: string | null | undefined): string | null {
+  const r = (raw ?? "").trim().toLowerCase();
+  if (!r) return null;
+  if (r.includes("orange")) return "Orange Money";
+  if (r.includes("mtn"))    return "MTN MoMo";
+  if (r.includes("gimac") || r.includes("gim")) return "GIMAC";
+  if (r.includes("crypto")) return "Crypto";
+  if (r.includes("paypal")) return "PayPal";
+  if (r.includes("iwopay")) return "Iwopay";
+  return null;
+}
+
+export function collectionFeeLabel(operatorId: string | null | undefined): string {
   if (operatorId === "orange") return "Frais Orange Money (1 %)";
   if (operatorId === "mtn") return "Frais de retrait MTN (1,5 %)";
   return "Frais opérateur";
@@ -335,7 +372,7 @@ export const IWOPAY_SCOPE =
 export const PAYPAL_PAY_METHOD = { id: "paypal", name: "PayPal", color: "#003087", image: IMAGES.paypal } as const;
 export const CRYPTO_PAY_METHOD = { id: "crypto", name: "Crypto", color: "#26A17B", image: IMAGES.crypto } as const;
 
-export function isAltPay(id: string): id is "gimac" | "paypal" | "crypto" {
+export function isAltPay(id: string | null | undefined): id is "gimac" | "paypal" | "crypto" {
   return id === "gimac" || id === "paypal" || id === "crypto";
 }
 

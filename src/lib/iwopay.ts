@@ -103,7 +103,7 @@ export async function fulfillIwopayOrder(p: IwopayFulfillParams): Promise<{ ok: 
       clientName: p.clientName ?? "Client",
       clientEmail: p.clientEmail || "noreply@chreolempire.com",
       clientPhone: p.clientPhone || "",
-      paymentMethod: p.paymentMethod ?? "Iwopay",
+      paymentMethod: p.paymentMethod,
       sourceUrl: p.sourceUrl ?? "/services/paypal",
       items,
       total: p.total ?? items.reduce((s, i) => s + i.price * i.qty, 0),

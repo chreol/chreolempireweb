@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { isAuthorizedInternal, unauthorized } from "@/lib/internalAuth";
+import { auth } from "@/lib/auth";
 import { canDownloadInvoice } from "@/lib/companyInfo";
 import { buildInvoicePdf, type InvoiceLine } from "@/lib/invoicePdf";
 
@@ -15,6 +15,7 @@ interface OrderRow {
   client_name?: string;
   client_email?: string;
   client_phone?: string;
+  user_id?: string | null;
   details?: unknown;
 }
 
@@ -44,26 +45,27 @@ function linesFrom(details: Record<string, unknown>, summary: string, total: num
   return lines.length > 0 ? lines : [{ name: summary || "Commande", qty: 1, price: total }];
 }
 
-export async function GET(
-  req: NextRequest,
-  ctx: { params: Promise<{ orderId: string }> },
-): Promise<Response> {
+export async function GET(_req: NextRequest, ctx: { params: Promise<{ orderId: string }> }): Promise<Response> {
   let id = "";
   try {
-    if (!isAuthorizedInternal(req)) return unauthorized();
-
     const { orderId } = await ctx.params;
     id = decodeURIComponent(orderId ?? "").trim();
     if (!/^[A-Za-z0-9_-]{4,80}$/.test(id)) {
       return Response.json({ error: "Référence invalide" }, { status: 400 });
     }
 
+    // Authentification : 
+    //  - Utilisateur connecté → doit être le propriétaire de la commande (order.user_id).
+    //  - Utilisateur invité (session null) → autorisé via la possession de l'ID unique.
+    const session = await auth();
+    const sessionUserId = (session?.user as { id?: string } | null | undefined)?.id ?? null;
+
     const sbUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const key = process.env.SUPABASE_SERVICE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
     if (!sbUrl || !key) return Response.json({ error: "Stockage non configuré" }, { status: 503 });
 
     const res = await fetch(
-      `${sbUrl}/rest/v1/orders?id=eq.${encodeURIComponent(id)}&select=id,created_at,summary,total,status,payment_status,client_name,client_email,client_phone,details&limit=1`,
+      `${sbUrl}/rest/v1/orders?id=eq.${encodeURIComponent(id)}&select=id,created_at,summary,total,status,payment_status,client_name,client_email,client_phone,user_id,details&limit=1`,
       { headers: { apikey: key, Authorization: `Bearer ${key}` }, cache: "no-store" },
     );
     if (!res.ok) return Response.json({ error: "Commande introuvable" }, { status: 502 });
@@ -71,6 +73,15 @@ export async function GET(
     const rows = await res.json() as OrderRow[];
     const order = Array.isArray(rows) ? rows[0] : undefined;
     if (!order) return Response.json({ error: "Commande introuvable" }, { status: 404 });
+
+    // Sécurité commande ↔ utilisateur : un compte connecté ne peut récupérer
+    // que ses propres commandes. Les invités passent (possession via l'ID).
+    const orderUserId = typeof order.user_id === "string" ? order.user_id : null;
+    if (sessionUserId) {
+      if (!orderUserId || orderUserId !== sessionUserId) {
+        return Response.json({ error: "Accès refusé" }, { status: 403 });
+      }
+    }
 
     if (!canDownloadInvoice(order.status, order.payment_status)) {
       return Response.json({ error: "Facture disponible uniquement pour une commande livrée ou payée" }, { status: 403 });

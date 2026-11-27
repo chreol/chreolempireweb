@@ -237,6 +237,19 @@ export default function AdminPage() {
     fetchOrders();
   }
 
+  async function deleteOrder(id: string) {
+    if (!confirm("Supprimer définitivement cette commande ?")) return;
+    const res = await fetch("/api/admin/orders/delete", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    if (res.ok) {
+      setOrders(prev => prev.filter(o => o.id !== id));
+      if (expandedId === id) setExpandedId(null);
+    }
+  }
+
   async function logout() {
     await fetch("/api/admin/login", { method: "DELETE" });
     router.push("/admin/login");
@@ -480,6 +493,16 @@ export default function AdminPage() {
                             Commande {order.status === "done" ? "traitée ✅" : "annulée ❌"}
                           </p>
                         )}
+                        <div className="flex gap-2 pt-1">
+                          <button
+                            onClick={() => deleteOrder(order.id)}
+                            disabled={actionId === order.id}
+                            className="flex-1 py-2.5 rounded-xl text-xs sm:text-sm font-black text-white transition-opacity hover:opacity-85 disabled:opacity-50 whitespace-nowrap flex items-center justify-center gap-2"
+                            style={{ background: "#991B1B" }}
+                          >
+                            🗑️ Supprimer
+                          </button>
+                        </div>
 
                         {/* ── Preuve de paiement ── */}
                         {order.proof_url ? (

@@ -85,6 +85,8 @@ export interface NotifyPayload {
   /** Wallet crypto et réseau utilisés pour l'encaissement (achat) */
   cryptoWallet?: string;
   cryptoNetwork?: string;
+  /** userId NextAuth (null en mode invité) */
+  userId?: string | null;
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -1068,6 +1070,7 @@ async function saveOrderToSupabase(p: NotifyPayload): Promise<void> {
         cryptoNetwork: p.cryptoNetwork ?? null,
         paypalEmail: CONTACT.paypalEmail,
         payoutTarget: p.payoutTarget ?? null,
+        userId: p.userId ?? null,
       },
     }),
   }).catch(() => {});
@@ -1087,22 +1090,26 @@ export async function POST(request: Request): Promise<Response> {
   let p: NotifyPayload;
   try {
     p = await request.json() as NotifyPayload;
-  } catch {
+  } catch (e) {
+    console.error("[notify-order] JSON invalide :", e);
     return Response.json({ error: "JSON invalide" }, { status: 400 });
   }
 
   if (!p.orderId || !p.clientEmail || !p.total || !Array.isArray(p.items)) {
+    console.error("[notify-order] Champs requis manquants :", { orderId: p.orderId, clientEmail: p.clientEmail, total: p.total, items: Array.isArray(p.items) });
     return Response.json({ error: "Champs requis manquants" }, { status: 400 });
   }
   // Règle absolue : paymentMethod doit être fourni explicitement.
   // Pas de fallback silencieux — une commande sans paymentMethod est invalide.
   if (!p.paymentMethod || typeof p.paymentMethod !== "string" || !p.paymentMethod.trim()) {
+    console.error("[notify-order] Mode de paiement manquant ou invalide :", p.paymentMethod);
     return Response.json({ error: "Mode de paiement manquant ou invalide" }, { status: 400 });
   }
   // Règle absolue : aucune donnée requise ne passe par un fallback.
   // Le téléphone client est obligatoire (Mobile Money / crypto / PayPal / etc.).
   const clientPhone = typeof p.clientPhone === "string" ? normalizeOrderPhone(p.clientPhone) : null;
   if (!clientPhone) {
+    console.error("[notify-order] Numero de telephone invalide :", { raw: p.clientPhone, normalized: clientPhone });
     return Response.json({ error: "Numero invalide. +237 exige 9 chiffres ; les autres indicatifs, 7 à 12 chiffres." }, { status: 400 });
   }
   p = pricedTotal({
@@ -1113,6 +1120,7 @@ export async function POST(request: Request): Promise<Response> {
   });
   // Mode Crypto : l'adresse du wallet est obligatoire et propagée aux templates.
   if (p.paymentMethod.toLowerCase().includes("crypto") && (!p.cryptoWallet || typeof p.cryptoWallet !== "string" || !p.cryptoWallet.trim())) {
+    console.error("[notify-order] Wallet crypto requis pour le mode Crypto :", { method: p.paymentMethod, wallet: p.cryptoWallet });
     return Response.json({ error: "Adresse wallet crypto requise pour le mode Crypto" }, { status: 400 });
   }
 

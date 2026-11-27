@@ -1,5 +1,7 @@
 export const runtime = "edge";
 
+import { resolveOperatorMethod } from "@/lib/services";
+
 interface CampayWebhookBody {
   reference: string;
   status: "SUCCESS" | "FAILED";
@@ -60,7 +62,12 @@ async function upsertOrder(body: CampayWebhookBody, serviceId: string, clientPho
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key) return;
 
-  const operatorLabel = body.operator?.toLowerCase().includes("orange") ? "Orange Money" : "MTN MoMo";
+  const operatorLabel = resolveOperatorMethod(body.operator);
+  if (!operatorLabel) {
+    // Zéro fallback : un opérateur absent ou inconnu ne doit pas générer de commande.
+    console.error(`[campay-webhook] Opérateur absent ou inconnu — commande ignorée (${body.reference ?? "sans reference"})`);
+    return;
+  }
   const patch = {
     status: "done",
     payment_reference: body.reference,
@@ -147,7 +154,11 @@ const SERVICE_SOURCE: Record<string, string> = {
 
 async function sendEmailNotification(body: CampayWebhookBody, serviceId: string, clientPhone: string, productCode: string) {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://shop.chreolempire.com";
-  const operatorLabel = body.operator?.toLowerCase().includes("orange") ? "Orange Money" : "MTN MoMo";
+  const operatorLabel = resolveOperatorMethod(body.operator);
+  if (!operatorLabel) {
+    console.error(`[campay-webhook] Opérateur absent ou inconnu — notification ignorée (${body.reference ?? "sans reference"})`);
+    return;
+  }
   const total = parseInt(body.amount, 10);
   const orderId = serviceId === "cart" && productCode ? productCode : `${Date.now()}-${productCode}`;
 

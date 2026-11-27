@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import { useHistory, HistoryEntry } from "@/contexts/HistoryContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { loadClientInfo } from "@/lib/clientInfo";
@@ -23,23 +24,34 @@ function formatDate(iso: string) {
 }
 
 export default function HistoriquePage() {
-  const { entries, clearHistory } = useHistory();
+  const { clearHistory } = useHistory();
   const { t } = useLanguage();
+  const { data: session, status } = useSession();
   const [dbOrders, setDbOrders] = useState<HistoryEntry[]>([]);
+  const sessionUser = session?.user as { id?: string; email?: string | null } | null | undefined;
+  const sessionUserId = sessionUser?.id ?? null;
+  const sessionEmail = sessionUser?.email?.trim().toLowerCase() ?? "";
+  const isAuthed = status === "authenticated";
 
-  // Historique des commandes : lecture depuis la base (Supabase) par email client.
+  // Historique des commandes : lecture depuis la base (Supabase).
+  // - Utilisateur connecté : commandes par userId OU par email de session.
+  // - Invité (sans session) : historique vide (message "connectez-vous").
   useEffect(() => {
-    const info = loadClientInfo();
-    const email = info?.email?.trim().toLowerCase();
-    if (!email) return;
+    const email = sessionEmail || loadClientInfo()?.email?.trim().toLowerCase() || "";
+    const userId = sessionUserId || undefined;
+    if (!sessionUserId && !sessionEmail) {
+      setDbOrders([]);
+      return;
+    }
+    if (!email) { setDbOrders([]); return; }
     let cancelled = false;
-    fetch(`/api/orders?email=${encodeURIComponent(email)}`)
+    fetch(`/api/orders?email=${encodeURIComponent(email)}${userId ? `&userId=${encodeURIComponent(userId)}` : ""}`)
       .then(r => (r.ok ? r.json() : []))
       .then((rows: unknown[]) => {
         if (cancelled) return;
         const list = (Array.isArray(rows) ? rows : []) as Array<Record<string, unknown>>;
         const mapped = list.map((r) => {
-          const details = (r.details ?? {}) as { service?: string; sourceUrl?: string } | null;
+          const details = (r.details ?? {}) as { service?: string; sourceUrl?: string; cancelReason?: string } | null;
           const status = ["pending", "completed", "cancelled"].includes(String(r.status)) ? String(r.status) : "pending";
           const fullId = String(r.id ?? "");
           return {
@@ -52,15 +64,16 @@ export default function HistoriquePage() {
             currency: "FCFA",
             status: status as HistoryEntry["status"],
             invoice: canDownloadInvoice(String(r.status ?? ""), String(r.payment_status ?? "")),
+            cancelReason: String(details?.cancelReason ?? ""),
           };
         });
         setDbOrders(mapped);
       })
       .catch(() => {});
     return () => { cancelled = true; };
-  }, []);
+  }, [sessionEmail, sessionUserId]);
 
-  const visible = dbOrders.length > 0 ? dbOrders : entries;
+  const visible = isAuthed ? dbOrders : [];
 
   if (visible.length === 0) {
     return (
@@ -72,6 +85,11 @@ export default function HistoriquePage() {
           <p className="mb-6 text-sm" style={{ color: "var(--text-secondary)" }}>
             {t("history.none.desc")}
           </p>
+          {!isAuthed && (
+            <p className="mb-6 text-sm font-bold" style={{ color: "var(--gold)" }}>
+              Connectez-vous pour voir vos commandes.
+            </p>
+          )}
           <Link
             href="/services"
             className="inline-block px-6 py-3 rounded-full font-black text-black text-sm"
@@ -121,6 +139,13 @@ export default function HistoriquePage() {
               className="rounded-2xl p-5"
               style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
             >
+              {entry.status === "cancelled" && (
+                <div className="mb-3 rounded-xl p-3" style={{ background: "#FEF2F2", border: "1px solid #FECACA" }}>
+                  <p className="text-xs font-black" style={{ color: "#991B1B" }}>
+                    Commande annulée - Motif : {entry.cancelReason || "—"}
+                  </p>
+                </div>
+              )}
               <div className="flex items-start justify-between gap-3 mb-3">
                 <div className="min-w-0">
                   <p className="font-black text-white text-sm">{entry.service}</p>

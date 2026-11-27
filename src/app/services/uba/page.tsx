@@ -189,14 +189,14 @@ export default function UBAPage() {
         items: [{
           name: "UBA Cameroun — Recharge",
           qty: 1,
-          price: total,
+          price: numAmount,
           amount: `${numAmount.toLocaleString("fr-FR")} FCFA + ${fee.toLocaleString("fr-FR")} FCFA frais`,
           details: `Carte : ${card6}••••••${card4} | Client ID : ${clientId}${fullName ? ` | Nom : ${fullName}` : ""} | +237 ${phone}`,
         }],
         total,
         commission: fee,
         commissionLabel: "Frais de recharge UBA",
-        sourceUrl: window.location.pathname,
+        sourceUrl: window.location.href,
       }),
     }).catch(() => {});
     return true;

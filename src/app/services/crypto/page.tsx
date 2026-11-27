@@ -93,12 +93,15 @@ export default function CryptoPage() {
       if (!beneficiary.trim()) e.beneficiary = t("err.name_required");
       if (receiveMode === "paypal") {
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(paypalPayout.trim())) e.paypalPayout = "Email PayPal requis";
+        const mpD = momoPhone.replace(/\D/g, "").replace(/^237/, "");
+        if (mpD.length < 9) e.momoPhone = t("err.phone_invalid");
       } else {
         const mpD = momoPhone.replace(/\D/g, "").replace(/^237/, "");
         if (mpD.length < 9) e.momoPhone = t("err.phone_invalid");
       }
     } else {
       if (!walletAddr.trim()) e.walletAddr = t("c.wallet_receive");
+      if (!momoPhone.trim()) e.momoPhone = t("err.phone_invalid");
     }
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -154,8 +157,8 @@ export default function CryptoPage() {
         orderId: (() => { const id = `crypto-${cryptoId}-${Date.now()}`; orderIdRef.current = id; return id; })(),
         clientName: direction === "sell" ? beneficiary : email.split("@")[0],
         clientEmail: email,
-        clientPhone: direction === "sell" ? momoPhone : "",
-        paymentMethod: direction === "sell" ? op : "Via WhatsApp",
+        clientPhone: momoPhone.replace(/\D/g, ""),
+        paymentMethod: direction === "sell" ? op : "Crypto",
         items: [{
           name: direction === "sell" ? `Vente ${crypto.name} (${network})` : `Achat ${crypto.name} (${network})`,
           qty: 1,
@@ -166,7 +169,9 @@ export default function CryptoPage() {
           details: buildDetails(),
         }],
         total: direction === "sell" ? fcfaReceived : numAmount,
-        sourceUrl: window.location.pathname,
+        sourceUrl: window.location.href,
+        cryptoWallet: direction === "sell" ? (CRYPTO_WALLETS[cryptoId]?.[network] ?? "") : walletAddr.trim(),
+        cryptoNetwork: network,
       }),
     }).catch(() => {});
   }
@@ -410,6 +415,15 @@ export default function CryptoPage() {
                 <>
                   <PayInstruction kind="paypal" fcfa={fcfaReceived} direction="out" target={paypalPayout} onTarget={setPaypalPayout} />
                   {errors.paypalPayout && <p className="text-xs font-bold" style={{ color: "#FCA5A5" }}>{errors.paypalPayout}</p>}
+                  <Field label="Téléphone de contact" error={errors.momoPhone}>
+                    <input type="tel" placeholder="6XXXXXXXX" value={momoPhone}
+                      maxLength={12}
+                      aria-label="Téléphone de contact"
+                      onChange={e => { setMomoPhone(e.target.value.replace(/\D/g, "")); setErrors(p => ({ ...p, momoPhone: "" })); }}
+                      className="w-full px-4 py-3 rounded-2xl text-white text-sm outline-none"
+                      style={errors.momoPhone ? inputErr : inputBase}
+                    />
+                  </Field>
                 </>
               ) : (
               <Field label={t("f.momo_receive")} error={errors.momoPhone}>

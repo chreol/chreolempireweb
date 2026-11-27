@@ -45,7 +45,7 @@ export default function CouponsPage() {
   const [amount, setAmount]     = useState("");
   const [code, setCode]         = useState("");
   const [name, setName]         = useState("");
-  const [momoOp, setMomoOp]     = useState("orange");
+  const [momoOp, setMomoOp]     = useState<string | null>(null);
   const [dialCode, setDialCode] = useState("+237");
   const [phone, setPhone]       = useState("");
   const [email, setEmail]       = useState("");
@@ -87,6 +87,7 @@ export default function CouponsPage() {
     else if (type === "pcs" && code.trim().length !== 10)       e.code = t("cp.code10");
     if (!name.trim()) e.name = t("err.name_required");
     if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = t("err.email_valid");
+    if (!momoOp) e.momoOp = "Opérateur de paiement requis";
     const phoneD = phone.replace(/\D/g, "");
     const minLen = dialCode === "+237" ? 9 : 6;
     if (phoneD.length < minLen) e.phone = dialCode === "+237" ? t("err.phone_invalid") : t("cp.phone_short");
@@ -129,7 +130,7 @@ export default function CouponsPage() {
           details: buildDetails(),
         }],
         total: fcfaResult,
-        sourceUrl: window.location.pathname,
+        sourceUrl: window.location.href,
       }),
     }).catch(() => {});
   }

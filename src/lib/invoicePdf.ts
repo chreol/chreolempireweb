@@ -84,7 +84,7 @@ export async function buildInvoicePdf(data: InvoiceData): Promise<Uint8Array> {
     : issued.toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" });
 
   page.drawText("FACTURE", { x: 36, y: height - 160, size: 22, font: bold, color: BLACK });
-  page.drawText(clip(`N° ${data.id}`, 42), { x: 150, y: height - 158, size: 12, font: bold, color: GOLD });
+  page.drawText(clip(`N° ${data.id}`, 42), { x: 500, y: height - 158, size: 12, font: bold, color: GOLD });
   page.drawText(clip(dateLabel, 40), { x: 360, y: height - 156, size: 10, font, color: MUTED });
 
   page.drawText("CLIENT", { x: 36, y: height - 196, size: 9, font: bold, color: GOLD });
