@@ -10,6 +10,8 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "https://placeholder
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "placeholder";
 
 console.log("[Auth] NextAuth Secret loaded:", Boolean(process.env.NEXTAUTH_SECRET));
+console.log("[Auth][Google] GOOGLE_CLIENT_ID:", (process.env.GOOGLE_CLIENT_ID ?? "").slice(0, 12));
+console.log("[Auth][Google] NEXTAUTH_URL:", process.env.NEXTAUTH_URL);
 
 function createAdminSupabaseClient() {
   return createSupabaseAdminClient(supabaseUrl, supabaseServiceKey, {
@@ -18,6 +20,8 @@ function createAdminSupabaseClient() {
 }
 
 export const authOptions: NextAuthOptions = {
+  // Secret explicite (l'App Router peut parfois ne pas injecter NEXTAUTH_SECRET correctement)
+  secret: process.env.NEXTAUTH_SECRET,
   adapter: SupabaseAdapter({
     url: supabaseUrl,
     secret: process.env.SUPABASE_SECRET ?? "placeholder",
@@ -55,6 +59,8 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.APPLE_CLIENT_SECRET ?? "",
     }),
   ],
+  // Page de connexion NextAuth (doit correspondre à la route /signin existante)
+  pages: { signIn: "/signin" },
   session: { strategy: "jwt" },
   callbacks: {
     async signIn({ user, email }) {
